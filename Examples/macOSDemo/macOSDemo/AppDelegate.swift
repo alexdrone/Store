@@ -8,17 +8,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   @IBOutlet weak var label: NSTextField!
   private let store = Store<Counter, Counter.Action>(identifier: "counter",
                                                      reducer: CounterReducer())
+  private let dispatcher = Dispatcher.default
 
   @IBAction func increase(_ sender: Any) {
-    store.dispatch(action: .increase)
+    dispatcher.dispatch(action: Counter.Action.increase)
   }
 
   @IBAction func decrease(_ sender: Any) {
-    store.dispatch(action: .decrease)
+    dispatcher.dispatch(action: Counter.Action.decrease)
   }
 
   func applicationDidFinishLaunching(_ notification: Notification) {
-    store.register(observer: self) { state, _ in
+
+    self.dispatcher.register(store: self.store)
+    self.dispatcher.register(middleware: LoggerMiddleware())
+
+    self.store.register(observer: self) { state, _ in
       self.label.stringValue = "\(state.count)"
       self.label.setNeedsDisplay()
     }

@@ -17,7 +17,7 @@ public protocol AnyStore {
   func responds(to action: AnyAction) -> Bool
 
   /** Dispatches the action on the store. */
-  func dispatch(action: AnyAction, mode: Dispatcher.Mode)
+  func dispatch(action: AnyAction, mode: Dispatcher.Mode, completion: ((Void) -> (Void))?)
 }
 
 public struct StoreObserver<S: AnyState, A: AnyAction> {
@@ -66,9 +66,15 @@ public final class Store<S: AnyState, A: AnyAction>: AnyStore {
 
   /** Adds a new observer to the store. */
   public func register(observer: AnyObject, onChange: @escaping OnChange) {
+    precondition(Thread.isMainThread)
     let observer = StoreObserver<S, A>(self, closure: onChange)
     self.observers = self.observers.filter { $0.ref != nil }
     self.observers.append(observer)
+  }
+
+  public func unregister(observer: AnyObject) {
+    precondition(Thread.isMainThread)
+    self.observers = self.observers.filter { $0.ref != nil && $0.ref !== observer }
   }
 
   /** Whether this 'store' comply with the action passed as argument. */
@@ -87,7 +93,10 @@ public final class Store<S: AnyState, A: AnyAction>: AnyStore {
   }
 
   /** Dispatch an action on this store. */
-  public func dispatch(action: A, mode: Dispatcher.Mode = .serial) {
+  public func dispatch(action: A,
+                       mode: Dispatcher.Mode = .serial,
+                       completion: ((Void) -> (Void))? = nil) {
+
     let operation = self.reducer.operation(for: action, in: self)
     operation.finishBlock = { [weak self] in
       guard let `self` = self else {
@@ -107,6 +116,8 @@ public final class Store<S: AnyState, A: AnyAction>: AnyStore {
       } else {
         DispatchQueue.main.sync(execute: notifyObservers)
       }
+
+      completion?()
     }
 
     switch mode {
@@ -121,11 +132,14 @@ public final class Store<S: AnyState, A: AnyAction>: AnyStore {
   }
 
   /** Dispatch an action on this store. */
-  public func dispatch(action: AnyAction, mode: Dispatcher.Mode = .serial) {
+  public func dispatch(action: AnyAction,
+                       mode: Dispatcher.Mode = .serial,
+                       completion: ((Void) -> (Void))? = nil) {
+
     guard let action = action as? A else {
       return
     }
-    self.dispatch(action: action, mode: mode)
+    self.dispatch(action: action, mode: mode, completion: completion)
   }
 
 }
