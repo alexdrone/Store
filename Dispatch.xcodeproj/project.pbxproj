@@ -16,6 +16,8 @@
 		16426FBC1E81B3AD00402F95 /* Reducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1640F16E1E8179F6008EF97C /* Reducer.swift */; };
 		16426FBD1E81B3AD00402F95 /* Middleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1640F1721E81A142008EF97C /* Middleware.swift */; };
 		16426FBE1E81B3ED00402F95 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 16426FB41E81B39900402F95 /* Info.plist */; };
+		16DDDC0F1E81D870000E48C6 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16DDDC0E1E81D870000E48C6 /* Logger.swift */; };
+		16DDDC101E81D8A7000E48C6 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16DDDC0E1E81D870000E48C6 /* Logger.swift */; };
 		16FF6B551E805985001032B2 /* Dispatcher.h in Headers */ = {isa = PBXBuildFile; fileRef = 16FF6B531E805985001032B2 /* Dispatcher.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		16FF6B5C1E80599D001032B2 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16FF6B5B1E80599D001032B2 /* Store.swift */; };
 		16FF6B5F1E8077DA001032B2 /* Operations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16FF6B5E1E8077DA001032B2 /* Operations.swift */; };
@@ -28,6 +30,7 @@
 		16426FB11E81B39900402F95 /* Dispatch_macOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Dispatch_macOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		16426FB31E81B39900402F95 /* Dispatch_macOS.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Dispatch_macOS.h; sourceTree = "<group>"; };
 		16426FB41E81B39900402F95 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		16DDDC0E1E81D870000E48C6 /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		16FF6B501E805985001032B2 /* Dispatch.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Dispatch.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		16FF6B531E805985001032B2 /* Dispatcher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Dispatcher.h; sourceTree = "<group>"; };
 		16FF6B541E805985001032B2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -92,6 +95,7 @@
 				16FF6B601E808495001032B2 /* Dispatcher.swift */,
 				1640F16E1E8179F6008EF97C /* Reducer.swift */,
 				1640F1721E81A142008EF97C /* Middleware.swift */,
+				16DDDC0E1E81D870000E48C6 /* Logger.swift */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -218,6 +222,7 @@
 				16426FB91E81B3AD00402F95 /* Store.swift in Sources */,
 				16426FBA1E81B3AD00402F95 /* Operations.swift in Sources */,
 				16426FBB1E81B3AD00402F95 /* Dispatcher.swift in Sources */,
+				16DDDC101E81D8A7000E48C6 /* Logger.swift in Sources */,
 				16426FBC1E81B3AD00402F95 /* Reducer.swift in Sources */,
 				16426FBD1E81B3AD00402F95 /* Middleware.swift in Sources */,
 			);
@@ -230,6 +235,7 @@
 				1640F1731E81A142008EF97C /* Middleware.swift in Sources */,
 				16FF6B5F1E8077DA001032B2 /* Operations.swift in Sources */,
 				16FF6B5C1E80599D001032B2 /* Store.swift in Sources */,
+				16DDDC0F1E81D870000E48C6 /* Logger.swift in Sources */,
 				1640F16F1E8179F6008EF97C /* Reducer.swift in Sources */,
 				16FF6B611E808495001032B2 /* Dispatcher.swift in Sources */,
 			);

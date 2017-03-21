@@ -1,6 +1,8 @@
 import Foundation
 import Dispatch_macOS
 
+// MARK: - State
+
 struct Counter: AnyState {
 
   var count: Int
@@ -14,6 +16,8 @@ struct Counter: AnyState {
     case decrease
   }
 }
+
+// MARK: - Reducer
 
 class CounterReducer: Reducer<Counter, Counter.Action> {
 
