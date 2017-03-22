@@ -57,13 +57,12 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		16426FB21E81B39900402F95 /* Dispatch_macOS */ = {
+		16426FB21E81B39900402F95 /* macos */ = {
 			isa = PBXGroup;
 			children = (
 				16426FB31E81B39900402F95 /* Dispatch_macOS.h */,
 				16426FB41E81B39900402F95 /* Info.plist */,
 			);
-			name = Dispatch_macOS;
 			path = macos;
 			sourceTree = "<group>";
 		};
@@ -71,7 +70,7 @@
 			isa = PBXGroup;
 			children = (
 				16FF6B521E805985001032B2 /* src */,
-				16426FB21E81B39900402F95 /* Dispatch_macOS */,
+				16426FB21E81B39900402F95 /* macos */,
 				16FF6B511E805985001032B2 /* Products */,
 			);
 			sourceTree = "<group>";
