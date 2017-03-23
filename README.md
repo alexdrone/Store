@@ -54,10 +54,17 @@ First we need a `Counter` state and some actions associated to it.
 
 struct Counter: AnyState {
 
-  var count: Int
+  let count: Int
 
   static var initial: Counter {
     return Counter(count: 0)
+  }
+  
+  // We're implementing Counter as an immutable state, but Dispatch is
+  // not opinionated about state immutability.
+  // We could have 'count' as a var and simply change its value in the reducer.
+  func byAdding(value: Int) -> Counter {
+    return Counter(count: self.count + value)
   }
 
   enum Action: AnyAction {
@@ -84,13 +91,13 @@ class CounterReducer: Reducer<Counter, Counter.Action> {
 
     case .increase:
       return ActionOperation(action: action, store: store) { operation, _, store in
-        store.updateState { state in state.count += 1 } // You could also set the state instead of changing in order to ensure immutability.
+        store.updateState { state in state = state.byAdding(value: 1) }
         operation.finish()
       }
 
     case .decrease:
       return ActionOperation(action: action, store: store) { operation, _, store in
-        store.updateState { state in state.count -= 1 }
+        store.updateState { state in state = state.byAdding(value: -1) }
         operation.finish()
       }
 
