@@ -13,7 +13,7 @@ Flux applications have three major parts: the dispatcher, the stores, and the vi
 
 These should not be confused with Model-View-Controller. Controllers do exist in a Flux application, but they are controller-views — views often found at the top of the hierarchy that retrieve data from the stores and pass this data down to their children. 
 
-Dispatch eschews MVC in favor of a unidirectional data flow. When a user interacts with a view, the view propagates an action through a central dispatcher, to the various stores that hold the application's data and business logic, which updates all of the views that are affected. 
+Dispatch eschews MVC in favour of a unidirectional data flow. When a user interacts with a view, the view propagates an action through a central dispatcher, to the various stores that hold the application's data and business logic, which updates all of the views that are affected. 
 
 This works especially well with [Render](https://github.com/alexdrone/Render)'s declarative programming style, which allows the store to send updates without specifying how to transition views between states.
 
@@ -32,14 +32,14 @@ As an application grows, the dispatcher becomes more vital, as it can be used to
 
 The dispatcher can run actions in four different modes: `async`, `sync`, `serial` and `mainThread`.
 
-Additionally the trailing closure of the `dispatch` method can be used to chain some actions sequencially.
+Additionally the trailing closure of the `dispatch` method can be used to chain some actions sequentially.
 
 
 ### Stores 
 
 Stores contain the application state and logic. Their role is somewhat similar to a model in a traditional MVC, but they manage the state of many objects — they do not represent a single record of data like ORM models do. More than simply managing a collection of ORM-style objects, stores manage the application state for a particular domain within the application.
 
-As mentioned above, a store registers itself with the dispatcher. The store has a `Reducer` that tipically has a switch statement based on the action's type — 
+As mentioned above, a store registers itself with the dispatcher. The store has a `Reducer` that typically has a switch statement based on the action's type — 
 the reducer is the only *open* class provided from the framework, and the user of this library are expected to subclass it to return an operation for every action handled by the store.
 
 This allows an action to result in an update to the state of the store, via the dispatcher. After the stores are updated, they notify the observers that their state has changed, so the views may query the new state and update themselves.
@@ -48,7 +48,7 @@ This allows an action to result in an update to the state of the store, via the 
 ### Y NO Redux Implementation?
 
 *Redux* can be seen as a special *Dispatch* implementation.
-You can recreate a Redux configuration by having a single store registered to the Dispatcher and by ensuring state immutability in yout store.
+You can recreate a Redux configuration by having a single store registered to the Dispatcher and by ensuring state immutability in your store.
 
 
 # Getting started
@@ -86,7 +86,7 @@ struct Counter: AnyState {
 ```
 
 Now we need a `Reducer` that implements the business logic for the actions defined in `Counter.Action`.
-The reducer will have to change the state (that is owned by the  `Store`) and to do that in a synchronized fashion we use the `updateState(closure:)` function.
+The reducer will have to change the state (that is owned by the  `Store`) and to do that in a synchronised fashion we use the `updateState(closure:)` function.
 
 
 ```swift
@@ -143,8 +143,8 @@ store.register(observer: self) { state, _ in
 }
 ```
 
-A convenient way to have type-safe references to all of your stores is to expose them as a synthesized getter in your `Dispatcher`.
-That way you have a centralized unique entrypoint to access all of your stores.
+A convenient way to have type-safe references to all of your stores is to expose them as a synthesised getter in your `Dispatcher`.
+That way you have a centralised unique entry-point to access all of your stores.
 
 ```swift
 
@@ -170,8 +170,8 @@ This provides a third-party extension point between dispatching an action, and t
 ```swift
 
 protocol Middleware {
-  func willDispatch(transaction: String, action: AnyAction, in store: AnyStore) { }
-  func didDispatch(transaction: String, action: AnyAction, in store: AnyStore) { }
+  func willDispatch(transaction: String, action: AnyAction, in store: AnyStore) { ... }
+  func didDispatch(transaction: String, action: AnyAction, in store: AnyStore) { ... }
 }
 
 class Logger: Middleware { ... }
@@ -193,7 +193,7 @@ Dispatcher.default.dispatch(action: Action.foo) {
 }
 ```
 
-Similiarly you can achieve the same result by dispatching the two actions serially.
+Similarly you can achieve the same result by dispatching the two actions serially.
 
 ```swift
 Dispatcher.default.dispatch(action: Action.foo, mode: .serial)
