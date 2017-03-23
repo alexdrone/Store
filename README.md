@@ -24,7 +24,7 @@ This works especially well with [Render](https://github.com/alexdrone/Render)'s 
 
 <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/diag.png" width="640" alt="Diagram" />
 
-## Single Dispatcher 
+### Single Dispatcher 
 
 The dispatcher is the central hub that manages all data flow in your application. It is essentially a registry of callbacks into the stores and has no real intelligence of its own — it is a simple mechanism for distributing the actions to the stores. Each store registers itself and provides a callback. When an action creator provides the dispatcher with a new action, all stores in the application receive the action via the callbacks in the registry - and redirect the action to their reducer.
 
@@ -35,7 +35,7 @@ The dispatcher can run actions in four different modes: `async`, `sync`, `serial
 Additionally the trailing closure of the `dispatch` method can be used to chain some actions sequencially.
 
 
-## Stores 
+### Stores 
 
 Stores contain the application state and logic. Their role is somewhat similar to a model in a traditional MVC, but they manage the state of many objects — they do not represent a single record of data like ORM models do. More than simply managing a collection of ORM-style objects, stores manage the application state for a particular domain within the application.
 
@@ -45,7 +45,7 @@ the reducer is the only *open* class provided from the framework, and the user o
 This allows an action to result in an update to the state of the store, via the dispatcher. After the stores are updated, they notify the observers that their state has changed, so the views may query the new state and update themselves.
 
 
-## Y NO Redux Implementation?
+### Y NO Redux Implementation?
 
 *Redux* can be seen as a special *Dispatch* implementation.
 You can recreate a Redux configuration by having a single store registered to the Dispatcher and by ensuring state immutability in yout store.
