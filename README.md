@@ -156,8 +156,48 @@ extension Dispatcher {
 
 ```
 
-## Middleware
+# Advanced use
+
+Dispatch takes advantage of *Operations* and *OperationQueues* and you can define complex dependencies between the operations that are going to be run on your store.
+
+Also middleware support is available allowing you to quickly add some aspect-oriented feature to your design.
+
+### Middleware
 
 Any object that conforms to the `Middleware` protocol can register to the `Dispatcher`.
 This provides a third-party extension point between dispatching an action, and the moment it reaches the reducer. You could use middleware for logging, crash reporting, talking to an asynchronous API, routing, and more.
 
+```swift
+
+protocol Middleware {
+  func willDispatch(transaction: String, action: AnyAction, in store: AnyStore) { }
+  func didDispatch(transaction: String, action: AnyAction, in store: AnyStore) { }
+}
+
+class Logger: Middleware { ... }
+
+```
+Register your middleware by calling `register(middleware:)`.
+
+```swift
+Dispatcher.default.register(middleware: Logger())
+```
+
+### Chaining actions
+
+You can make sure that an action will be dispatched right after another one by using the `dispatch` method trailing closure.
+
+```swift
+Dispatcher.default.dispatch(action: Action.foo) {
+  Dispatcher.default.dispatch(action: Action.bar)
+}
+```
+
+Similiarly you can achieve the same result by dispatching the two actions serially.
+
+```swift
+Dispatcher.default.dispatch(action: Action.foo, mode: .serial)
+Dispatcher.default.dispatch(action: Action.bar, mode: .serial)
+```
+
+Also calling dispatch with `.sync` would have the same effect but it would block the thread that is currently dispatching the action until the operation is done - so make sure you dispatch your actions in `.sync` mode only if you are off the main thread.
