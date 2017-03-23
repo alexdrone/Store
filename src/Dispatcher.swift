@@ -46,7 +46,7 @@ public final class Dispatcher {
 
   /** Dispatch an action and redirects it to the correct store. */
   public func dispatch(storeIdentifier: String? = nil,
-                       action: AnyAction,
+                       action: ActionType,
                        mode: Dispatcher.Mode = .serial,
                        then: ((Void) -> (Void))? = nil) {
     var stores = self.stores
@@ -58,7 +58,7 @@ public final class Dispatcher {
     }
   }
 
-  private func run(action: AnyAction,
+  private func run(action: ActionType,
                    mode: Dispatcher.Mode = .serial,
                    store: AnyStore,
                    then: ((Void) -> (Void))? = nil) {

@@ -1,7 +1,7 @@
 import Foundation
 
 /** An operation associated to a specific action. */
-public class ActionOperation<S: AnyState, A: AnyAction>: AsynchronousOperation {
+public class ActionOperation<S: StateType, A: ActionType>: AsynchronousOperation {
 
   /** The operation execution block */
   public typealias ExecutionBlock = (AsynchronousOperation, A, Store<S, A>) -> Void

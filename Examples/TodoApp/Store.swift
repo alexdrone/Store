@@ -1,13 +1,16 @@
 import Foundation
 import Render
+import Dispatcher
+
+protocol State: Dispatcher.StateType, Render.StateType { }
 
 //MARK: - States
 
-class AppState: StateType {
+class AppState: State {
   var todoList = TodoListState()
 }
 
-class TodoState: StateType {
+class TodoState: State {
   let id: String = NSUUID().uuidString.lowercased()
   var isNew: Bool = true
   var isDone: Bool = false
@@ -15,7 +18,7 @@ class TodoState: StateType {
   var date: Date = Date()
 }
 
-class TodoListState: StateType {
+class TodoListState: State {
   var todos: [TodoState] = [TodoState()]
 }
 

@@ -7,14 +7,14 @@ public class LoggerMiddleware: Middleware {
   private var queue: [String: TimeInterval] = [:]
 
   /** An action is about to be dispatched. */
-  open override func willDispatch(transaction: String, action: AnyAction, in store: AnyStore) {
+  open override func willDispatch(transaction: String, action: ActionType, in store: AnyStore) {
     DispatchQueue.main.async {
       self.queue[transaction] = Date().timeIntervalSince1970
     }
   }
 
   /** An action just got dispatched. */
-  open override func didDispatch(transaction: String, action: AnyAction, in store: AnyStore) {
+  open override func didDispatch(transaction: String, action: ActionType, in store: AnyStore) {
     guard let timestamp = queue[transaction] else {
       return
     }

@@ -1,8 +1,8 @@
 import Foundation
 
-public protocol AnyAction { }
+public protocol ActionType { }
 
-public protocol AnyState {
+public protocol StateType {
 
   /** The initial 'empty' value for this state. */
   static var initial: Self { get }
@@ -14,13 +14,13 @@ public protocol AnyStore {
   var identifier: String { get set }
 
   /** Whether this 'store' comply with the action passed as argument. */
-  func responds(to action: AnyAction) -> Bool
+  func responds(to action: ActionType) -> Bool
 
   /** Dispatches the action on the store. */
-  func dispatchOperation(action: AnyAction, completion: ((Void) -> (Void))?) -> Operation?
+  func dispatchOperation(action: ActionType, completion: ((Void) -> (Void))?) -> Operation?
 }
 
-public struct StoreObserver<S: AnyState, A: AnyAction> {
+public struct StoreObserver<S: StateType, A: ActionType> {
 
   // The actual reference to the observer.
   fileprivate weak var ref: AnyObject?
@@ -34,7 +34,7 @@ public struct StoreObserver<S: AnyState, A: AnyAction> {
   }
 }
 
-public final class Store<S: AnyState, A: AnyAction>: AnyStore {
+public final class Store<S: StateType, A: ActionType>: AnyStore {
 
   public typealias OnChange = (S, A) -> (Void)
 
@@ -72,7 +72,7 @@ public final class Store<S: AnyState, A: AnyAction>: AnyStore {
   }
 
   /** Whether this 'store' comply with the action passed as argument. */
-  public func responds(to action: AnyAction) -> Bool {
+  public func responds(to action: ActionType) -> Bool {
     guard let _ = action as? A else {
       return false
     }
@@ -87,7 +87,7 @@ public final class Store<S: AnyState, A: AnyAction>: AnyStore {
   }
 
   /** Package the operation returned from the 'Reducer'. */
-  public func dispatchOperation(action: AnyAction,
+  public func dispatchOperation(action: ActionType,
                                 completion: ((Void) -> (Void))? = nil) -> Operation? {
 
     guard let action = action as? A else {

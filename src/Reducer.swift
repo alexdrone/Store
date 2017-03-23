@@ -1,6 +1,6 @@
 import Foundation
 
-open class Reducer<S: AnyState, A: AnyAction> {
+open class Reducer<S: StateType, A: ActionType> {
 
   public init() { }
 
