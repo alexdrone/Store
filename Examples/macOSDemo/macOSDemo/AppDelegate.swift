@@ -16,7 +16,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
   @IBAction func decrease(_ sender: Any) {
     self.dispatcher.dispatch(action: Counter.Action.decrease, mode: .async)
-
   }
 
   func applicationDidFinishLaunching(_ notification: Notification) {

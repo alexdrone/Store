@@ -30,8 +30,89 @@ The dispatcher is the central hub that manages all data flow in your application
 
 As an application grows, the dispatcher becomes more vital, as it can be used to manage dependencies between the stores by invoking the registered callbacks in a specific order. Stores can declaratively wait for other stores to finish updating, and then update themselves accordingly.
 
+The dispatcher can run actions in four different modes: `async`, `sync`, `serial` and `mainThread`.
+
+Additionally the trailing closure of the `dispatch` method can be used to chain some actions sequencially.
+
 # Stores 
 
 Stores contain the application state and logic. Their role is somewhat similar to a model in a traditional MVC, but they manage the state of many objects — they do not represent a single record of data like ORM models do. More than simply managing a collection of ORM-style objects, stores manage the application state for a particular domain within the application.
 
-As mentioned above, a store registers itself with the dispatcher. The store has a reducer that tipically has a switch statement based on the action's type. This allows an action to result in an update to the state of the store, via the dispatcher. After the stores are updated, they notify the observers that their state has changed, so the views may query the new state and update themselves.
+As mentioned above, a store registers itself with the dispatcher. The store has a `Reducer` that tipically has a switch statement based on the action's type — 
+the reducer is the only *open* class provided from the framework, and the user of this library are expected to subclass it to return an operation for every action handled by the store.
+
+This allows an action to result in an update to the state of the store, via the dispatcher. After the stores are updated, they notify the observers that their state has changed, so the views may query the new state and update themselves.
+
+# Getting started
+
+Let's implement a counter application in **Dispatch**.
+
+First we need a `Counter` state and some actions associated to it.
+
+
+```swift
+
+struct Counter: AnyState {
+
+  var count: Int
+
+  static var initial: Counter {
+    return Counter(count: 0)
+  }
+
+  enum Action: AnyAction {
+    case increase
+    case decrease
+  }
+}
+
+```
+
+Now we need a `Reducer` that implements the business logic for the actions defined in `Counter.Action`.
+The reducer will have to change the state (that is owned by the  `Store`) and to do that in a synchronized fashion we use the `updateState(closure:)` function.
+
+
+```swift
+class CounterReducer: Reducer<Counter, Counter.Action> {
+
+  override func operation(for action: Counter.Action, 
+                          in store: Store<Counter, Counter.Action>) -> ActionOperation<Counter, Counter.Action> {
+    switch action {
+    case .increase:
+      return ActionOperation(action: action, store: store, block: self.increase)
+    case .decrease:
+      return ActionOperation(action: action, store: store, block: self.decrease)
+    }
+  }
+
+  // Increase the counter.
+  private func increase(operation: AsynchronousOperation,
+                        action: Counter.Action,
+                        store: Store<Counter, Counter.Action>) {
+    store.updateState { state in
+      state.count += 1
+    }
+    operation.finish()
+  }
+
+  // Decrease the counter.
+  private func decrease(operation: AsynchronousOperation,
+                        action: Counter.Action,
+                        store: Store<Counter, Counter.Action>) {
+    store.updateState { state in
+      state.count -= 1
+    }
+    operation.finish()
+  }
+
+}
+
+```
+
+Now let's see how to instantiate a `Store` and how to register it to the default `Dispatcher`.
+
+
+```swift
+let store = Store<Counter, Counter.Action>(identifier: "counter", reducer: CounterReducer())
+Dispatcher.default.register(stoere: store)
+```
