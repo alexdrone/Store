@@ -37,7 +37,7 @@ extension ViewController {
   override func tableView(_ tableView: UITableView,
                           numberOfRowsInSection section: Int) -> Int {
     let appState = self.dispatcher.appStore.state
-    return appState.todoList.todos.count
+    return appState.todoList.count
   }
 
   override func tableView(_ tableView: UITableView,
@@ -54,7 +54,7 @@ extension ViewController {
     let appState = self.dispatcher.appStore.state
 
     componentCell.mountComponentIfNecessary(TodoComponentView())
-    componentCell.state = appState.todoList.todos[indexPath.row]
+    componentCell.state = appState.todoList[indexPath.row]
     componentCell.componentView?.delegate = self
     componentCell.render()
     return cell

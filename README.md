@@ -59,12 +59,16 @@ First we need a `Counter` state and some actions associated to it.
 
 ```swift
 
-struct Counter: AnyState {
+struct Counter: StateType {
 
   let count: Int
 
-  static var initial: Counter {
-    return Counter(count: 0)
+  init() {
+    self.count = 0
+  }
+
+  init(count: Int) {
+    self.count = count
   }
   
   // In this example we are implementing Counter as an immutable state, but Dispatch is
@@ -74,7 +78,7 @@ struct Counter: AnyState {
     return Counter(count: self.count + value)
   }
 
-  enum Action: AnyAction {
+  enum Action: ActionType {
     case increase
     case decrease
     case add(amount: Int)
@@ -200,3 +204,9 @@ Dispatcher.default.dispatch(action: Action.bar, mode: .serial)
 ```
 
 Also calling dispatch with `.sync` would have the same effect but it would block the thread that is currently dispatching the action until the operation is done - so make sure you dispatch your actions in `.sync` mode only if you are off the main thread.
+
+# Use with Render
+
+Views in this model are simple function of your state. This works especially well with [Render](https://github.com/alexdrone/Render)'s declarative programming style.
+
+Checkout the **TodoApp** example to see how to get the best out of **Dispatch** and **Render**.
