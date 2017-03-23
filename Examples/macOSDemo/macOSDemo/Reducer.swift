@@ -36,8 +36,8 @@ class CounterReducer: Reducer<Counter, Counter.Action> {
                         store: Store<Counter, Counter.Action>) {
     store.updateState { state in
       state.count += 1
-      operation.finish()
     }
+    operation.finish()
   }
 
   private func decrease(operation: AsynchronousOperation,
@@ -45,8 +45,8 @@ class CounterReducer: Reducer<Counter, Counter.Action> {
                         store: Store<Counter, Counter.Action>) {
     store.updateState { state in
       state.count -= 1
-      operation.finish()
     }
+    operation.finish()
   }
 
 }

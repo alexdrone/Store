@@ -11,11 +11,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   private let dispatcher = Dispatcher.default
 
   @IBAction func increase(_ sender: Any) {
-    dispatcher.dispatch(action: Counter.Action.increase)
+    self.dispatcher.dispatch(action: Counter.Action.increase, mode: .async)
   }
 
   @IBAction func decrease(_ sender: Any) {
-    dispatcher.dispatch(action: Counter.Action.decrease)
+    self.dispatcher.dispatch(action: Counter.Action.decrease, mode: .async)
+
   }
 
   func applicationDidFinishLaunching(_ notification: Notification) {

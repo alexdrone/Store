@@ -17,7 +17,7 @@ public protocol AnyStore {
   func responds(to action: AnyAction) -> Bool
 
   /** Dispatches the action on the store. */
-  func dispatch(action: AnyAction, mode: Dispatcher.Mode, completion: ((Void) -> (Void))?)
+  func dispatchOperation(action: AnyAction, completion: ((Void) -> (Void))?) -> Operation?
 }
 
 public struct StoreObserver<S: AnyState, A: AnyAction> {
@@ -51,12 +51,6 @@ public final class Store<S: AnyState, A: AnyAction>: AnyStore {
     self.identifier = identifier
     self.reducer = reducer
   }
-
-  // The main queue used for the .async mode.
-  private let queue = OperationQueue()
-
-  // The serial queue used for the .serial mode.
-  private let serialQueue = OperationQueue()
 
   // Syncronizes the access tp the state object.
   private let stateLock = NSRecursiveLock()
@@ -92,24 +86,27 @@ public final class Store<S: AnyState, A: AnyAction>: AnyStore {
     self.stateLock.unlock()
   }
 
-  /** Dispatch an action on this store. */
-  public func dispatch(action: A,
-                       mode: Dispatcher.Mode = .serial,
-                       completion: ((Void) -> (Void))? = nil) {
+  /** Package the operation returned from the 'Reducer'. */
+  public func dispatchOperation(action: AnyAction,
+                                completion: ((Void) -> (Void))? = nil) -> Operation? {
 
+    guard let action = action as? A else {
+      return nil
+    }
+
+    // Retrieve the operation from the 'Reducer'.
     let operation = self.reducer.operation(for: action, in: self)
+
     operation.finishBlock = { [weak self] in
       guard let `self` = self else {
         return
       }
-
       func notifyObservers() {
         // Notify the observers.
         for observer in self.observers where observer.ref != nil {
           observer.closure(self.state, action)
         }
       }
-
       // Makes sure the observers are notified on the main thread.
       if Thread.isMainThread {
         notifyObservers()
@@ -117,29 +114,10 @@ public final class Store<S: AnyState, A: AnyAction>: AnyStore {
         DispatchQueue.main.sync(execute: notifyObservers)
       }
 
+      // Run the completion provided from the 'Dispatcher'.
       completion?()
     }
-
-    switch mode {
-    case .async:
-      self.queue.addOperation(operation)
-    case .serial:
-      self.serialQueue.addOperation(operation)
-    case .sync:
-      operation.start()
-      operation.waitUntilFinished()
-    }
-  }
-
-  /** Dispatch an action on this store. */
-  public func dispatch(action: AnyAction,
-                       mode: Dispatcher.Mode = .serial,
-                       completion: ((Void) -> (Void))? = nil) {
-
-    guard let action = action as? A else {
-      return
-    }
-    self.dispatch(action: action, mode: mode, completion: completion)
+    return operation
   }
 
 }

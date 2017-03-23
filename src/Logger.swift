@@ -8,7 +8,9 @@ public class LoggerMiddleware: Middleware {
 
   /** An action is about to be dispatched. */
   open override func willDispatch(transaction: String, action: AnyAction, in store: AnyStore) {
-    queue[transaction] = Date().timeIntervalSince1970
+    DispatchQueue.main.async {
+      self.queue[transaction] = Date().timeIntervalSince1970
+    }
   }
 
   /** An action just got dispatched. */
@@ -16,8 +18,10 @@ public class LoggerMiddleware: Middleware {
     guard let timestamp = queue[transaction] else {
       return
     }
-    let duration =  Date().timeIntervalSince1970 - timestamp
-    queue[transaction] = nil
-    print(String(format: "▦ \(store.identifier).\(action) (%1f)ms.", arguments: [duration*1000]))
+    DispatchQueue.main.async {
+      let duration = Date().timeIntervalSince1970 - timestamp
+      self.queue[transaction] = nil
+      print(String(format: "▦ \(store.identifier).\(action) (%1f)ms.", arguments: [duration*1000]))
+    }
   }
 }
