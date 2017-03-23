@@ -3,7 +3,7 @@ import Dispatcher_macOS
 
 // MARK: - State
 
-struct Counter: AnyState {
+struct Counter: StateType {
 
   var count: Int
 
@@ -11,7 +11,7 @@ struct Counter: AnyState {
     return Counter(count: 0)
   }
 
-  enum Action: AnyAction {
+  enum Action: ActionType {
     case increase
     case decrease
   }

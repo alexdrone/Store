@@ -4,8 +4,8 @@ public protocol ActionType { }
 
 public protocol StateType {
 
-  /** The initial 'empty' value for this state. */
-  static var initial: Self { get }
+  init()
+
 }
 
 public protocol AnyStore {
@@ -39,7 +39,7 @@ public final class Store<S: StateType, A: ActionType>: AnyStore {
   public typealias OnChange = (S, A) -> (Void)
 
   /** The current state for the Store. */
-  public private(set) var state: S = S.initial
+  public private(set) var state: S = S()
 
   /** The reducer function for this store. */
   public let reducer: Reducer<S, A>
