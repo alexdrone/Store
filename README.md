@@ -5,7 +5,7 @@
 [![Platform](https://img.shields.io/badge/platform-ios|macos|tvos|watchos-lightgrey.svg?style=flat)](#)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://opensource.org/licenses/MIT)
 
-*A lightweight, thread-safe, multi-store Flux implementation in Swift.*
+*A lightweight, operation based, multi-store Flux implementation in Swift.*
 
 
 **Dispatch** is a [Flux](https://facebook.github.io/flux/docs/overview.html)-like implementation of the unidirectional data flow architecture in Swift.
@@ -109,4 +109,25 @@ Dispatching an action is as easy as calling:
 
 ```swift
 Dispatcher.default.dispatch(Counter.Action.increase)
+```
+
+Any object can register themselves as a observer for a given store by calling `register(observer:callback:)`.
+
+```swift
+store.register(observer: self) { state, _ in
+  print(state)
+}
+```
+
+A convenient way to have type-safe references to all of your stores is to expose them as a synthesized getter in your `Dispatcher`.
+That way you have a centralized unique entrypoint to access all of your stores.
+
+```swift
+
+extension Dispatcher {
+  var counterStore: Store<Counter, Counter.Action> {
+    return self.store(with: "counter") as? Store<Counter, Counter.Action>
+  }
+}
+
 ```
