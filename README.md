@@ -63,6 +63,8 @@ struct Counter: AnyState {
   enum Action: AnyAction {
     case increase
     case decrease
+    case add(amount: Int)
+    case remove(amount: Int)
   }
 }
 
@@ -92,6 +94,7 @@ class CounterReducer: Reducer<Counter, Counter.Action> {
         operation.finish()
       }
 
+      ...
     }
   }
 }
@@ -102,7 +105,7 @@ Now let's see how to instantiate a `Store` with our newly defined `Reducer` and 
 
 ```swift
 let store = Store<Counter, Counter.Action>(identifier: "counter", reducer: CounterReducer())
-Dispatcher.default.register(stoere: store)
+Dispatcher.default.register(store: store)
 ```
 
 Dispatching an action is as easy as calling:
