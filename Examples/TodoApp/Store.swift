@@ -1,8 +1,22 @@
 import Foundation
-import Dispatcher
+import Dispatcher_iOS
 import Render
 
-protocol State: Dispatcher.framework.St { }
+protocol State: Dispatcher_iOS.StateType, Render.StateType { }
+
+//MARK: - Dispatcher Extension
+
+extension Dispatcher {
+
+  var appStore: Store<AppState, Action> {
+    return self.store(with: "appStore") as! Store<AppState, Action>
+  }
+
+  func initAppStore() {
+    let store = Store<AppState, Action>(identifier: "appStore", reducer: TodoReducer())
+    Dispatcher.default.register(store: store)
+  }
+}
 
 //MARK: - States
 
@@ -27,7 +41,7 @@ final class TodoListState: State {
 
 //MARK: - Actions
 
-enum Action {
+enum Action: ActionType {
   case add
   case name(id: String, title: String)
   case check(id: String)
@@ -36,51 +50,64 @@ enum Action {
 
 //MARK: - Reducer
 
-protocol Observer: class {
-  func onStateChange(_ state: AppState)
-}
+class TodoReducer: Reducer<AppState, Action> {
 
-final class Store {
+  override func operation(for action: Action,
+                          in store: Store<AppState, Action>) -> ActionOperation<AppState, Action> {
 
-  var state = AppState()
-  var observers: [Observer] = []
-
-  func register(observer: Observer) {
-    self.observers.append(observer)
-  }
-
-  func deregister(observer: Observer) {
-    self.observers = self.observers.filter { $0 === observer }
-  }
-
-  func dispatch(action: Action) {
     switch action {
-
     case .add:
-      let new = self.state.todoList.todos.filter { $0.isNew }
-      guard new.isEmpty else {
-        return
-      }
-      self.state.todoList.todos.insert(TodoState(), at: 0)
+      return ActionOperation(action: action, store: store, block: self.add)
 
-    case .name(let id, let title):
-      for todo in self.state.todoList.todos where todo.id == id {
+    case .name(_, _):
+      return ActionOperation(action: action, store: store, block: self.name)
+
+    case .clear:
+      return ActionOperation(action: action, store: store, block: self.clear)
+
+    case .check(_):
+      return ActionOperation(action: action, store: store, block: self.check)
+    }
+  }
+
+  private func add(operation: AsynchronousOperation,
+                   action: Action,
+                   store: Store<AppState, Action>) {
+    defer { operation.finish() }
+    guard store.state.todoList.todos.filter({ $0.isNew }).isEmpty else { return  }
+    store.updateState { $0.todoList.todos.insert(TodoState(), at: 0) }
+  }
+
+  private func name(operation: AsynchronousOperation,
+                    action: Action,
+                    store: Store<AppState, Action>) {
+    defer { operation.finish() }
+    guard case .name(let id, let title) = action else { return }
+    store.updateState {
+      for todo in $0.todoList.todos where todo.id == id {
         todo.isNew = false
         todo.title = title
         todo.date = Date()
       }
-
-    case .check(let id):
-      let todo = self.state.todoList.todos.filter { $0.id == id }.first
-      todo?.isDone = true
-
-    case .clear:
-      self.state.todoList = TodoListState()
-
-    }
-
-    for observer in self.observers {
-      observer.onStateChange(self.state)
     }
   }
+
+  private func clear(operation: AsynchronousOperation,
+                     action: Action,
+                     store: Store<AppState, Action>) {
+    defer { operation.finish() }
+    store.updateState { $0 = AppState() }
+  }
+
+  private func check(operation: AsynchronousOperation,
+                     action: Action,
+                     store: Store<AppState, Action>) {
+    defer { operation.finish() }
+    guard case .check(let id) = action else { return }
+    store.updateState {
+      let todo = $0.todoList.todos.filter { $0.id == id }.first
+      todo?.isDone = true
+    }
+  }
+
 }

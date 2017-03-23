@@ -15,12 +15,12 @@
 		161AE6491E7B7C980038FBE0 /* TodoComponentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 161AE6481E7B7C980038FBE0 /* TodoComponentView.swift */; };
 		161AE6501E7B835E0038FBE0 /* AppToolbarViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 161AE64F1E7B835E0038FBE0 /* AppToolbarViewController.swift */; };
 		161AE6521E7B86310038FBE0 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = 161AE6511E7B86310038FBE0 /* Store.swift */; };
-		167A43461E84572100083790 /* Dispatcher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 167A43431E84572100083790 /* Dispatcher.framework */; };
-		167A43471E84572100083790 /* Dispatcher.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 167A43431E84572100083790 /* Dispatcher.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		167A43481E84572100083790 /* Material.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 167A43441E84572100083790 /* Material.framework */; };
 		167A43491E84572100083790 /* Material.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 167A43441E84572100083790 /* Material.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		167A434A1E84572100083790 /* Render.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 167A43451E84572100083790 /* Render.framework */; };
 		167A434B1E84572100083790 /* Render.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 167A43451E84572100083790 /* Render.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		167A434D1E845FBA00083790 /* Dispatcher_iOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 167A434C1E845FBA00083790 /* Dispatcher_iOS.framework */; };
+		167A434E1E845FBA00083790 /* Dispatcher_iOS.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 167A434C1E845FBA00083790 /* Dispatcher_iOS.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -30,8 +30,8 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				167A434E1E845FBA00083790 /* Dispatcher_iOS.framework in Embed Frameworks */,
 				167A434B1E84572100083790 /* Render.framework in Embed Frameworks */,
-				167A43471E84572100083790 /* Dispatcher.framework in Embed Frameworks */,
 				167A43491E84572100083790 /* Material.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
@@ -50,9 +50,9 @@
 		161AE6481E7B7C980038FBE0 /* TodoComponentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TodoComponentView.swift; sourceTree = "<group>"; };
 		161AE64F1E7B835E0038FBE0 /* AppToolbarViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppToolbarViewController.swift; sourceTree = "<group>"; };
 		161AE6511E7B86310038FBE0 /* Store.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
-		167A43431E84572100083790 /* Dispatcher.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Dispatcher.framework; path = Frameworks/Carthage/Build/iOS/Dispatcher.framework; sourceTree = "<group>"; };
 		167A43441E84572100083790 /* Material.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Material.framework; path = Frameworks/Carthage/Build/iOS/Material.framework; sourceTree = "<group>"; };
 		167A43451E84572100083790 /* Render.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Render.framework; path = Frameworks/Carthage/Build/iOS/Render.framework; sourceTree = "<group>"; };
+		167A434C1E845FBA00083790 /* Dispatcher_iOS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Dispatcher_iOS.framework; path = Frameworks/Carthage/Build/iOS/Dispatcher_iOS.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,8 +60,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				167A434D1E845FBA00083790 /* Dispatcher_iOS.framework in Frameworks */,
 				167A434A1E84572100083790 /* Render.framework in Frameworks */,
-				167A43461E84572100083790 /* Dispatcher.framework in Frameworks */,
 				167A43481E84572100083790 /* Material.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -72,7 +72,7 @@
 		161AE6221E7B79600038FBE0 = {
 			isa = PBXGroup;
 			children = (
-				167A43431E84572100083790 /* Dispatcher.framework */,
+				167A434C1E845FBA00083790 /* Dispatcher_iOS.framework */,
 				167A43441E84572100083790 /* Material.framework */,
 				167A43451E84572100083790 /* Render.framework */,
 				161AE62D1E7B79600038FBE0 /* TodoApp */,
