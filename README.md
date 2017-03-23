@@ -205,7 +205,7 @@ Dispatcher.default.dispatch(action: Action.bar, mode: .serial)
 
 Also calling dispatch with `.sync` would have the same effect but it would block the thread that is currently dispatching the action until the operation is done - so make sure you dispatch your actions in `.sync` mode only if you are off the main thread.
 
-# Use with Render
+### Use with Render
 
 Views in this model are simple function of your state. This works especially well with [Render](https://github.com/alexdrone/Render)'s declarative programming style.
 
