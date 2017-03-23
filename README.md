@@ -170,8 +170,8 @@ This provides a third-party extension point between dispatching an action, and t
 ```swift
 
 protocol Middleware {
-  func willDispatch(transaction: String, action: AnyAction, in store: AnyStore) { ... }
-  func didDispatch(transaction: String, action: AnyAction, in store: AnyStore) { ... }
+  func willDispatch(transaction: String, action: AnyAction, in store: AnyStore)
+  func didDispatch(transaction: String, action: AnyAction, in store: AnyStore)
 }
 
 class Logger: Middleware { ... }
