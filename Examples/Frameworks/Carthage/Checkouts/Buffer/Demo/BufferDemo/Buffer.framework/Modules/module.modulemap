@@ -1,0 +1,10 @@
+framework module Buffer {
+  umbrella header "Buffer.h"
+
+  export *
+  module * { export * }
+}
+
+module Buffer.Swift {
+    header "Buffer-Swift.h"
+}
