@@ -24,7 +24,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		167A43161E8452C900083790 /* Dispatcher.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Dispatcher.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		167A43161E8452C900083790 /* Dispatcher_iOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Dispatcher_iOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		167A43191E8452C900083790 /* Dispatcher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Dispatcher.h; sourceTree = "<group>"; };
 		167A431A1E8452C900083790 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		167A43211E8453A300083790 /* Dispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Dispatcher.swift; sourceTree = "<group>"; };
@@ -60,7 +60,7 @@
 			isa = PBXGroup;
 			children = (
 				167A43181E8452C900083790 /* src */,
-				167A43331E8453E100083790 /* Dispatcher_macOS */,
+				167A43331E8453E100083790 /* macos */,
 				167A43171E8452C900083790 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -68,7 +68,7 @@
 		167A43171E8452C900083790 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				167A43161E8452C900083790 /* Dispatcher.framework */,
+				167A43161E8452C900083790 /* Dispatcher_iOS.framework */,
 				167A43321E8453E100083790 /* Dispatcher_macOS.framework */,
 			);
 			name = Products;
@@ -89,13 +89,12 @@
 			path = src;
 			sourceTree = "<group>";
 		};
-		167A43331E8453E100083790 /* Dispatcher_macOS */ = {
+		167A43331E8453E100083790 /* macos */ = {
 			isa = PBXGroup;
 			children = (
 				167A43341E8453E100083790 /* Dispatcher_macOS.h */,
 				167A43351E8453E100083790 /* Info.plist */,
 			);
-			name = Dispatcher_macOS;
 			path = macos;
 			sourceTree = "<group>";
 		};
@@ -121,9 +120,9 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		167A43151E8452C900083790 /* Dispatcher */ = {
+		167A43151E8452C900083790 /* Dispatcher_iOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 167A431E1E8452C900083790 /* Build configuration list for PBXNativeTarget "Dispatcher" */;
+			buildConfigurationList = 167A431E1E8452C900083790 /* Build configuration list for PBXNativeTarget "Dispatcher_iOS" */;
 			buildPhases = (
 				167A43111E8452C900083790 /* Sources */,
 				167A43121E8452C900083790 /* Frameworks */,
@@ -134,9 +133,9 @@
 			);
 			dependencies = (
 			);
-			name = Dispatcher;
+			name = Dispatcher_iOS;
 			productName = Dispatcher;
-			productReference = 167A43161E8452C900083790 /* Dispatcher.framework */;
+			productReference = 167A43161E8452C900083790 /* Dispatcher_iOS.framework */;
 			productType = "com.apple.product-type.framework";
 		};
 		167A43311E8453E100083790 /* Dispatcher_macOS */ = {
@@ -189,7 +188,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				167A43151E8452C900083790 /* Dispatcher */,
+				167A43151E8452C900083790 /* Dispatcher_iOS */,
 				167A43311E8453E100083790 /* Dispatcher_macOS */,
 			);
 		};
@@ -436,7 +435,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		167A431E1E8452C900083790 /* Build configuration list for PBXNativeTarget "Dispatcher" */ = {
+		167A431E1E8452C900083790 /* Build configuration list for PBXNativeTarget "Dispatcher_iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				167A431F1E8452C900083790 /* Debug */,
@@ -452,6 +451,7 @@
 				167A43391E8453E100083790 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

@@ -15,8 +15,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "167A43151E8452C900083790"
-               BuildableName = "Dispatcher.framework"
-               BlueprintName = "Dispatcher"
+               BuildableName = "Dispatcher_iOS.framework"
+               BlueprintName = "Dispatcher_iOS"
                ReferencedContainer = "container:Dispatcher.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -46,8 +46,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "167A43151E8452C900083790"
-            BuildableName = "Dispatcher.framework"
-            BlueprintName = "Dispatcher"
+            BuildableName = "Dispatcher_iOS.framework"
+            BlueprintName = "Dispatcher_iOS"
             ReferencedContainer = "container:Dispatcher.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -64,8 +64,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "167A43151E8452C900083790"
-            BuildableName = "Dispatcher.framework"
-            BlueprintName = "Dispatcher"
+            BuildableName = "Dispatcher_iOS.framework"
+            BlueprintName = "Dispatcher_iOS"
             ReferencedContainer = "container:Dispatcher.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

@@ -1,37 +1,28 @@
 import Foundation
 import Dispatcher
+import Render
 
+protocol State: Dispatcher.framework.St { }
 
 //MARK: - States
 
-class AppState: StateType {
+final class AppState: State {
   /** The initial 'empty' value for this state. */
-
   var todoList = TodoListState()
-
-  static var initial: AppState {
-    return AppState()
-  }
 }
 
-class TodoState: StateType {
+final class TodoState: State {
   let id: String = NSUUID().uuidString.lowercased()
   var isNew: Bool = true
   var isDone: Bool = false
   var title: String = ""
   var date: Date = Date()
 
-  static var initial: TodoState {
-    return TodoState()
-  }
 }
 
-class TodoListState: StateType {
+final class TodoListState: State {
   var todos: [TodoState] = [TodoState()]
 
-  static var initial: TodoListState {
-    return TodoListState()
-  }
 }
 
 //MARK: - Actions
