@@ -11,8 +11,6 @@
 		16426F881E81A51600402F95 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 16426F871E81A51600402F95 /* Assets.xcassets */; };
 		16426F8B1E81A51600402F95 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 16426F891E81A51600402F95 /* MainMenu.xib */; };
 		16426F951E81A8E600402F95 /* Reducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16426F941E81A8E600402F95 /* Reducer.swift */; };
-		16426FA91E81A98900402F95 /* Dispatch_macOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 16426FA81E81A98900402F95 /* Dispatch_macOS.framework */; };
-		16426FAA1E81A98900402F95 /* Dispatch_macOS.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 16426FA81E81A98900402F95 /* Dispatch_macOS.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -22,7 +20,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				16426FAA1E81A98900402F95 /* Dispatch_macOS.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -36,7 +33,6 @@
 		16426F8A1E81A51600402F95 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		16426F8C1E81A51600402F95 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		16426F941E81A8E600402F95 /* Reducer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Reducer.swift; sourceTree = "<group>"; };
-		16426FA81E81A98900402F95 /* Dispatch_macOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Dispatch_macOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -44,7 +40,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				16426FA91E81A98900402F95 /* Dispatch_macOS.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -54,7 +49,6 @@
 		16426F791E81A51600402F95 = {
 			isa = PBXGroup;
 			children = (
-				16426FA81E81A98900402F95 /* Dispatch_macOS.framework */,
 				16426F841E81A51600402F95 /* macOSDemo */,
 				16426F831E81A51600402F95 /* Products */,
 			);
