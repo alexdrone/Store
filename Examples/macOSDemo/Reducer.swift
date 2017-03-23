@@ -1,5 +1,5 @@
 import Foundation
-import Dispatch_macOS
+import Dispatcher_macOS
 
 // MARK: - State
 

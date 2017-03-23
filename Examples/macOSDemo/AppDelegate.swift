@@ -1,5 +1,5 @@
 import Cocoa
-import Dispatch_macOS
+import Dispatcher_macOS
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
