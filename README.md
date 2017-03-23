@@ -84,7 +84,7 @@ class CounterReducer: Reducer<Counter, Counter.Action> {
 
     case .increase:
       return ActionOperation(action: action, store: store) { operation, _, store in
-        store.updateState { state in state.count += 1 }
+        store.updateState { state in state.count += 1 } // You could also set the state instead of changing in order to ensure immutability.
         operation.finish()
       }
 
