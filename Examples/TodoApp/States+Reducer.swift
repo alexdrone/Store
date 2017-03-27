@@ -4,36 +4,18 @@ import Render
 
 protocol State: Dispatcher_iOS.StateType, Render.StateType { }
 
-//MARK: - Dispatcher Extension
-
-extension Dispatcher {
-
-  var appStore: Store<AppState, Action> {
-    return self.store(with: "appStore") as! Store<AppState, Action>
-  }
-
-  func initAppStore() {
-    let store = Store<AppState, Action>(identifier: "appStore", reducer: TodoReducer())
-    Dispatcher.default.register(store: store)
-  }
-}
-
 //MARK: - States
 
 struct AppState: State {
-  /** The initial 'empty' value for this state. */
   let todoList: [TodoState]
 
   init() {
+    /** The initial 'empty' value for this state. */
     self.todoList = []
   }
 
   init(list: [TodoState]) {
     self.todoList = list
-  }
-
-  func with(list: [TodoState]) -> AppState {
-    return AppState(list: list)
   }
 }
 
@@ -103,10 +85,15 @@ class TodoReducer: Reducer<AppState, Action> {
                    store: Store<AppState, Action>) {
     defer { operation.finish() }
     guard store.state.todoList.filter({ $0.isNew }).isEmpty else { return  }
-    store.updateState {
-      var list = $0.todoList
+
+    store.updateState {  appState in
+
+      // Make a copy of the todolist and add a new item on top of it.
+      var list = appState.todoList
       list.insert(TodoState(), at: 0)
-      $0 = $0.with(list: list)
+
+      // Create a new appstate with the new list.
+      appState = AppState(list: list)
     }
   }
 
@@ -115,12 +102,18 @@ class TodoReducer: Reducer<AppState, Action> {
                     store: Store<AppState, Action>) {
     defer { operation.finish() }
     guard case .name(let id, let title) = action else { return }
-    store.updateState {
 
-      guard let index = $0.todoList.index(where: { $0.id == id }) else { return }
-      var list = $0.todoList
-      list[index] = $0.todoList[index].with(title: title)
-      $0 = $0.with(list: list)
+    store.updateState { appState in
+
+      // Get the index of the todo item with the given id
+      guard let index = appState.todoList.index(where: { $0.id == id }) else { return }
+
+      // Make a copy of the todolist and set the title for the item at the index just found.
+      var list = appState.todoList
+      list[index] = appState.todoList[index].with(title: title)
+
+      // Create a new appstate with the new list.
+      appState = AppState(list: list)
     }
   }
 
@@ -128,7 +121,10 @@ class TodoReducer: Reducer<AppState, Action> {
                      action: Action,
                      store: Store<AppState, Action>) {
     defer { operation.finish() }
-    store.updateState { $0 = AppState() }
+
+    store.updateState { appState in
+      appState = AppState()
+    }
   }
 
   private func check(operation: AsynchronousOperation,
@@ -136,13 +132,35 @@ class TodoReducer: Reducer<AppState, Action> {
                      store: Store<AppState, Action>) {
     defer { operation.finish() }
     guard case .check(let id) = action else { return }
-    store.updateState {
 
-      guard let index = $0.todoList.index(where: { $0.id == id }) else { return }
-      var list = $0.todoList
-      list[index] = $0.todoList[index].markDone()
-      $0 = $0.with(list: list)
+    store.updateState { appState in
+
+      // Get the index of the todo item with the given id
+      guard let index = appState.todoList.index(where: { $0.id == id }) else { return }
+
+      // Make a copy of the todolist and mark the item at the index just found as 'done'.
+      var list = appState.todoList
+      list[index] = appState.todoList[index].markDone()
+
+      // Create a new appstate with the new list.
+      appState = AppState(list: list)
     }
   }
-
 }
+
+//MARK: - Dispatcher Extension
+
+extension Dispatcher {
+
+  /** Convenience getter for the appstore. */
+  var appStore: Store<AppState, Action> {
+    return self.store(with: "appStore") as! Store<AppState, Action>
+  }
+
+  /** Creates the AppStore and register it to this 'dispatcher'. */
+  func initAppStore() {
+    let store = Store<AppState, Action>(identifier: "appStore", reducer: TodoReducer())
+    Dispatcher.default.register(store: store)
+  }
+}
+
