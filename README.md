@@ -183,8 +183,21 @@ class Logger: Middleware { ... }
 Register your middleware by calling `register(middleware:)`.
 
 ```swift
-Dispatcher.default.register(middleware: Logger())
+Dispatcher.default.register(middleware: LoggerMiddleware())
 ```
+
+#### Recorder
+
+The recorder middleware is probably one of the most interesting feature of Dispatch.
+
+Register your recorder by calling:
+
+```swift
+Dispatcher.default.register(middleware: RecorderMiddleware())
+```
+
+Voilà, **if your states are immutable** you simply have to press `⌘+P` to navigate back through your past states and `⌘+N` to move forward again.
+Try it in the **TodoApp** demo!
 
 ### Chaining actions
 

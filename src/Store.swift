@@ -1,23 +1,25 @@
 import Foundation
 
-public protocol ActionType { }
-
 public protocol StateType {
-
   init()
-
 }
 
-public protocol AnyStore {
+public protocol StoreType: class {
 
   /** The unique identifier for this store. */
   var identifier: String { get set }
+
+  /** The current store value. */
+  var stateValue: StateType { get }
 
   /** Whether this 'store' comply with the action passed as argument. */
   func responds(to action: ActionType) -> Bool
 
   /** Dispatches the action on the store. */
   func dispatchOperation(action: ActionType, completion: ((Void) -> (Void))?) -> Operation?
+
+  /** Tries to inject the state passed as argument in the store. */
+  func inject(state: StateType, action: ActionType)
 }
 
 public struct StoreObserver<S: StateType, A: ActionType> {
@@ -34,12 +36,15 @@ public struct StoreObserver<S: StateType, A: ActionType> {
   }
 }
 
-public final class Store<S: StateType, A: ActionType>: AnyStore {
+public final class Store<S: StateType, A: ActionType>: StoreType {
 
-  public typealias OnChange = (S, A) -> (Void)
+  public typealias OnChange = (S, Action<A>) -> (Void)
 
   /** The current state for the Store. */
   public private(set) var state: S = S()
+  public var stateValue: StateType {
+    return self.state
+  }
 
   /** The reducer function for this store. */
   public let reducer: Reducer<S, A>
@@ -86,32 +91,57 @@ public final class Store<S: StateType, A: ActionType>: AnyStore {
     self.stateLock.unlock()
   }
 
+  /** Notify the store observers for the change of this store. */
+  public func notifyObservers(action: Action<A>) {
+    func notify() {
+      for observer in self.observers where observer.ref != nil {
+        observer.closure(self.state, action)
+      }
+    }
+    // Makes sure the observers are notified on the main thread.
+    if Thread.isMainThread {
+      notify()
+    } else {
+      DispatchQueue.main.sync(execute: notify)
+    }
+  }
+
+  /** Tries to inject the state passed as argument in the store. */
+  public func inject(state: StateType, action: ActionType) {
+    guard let state = state as? S, let action = action as? A else {
+      return
+    }
+    self.updateState { _ in
+      self.state = state
+      let action = Action(action: action,
+                          state: .finished,
+                          lastRun: Date().timeIntervalSince1970,
+                          userInfo: [:])
+      self.notifyObservers(action: action)
+    }
+  }
+
   /** Package the operation returned from the 'Reducer'. */
   public func dispatchOperation(action: ActionType,
                                 completion: ((Void) -> (Void))? = nil) -> Operation? {
-
     guard let action = action as? A else {
       return nil
     }
 
     // Retrieve the operation from the 'Reducer'.
     let operation = self.reducer.operation(for: action, in: self)
+    let shouldNotifyObservers = self.reducer.shouldNotifyObservers(for: action, in: self)
 
     operation.finishBlock = { [weak self] in
       guard let `self` = self else {
         return
       }
-      func notifyObservers() {
-        // Notify the observers.
-        for observer in self.observers where observer.ref != nil {
-          observer.closure(self.state, action)
-        }
-      }
-      // Makes sure the observers are notified on the main thread.
-      if Thread.isMainThread {
-        notifyObservers()
-      } else {
-        DispatchQueue.main.sync(execute: notifyObservers)
+      if shouldNotifyObservers {
+        let action = Action(action: action,
+                            state: .finished,
+                            lastRun: Date().timeIntervalSince1970,
+                            userInfo: [:])
+        self.notifyObservers(action: action)
       }
 
       // Run the completion provided from the 'Dispatcher'.

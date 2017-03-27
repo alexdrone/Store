@@ -20,17 +20,51 @@ extension Dispatcher {
 
 //MARK: - States
 
-final class AppState: State {
+struct AppState: State {
   /** The initial 'empty' value for this state. */
-  var todoList: [TodoState] = []
+  let todoList: [TodoState]
+
+  init() {
+    self.todoList = []
+  }
+
+  init(list: [TodoState]) {
+    self.todoList = list
+  }
+
+  func with(list: [TodoState]) -> AppState {
+    return AppState(list: list)
+  }
 }
 
-final class TodoState: State {
-  let id: String = NSUUID().uuidString.lowercased()
-  var isNew: Bool = true
-  var isDone: Bool = false
-  var title: String = ""
-  var date: Date = Date()
+struct TodoState: State {
+  let id: String
+  let isNew: Bool
+  let isDone: Bool
+  let title: String
+  let date: Date
+
+  init() {
+    let id = NSUUID().uuidString.lowercased()
+    self.init(id: id, isNew: true, isDone: false, title: "", date: Date())
+  }
+
+  init(id: String, isNew: Bool, isDone: Bool, title: String, date: Date) {
+    self.id = id
+    self.isNew = isNew
+    self.isDone = isDone
+    self.title = title
+    self.date = date
+  }
+
+  func with(title: String) -> TodoState {
+    return TodoState(id: self.id, isNew: false, isDone: self.isDone, title: title, date: self.date)
+  }
+
+  func markDone() -> TodoState {
+    return TodoState(id: self.id, isNew: false, isDone: true, title: self.title, date: self.date)
+  }
+
 }
 
 //MARK: - Actions
@@ -69,7 +103,11 @@ class TodoReducer: Reducer<AppState, Action> {
                    store: Store<AppState, Action>) {
     defer { operation.finish() }
     guard store.state.todoList.filter({ $0.isNew }).isEmpty else { return  }
-    store.updateState { $0.todoList.insert(TodoState(), at: 0) }
+    store.updateState {
+      var list = $0.todoList
+      list.insert(TodoState(), at: 0)
+      $0 = $0.with(list: list)
+    }
   }
 
   private func name(operation: AsynchronousOperation,
@@ -78,11 +116,11 @@ class TodoReducer: Reducer<AppState, Action> {
     defer { operation.finish() }
     guard case .name(let id, let title) = action else { return }
     store.updateState {
-      for todo in $0.todoList where todo.id == id {
-        todo.isNew = false
-        todo.title = title
-        todo.date = Date()
-      }
+
+      guard let index = $0.todoList.index(where: { $0.id == id }) else { return }
+      var list = $0.todoList
+      list[index] = $0.todoList[index].with(title: title)
+      $0 = $0.with(list: list)
     }
   }
 
@@ -99,8 +137,11 @@ class TodoReducer: Reducer<AppState, Action> {
     defer { operation.finish() }
     guard case .check(let id) = action else { return }
     store.updateState {
-      let todo = $0.todoList.filter { $0.id == id }.first
-      todo?.isDone = true
+
+      guard let index = $0.todoList.index(where: { $0.id == id }) else { return }
+      var list = $0.todoList
+      list[index] = $0.todoList[index].markDone()
+      $0 = $0.with(list: list)
     }
   }
 

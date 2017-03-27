@@ -7,28 +7,32 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1601D4241E8895B6008A2CF5 /* Action.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1601D4231E8895B6008A2CF5 /* Action.swift */; };
+		1601D4251E8895D3008A2CF5 /* Action.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1601D4231E8895B6008A2CF5 /* Action.swift */; };
 		167A431B1E8452C900083790 /* Dispatcher.h in Headers */ = {isa = PBXBuildFile; fileRef = 167A43191E8452C900083790 /* Dispatcher.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		167A43271E8453A300083790 /* Dispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167A43211E8453A300083790 /* Dispatcher.swift */; };
-		167A43281E8453A300083790 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167A43221E8453A300083790 /* Logger.swift */; };
+		167A43281E8453A300083790 /* LoggerMiddleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167A43221E8453A300083790 /* LoggerMiddleware.swift */; };
 		167A43291E8453A300083790 /* Middleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167A43231E8453A300083790 /* Middleware.swift */; };
 		167A432A1E8453A300083790 /* Operations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167A43241E8453A300083790 /* Operations.swift */; };
 		167A432B1E8453A300083790 /* Reducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167A43251E8453A300083790 /* Reducer.swift */; };
 		167A432C1E8453A300083790 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167A43261E8453A300083790 /* Store.swift */; };
 		167A43361E8453E100083790 /* Dispatcher_macOS.h in Headers */ = {isa = PBXBuildFile; fileRef = 167A43341E8453E100083790 /* Dispatcher_macOS.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		167A433A1E84540A00083790 /* Dispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167A43211E8453A300083790 /* Dispatcher.swift */; };
-		167A433B1E84540A00083790 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167A43221E8453A300083790 /* Logger.swift */; };
+		167A433B1E84540A00083790 /* LoggerMiddleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167A43221E8453A300083790 /* LoggerMiddleware.swift */; };
 		167A433C1E84540A00083790 /* Middleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167A43231E8453A300083790 /* Middleware.swift */; };
 		167A433D1E84540A00083790 /* Operations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167A43241E8453A300083790 /* Operations.swift */; };
 		167A433E1E84540A00083790 /* Reducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167A43251E8453A300083790 /* Reducer.swift */; };
 		167A433F1E84540A00083790 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167A43261E8453A300083790 /* Store.swift */; };
+		16D979D21E88C4CB00F4430B /* RecorderMiddleware+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16D979D11E88C4CB00F4430B /* RecorderMiddleware+.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		1601D4231E8895B6008A2CF5 /* Action.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Action.swift; sourceTree = "<group>"; };
 		167A43161E8452C900083790 /* Dispatcher_iOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Dispatcher_iOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		167A43191E8452C900083790 /* Dispatcher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Dispatcher.h; sourceTree = "<group>"; };
 		167A431A1E8452C900083790 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		167A43211E8453A300083790 /* Dispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Dispatcher.swift; sourceTree = "<group>"; };
-		167A43221E8453A300083790 /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		167A43221E8453A300083790 /* LoggerMiddleware.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoggerMiddleware.swift; sourceTree = "<group>"; };
 		167A43231E8453A300083790 /* Middleware.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Middleware.swift; sourceTree = "<group>"; };
 		167A43241E8453A300083790 /* Operations.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Operations.swift; sourceTree = "<group>"; };
 		167A43251E8453A300083790 /* Reducer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Reducer.swift; sourceTree = "<group>"; };
@@ -36,6 +40,7 @@
 		167A43321E8453E100083790 /* Dispatcher_macOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Dispatcher_macOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		167A43341E8453E100083790 /* Dispatcher_macOS.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Dispatcher_macOS.h; sourceTree = "<group>"; };
 		167A43351E8453E100083790 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		16D979D11E88C4CB00F4430B /* RecorderMiddleware+.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "RecorderMiddleware+.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,8 +82,9 @@
 		167A43181E8452C900083790 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				16E2E4961E89493F005C238B /* Middleware */,
+				1601D4231E8895B6008A2CF5 /* Action.swift */,
 				167A43211E8453A300083790 /* Dispatcher.swift */,
-				167A43221E8453A300083790 /* Logger.swift */,
 				167A43231E8453A300083790 /* Middleware.swift */,
 				167A43241E8453A300083790 /* Operations.swift */,
 				167A43251E8453A300083790 /* Reducer.swift */,
@@ -96,6 +102,15 @@
 				167A43351E8453E100083790 /* Info.plist */,
 			);
 			path = macos;
+			sourceTree = "<group>";
+		};
+		16E2E4961E89493F005C238B /* Middleware */ = {
+			isa = PBXGroup;
+			children = (
+				167A43221E8453A300083790 /* LoggerMiddleware.swift */,
+				16D979D11E88C4CB00F4430B /* RecorderMiddleware+.swift */,
+			);
+			name = Middleware;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -218,10 +233,12 @@
 			files = (
 				167A43291E8453A300083790 /* Middleware.swift in Sources */,
 				167A43271E8453A300083790 /* Dispatcher.swift in Sources */,
-				167A43281E8453A300083790 /* Logger.swift in Sources */,
+				167A43281E8453A300083790 /* LoggerMiddleware.swift in Sources */,
 				167A432C1E8453A300083790 /* Store.swift in Sources */,
+				1601D4241E8895B6008A2CF5 /* Action.swift in Sources */,
 				167A432B1E8453A300083790 /* Reducer.swift in Sources */,
 				167A432A1E8453A300083790 /* Operations.swift in Sources */,
+				16D979D21E88C4CB00F4430B /* RecorderMiddleware+.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -231,8 +248,9 @@
 			files = (
 				167A433C1E84540A00083790 /* Middleware.swift in Sources */,
 				167A433A1E84540A00083790 /* Dispatcher.swift in Sources */,
-				167A433B1E84540A00083790 /* Logger.swift in Sources */,
+				167A433B1E84540A00083790 /* LoggerMiddleware.swift in Sources */,
 				167A433F1E84540A00083790 /* Store.swift in Sources */,
+				1601D4251E8895D3008A2CF5 /* Action.swift in Sources */,
 				167A433E1E84540A00083790 /* Reducer.swift in Sources */,
 				167A433D1E84540A00083790 /* Operations.swift in Sources */,
 			);

@@ -13,4 +13,11 @@ open class Reducer<S: StateType, A: ActionType> {
       operation.finish()
     }
   }
+
+  /** Override this method  if you wish to manually notify the store observers inside the
+   *  operation block for the given action. 
+   */
+  open func shouldNotifyObservers(for action: A, in store: Store<S, A>) -> Bool {
+    return true
+  }
 }
