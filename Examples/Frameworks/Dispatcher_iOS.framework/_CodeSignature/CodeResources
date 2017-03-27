@@ -16,6 +16,14 @@
 		<data>
 		D6BXdNyJATXixV/y0y3x7TjpsdM=
 		</data>
+		<key>Modules/Dispatcher_iOS.swiftmodule/i386.swiftdoc</key>
+		<data>
+		4g17HTL5kBFc09hFTvL5vGAA2r0=
+		</data>
+		<key>Modules/Dispatcher_iOS.swiftmodule/i386.swiftmodule</key>
+		<data>
+		2Duy7UYsjIG8WvG1ZaSPQjkt8nE=
+		</data>
 		<key>Modules/Dispatcher_iOS.swiftmodule/x86_64.swiftdoc</key>
 		<data>
 		Mnlltne2wkr7qDhlXg5GDWuGnd8=
@@ -51,6 +59,28 @@
 			<key>hash2</key>
 			<data>
 			kvwAhgbZQN+loDT6lU/jfhlfDVl0rPvraV53laO0QKc=
+			</data>
+		</dict>
+		<key>Modules/Dispatcher_iOS.swiftmodule/i386.swiftdoc</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			4g17HTL5kBFc09hFTvL5vGAA2r0=
+			</data>
+			<key>hash2</key>
+			<data>
+			+9Hafg43ADOEzgIakAuZpobKj9tqAALPDgyIhNywmGw=
+			</data>
+		</dict>
+		<key>Modules/Dispatcher_iOS.swiftmodule/i386.swiftmodule</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			2Duy7UYsjIG8WvG1ZaSPQjkt8nE=
+			</data>
+			<key>hash2</key>
+			<data>
+			Lrok8GLdJhGxx4obcoi+RVaeU0ZmCWLU4e2nVdMUns4=
 			</data>
 		</dict>
 		<key>Modules/Dispatcher_iOS.swiftmodule/x86_64.swiftdoc</key>
