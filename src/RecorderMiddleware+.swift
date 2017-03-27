@@ -101,7 +101,7 @@ final public class RecorderMiddleware: MiddlewareType {
 }
 
 // MARK: - KeyCommands
-//  forked from: Augustyniak/KeyCommands / Created by Rafal Augustyniak
+// forked from: Augustyniak/KeyCommands / Created by Rafal Augustyniak
 
 #if (arch(i386) || arch(x86_64)) && (os(iOS) || os(tvOS))
 
