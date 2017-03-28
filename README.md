@@ -199,7 +199,7 @@ Dispatcher.default.register(middleware: RecorderMiddleware())
 Voilà, **if your states are immutable** you simply have to press `⌘+P` to navigate back through your past states and `⌘+N` to move forward again.
 Try it in the **TodoApp** demo!
 
-# <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/recorder.gif" width="320" alt="Recorder" />
+# <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/recorder.gif" width="314" alt="Recorder" />
 
 
 ### Chaining actions
