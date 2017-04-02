@@ -1,4 +1,4 @@
-# <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/dispatch_logo.png" width="534" alt="Dispatch" />
+# <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/logo.png" width="534" alt="Dispatch" />
 
 [![Swift](https://img.shields.io/badge/swift-3-orange.svg?style=flat)](#)
 [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
@@ -199,7 +199,7 @@ Dispatcher.default.register(middleware: RecorderMiddleware())
 Voilà, **if your states are immutable** you simply have to press `⌘+P` to navigate back through your past states and `⌘+N` to move forward again.
 Try it in the **TodoApp** demo!
 
-# <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/recorder.gif" width="720" alt="Recorder" />
+# <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/record.gif" width="720" alt="Recorder" />
 
 
 ### Chaining actions
