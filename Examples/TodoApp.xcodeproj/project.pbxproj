@@ -45,7 +45,6 @@
 		161AE6381E7B79600038FBE0 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		161AE63A1E7B79600038FBE0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		161AE6481E7B7C980038FBE0 /* Component.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Component.swift; sourceTree = "<group>"; };
-		161AE64F1E7B835E0038FBE0 /* AppToolbarViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppToolbarViewController.swift; sourceTree = "<group>"; };
 		161AE6511E7B86310038FBE0 /* States+Reducer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "States+Reducer.swift"; sourceTree = "<group>"; };
 		167512BE1E903A9B00CA5844 /* Style.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Style.swift; sourceTree = "<group>"; };
 		167A434F1E846FE100083790 /* Dispatcher_iOS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Dispatcher_iOS.framework; path = Frameworks/Dispatcher_iOS.framework; sourceTree = "<group>"; };
@@ -103,7 +102,6 @@
 			isa = PBXGroup;
 			children = (
 				161AE62E1E7B79600038FBE0 /* AppDelegate.swift */,
-				161AE64F1E7B835E0038FBE0 /* AppToolbarViewController.swift */,
 			);
 			name = "AppDelegate & Root";
 			sourceTree = "<group>";
