@@ -17,6 +17,7 @@ Dispatch eschews MVC in favour of a unidirectional data flow. When a user intera
 
 This works especially well with [Render](https://github.com/alexdrone/Render)'s declarative programming style, which allows the store to send updates without specifying how to transition views between states.
 
+
 - **Stores**: Holds the state of your application. You can have multiple stores for multiple domains of your app.
 - **Actions**: You can only perform state changes through actions. Actions are small pieces of data (typically enums) that describe a state change. By drastically limiting the way state can be mutated, your app becomes easier to understand and it gets easier to work with many collaborators.
 - **Dispatcher**: Dispatches an action to the stores that respond to it.
