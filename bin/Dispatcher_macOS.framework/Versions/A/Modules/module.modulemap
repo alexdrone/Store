@@ -1,0 +1,10 @@
+framework module Dispatcher_macOS {
+  umbrella header "Dispatcher_macOS.h"
+
+  export *
+  module * { export * }
+}
+
+module Dispatcher_macOS.Swift {
+    header "Dispatcher_macOS-Swift.h"
+}

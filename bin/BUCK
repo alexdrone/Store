@@ -1,0 +1,7 @@
+prebuilt_apple_framework(
+  name = 'Dispatcher',
+  framework = 'Dispatcher_iOS.framework',
+  visibility = [
+    'PUBLIC'
+  ]
+)
