@@ -1,16 +1,18 @@
 #!/bin/bash
 
 cd bin
+rm -rf *.framework
+rm -rf *.dSYM
 cd ..
 rm -rf .build_temp
 mkdir .build_temp
 cd .build_temp
 echo "github \"alexdrone/Dispatch\" \"master\"" >> Cartfile
 carthage update
-mv Carthage/Build/iOS/Dispatcher_iOS.framework ../bin/Dispatcher_iOS.framework
-mv Carthage/Build/iOS/Dispatcher_iOS.framework.dSYM ../bin/Dispatcher_iOS.dSYM
-mv Carthage/Build/Mac/Dispatcher_macOS.framework ../bin/Dispatcher_macOS.framework
-mv Carthage/Build/Mac/Dispatcher_macOS.framework.dSYM ../bin/Dispatcher_macOS.dSYM
+mv Carthage/Build/iOS/*.framework ../bin/
+mv Carthage/Build/iOS/*.dSYM ../bin/
+mv Carthage/Build/Mac/*.framework ../bin/
+mv Carthage/Build/Mac/*.dSYM ../bin/
 cd ..
 rm -rf .build_temp
 cd bin
