@@ -8,6 +8,8 @@ rm -rf .build_temp
 mkdir .build_temp
 cd .build_temp
 echo "github \"alexdrone/Dispatch\" \"master\"" >> Cartfile
+echo "github \"JohnSundell/Wrap\" \"master\"" >> Cartfile
+echo "github \"JohnSundell/Unbox\" \"master\"" >> Cartfile
 carthage update
 mv Carthage/Build/iOS/*.framework ../bin/
 mv Carthage/Build/iOS/*.dSYM ../bin/

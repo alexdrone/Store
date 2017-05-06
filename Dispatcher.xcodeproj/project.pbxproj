@@ -39,7 +39,7 @@
 		167A43321E8453E100083790 /* Dispatcher_macOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Dispatcher_macOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		167A43341E8453E100083790 /* Dispatcher_macOS.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Dispatcher_macOS.h; sourceTree = "<group>"; };
 		167A43351E8453E100083790 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		16D979D11E88C4CB00F4430B /* RecorderMiddleware+.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "RecorderMiddleware+.swift"; sourceTree = "<group>"; };
+		16D979D11E88C4CB00F4430B /* RecorderMiddleware.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecorderMiddleware.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,7 +107,7 @@
 			isa = PBXGroup;
 			children = (
 				167A43221E8453A300083790 /* LoggerMiddleware.swift */,
-				16D979D11E88C4CB00F4430B /* RecorderMiddleware+.swift */,
+				16D979D11E88C4CB00F4430B /* RecorderMiddleware.swift */,
 			);
 			name = Middleware;
 			sourceTree = "<group>";
