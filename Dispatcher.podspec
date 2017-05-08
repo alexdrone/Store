@@ -7,7 +7,7 @@
 #
 
 Pod::Spec.new do |s|
-  s.name             = "Dispatch"
+  s.name             = "Dispatcher"
   s.version          = "0.1"
   s.summary          = "Multi-store Flux implementation in Swift."
 
@@ -22,7 +22,7 @@ Pod::Spec.new do |s|
                        DESC
 
   s.homepage         = "https://github.com/alexdrone/Dispatch"
-  s.screenshots      = "https://github.com/alexdrone/Dispatch/raw/master/doc/logo.png"
+  s.screenshots      = "https://github.com/alexdrone/Dispatch/raw/master/docs/logo.png"
   s.license          = 'MIT'
   s.author           = { "Alex Usbergo" => "alexakadrone@gmail.com" }
   s.source           = { :git => "https://github.com/alexdrone/Dispatch.git", :tag => s.version.to_s }
@@ -32,6 +32,5 @@ Pod::Spec.new do |s|
   s.source_files = 'src/**/*'
 
   # s.public_header_files = 'Pod/Classes/**/*.h'
- 	s.frameworks = 'Foundation', 'UIKit'
   # s.dependency 'AFNetworking', '~> 2.3'
 end
