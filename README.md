@@ -15,7 +15,7 @@ If you are using **CocoaPods**:
 Add the following to your [Podfile](https://guides.cocoapods.org/using/the-podfile.html):
 
 ```ruby
-pod 'DispatchStore', '~> 0.1'
+pod 'DispatchStore', '~> 0.2'
 ```
 
 If you are using **Carthage**:
