@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		1601D4241E8895B6008A2CF5 /* Action.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1601D4231E8895B6008A2CF5 /* Action.swift */; };
 		1601D4251E8895D3008A2CF5 /* Action.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1601D4231E8895B6008A2CF5 /* Action.swift */; };
+		162B39C11EC08DBF0074E075 /* RecorderMiddleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16D979D11E88C4CB00F4430B /* RecorderMiddleware.swift */; };
 		167A431B1E8452C900083790 /* Dispatcher.h in Headers */ = {isa = PBXBuildFile; fileRef = 167A43191E8452C900083790 /* Dispatcher.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		167A43271E8453A300083790 /* Dispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167A43211E8453A300083790 /* Dispatcher.swift */; };
 		167A43281E8453A300083790 /* LoggerMiddleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167A43221E8453A300083790 /* LoggerMiddleware.swift */; };
@@ -237,6 +238,7 @@
 				1601D4241E8895B6008A2CF5 /* Action.swift in Sources */,
 				167A432B1E8453A300083790 /* Reducer.swift in Sources */,
 				167A432A1E8453A300083790 /* Operations.swift in Sources */,
+				162B39C11EC08DBF0074E075 /* RecorderMiddleware.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

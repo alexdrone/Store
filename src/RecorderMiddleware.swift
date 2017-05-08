@@ -210,9 +210,9 @@ final public class RecorderMiddleware: MiddlewareType {
 
 #else
   public enum KeyCommands {
-    public static func registerKeyCommand(input: String,
-                                          modifierFlags: UIKeyModifierFlags,
-                                          action: () -> ()) {}
-    public static func unregisterKeyCommand(input: String, modifierFlags: UIKeyModifierFlags) {}
+    public static func register(input: String,
+                                modifierFlags: UIKeyModifierFlags,
+                                action: () -> ()) {}
+    public static func unregister(input: String, modifierFlags: UIKeyModifierFlags) {}
   }
 #endif
