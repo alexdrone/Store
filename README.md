@@ -1,12 +1,40 @@
 # <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/logo.png" width="534" alt="Dispatch" />
 
-[![Swift](https://img.shields.io/badge/swift-3-orange.svg?style=flat)](#)
+[![Swift](https://img.shields.io/badge/swift-3.1-orange.svg?style=flat)](#)
 [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
 [![Platform](https://img.shields.io/badge/platform-ios|macos|tvos|watchos-lightgrey.svg?style=flat)](#)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://opensource.org/licenses/MIT)
 
 *A lightweight, operation based, multi-store Flux implementation in Swift.*
 
+## Installation
+
+If you are using **CocoaPods**:
+
+
+Add the following to your [Podfile](https://guides.cocoapods.org/using/the-podfile.html):
+
+```ruby
+pod 'DispatchStore', '~> 0.2'
+```
+
+If you are using **Carthage**:
+
+
+To install Carthage, run (using Homebrew):
+
+```bash
+$ brew update
+$ brew install carthage
+```
+
+Then add the following line to your `Cartfile`:
+
+```
+github "alexdrone/Dispatch" "master"    
+```
+
+## Overview
 
 **Dispatch** is a [Flux](https://facebook.github.io/flux/docs/overview.html)-like implementation of the unidirectional data flow architecture in Swift.
 Flux applications have three major parts: the dispatcher, the stores, and the views.
