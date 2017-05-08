@@ -7,7 +7,7 @@
 #
 
 Pod::Spec.new do |s|
-  s.name             = "Dispatcher"
+  s.name             = "DispatchStore"
   s.version          = "0.1"
   s.summary          = "Multi-store Flux implementation in Swift."
 
