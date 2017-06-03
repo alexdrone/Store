@@ -36,7 +36,7 @@ public struct StoreObserver<S: StateType, A: ActionType> {
   }
 }
 
-public final class Store<S: StateType, A: ActionType>: StoreType {
+open class Store<S: StateType, A: ActionType>: StoreType {
 
   public typealias OnChange = (S, Action<A>) -> (Void)
 

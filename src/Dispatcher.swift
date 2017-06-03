@@ -66,7 +66,7 @@ public final class Dispatcher {
 
     // Create a transaction id for this action dispatch.
     // This is useful for the middleware to track down which action got completed.
-    let transactionId = NSUUID().uuidString.lowercased().replacingOccurrences(of: "-", with: "")
+    let transactionId = makePushID()
 
     // Get the operation.
     let operation = store.dispatchOperation(action: action) {
