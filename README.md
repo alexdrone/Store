@@ -255,3 +255,9 @@ Also calling dispatch with `.sync` would have the same effect but it would block
 Views in this model are simple function of your state. This works especially well with [Render](https://github.com/alexdrone/Render)'s declarative programming style.
 
 Checkout the **TodoApp** example to see how to get the best out of **Dispatch** and **Render**.
+
+### Credit
+
+- [Facebook Flux](https://facebook.github.io/flux/)
+- [Unbox](https://github.com/JohnSundell/Unbox) and [Wrap](https://github.com/JohnSundell/Wrap) by John Sundell are used as json decoder/encoder.
+

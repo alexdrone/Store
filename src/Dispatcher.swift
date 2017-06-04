@@ -107,4 +107,14 @@ public final class Dispatcher {
   }
 }
 
+/** Dispatch an action on the default dispatcher and redirects it to the correct store. */
+public func dispatch(storeIdentifier: String? = nil,
+                     action: ActionType,
+                     mode: Dispatcher.Mode = .async,
+                     then: ((Void) -> (Void))? = nil) {
 
+  Dispatcher.default.dispatch(storeIdentifier: storeIdentifier,
+                              action: action,
+                              mode: mode,
+                              then: then)
+}
