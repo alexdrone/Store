@@ -13,19 +13,19 @@ public final class Dispatcher {
 
   public static let `default` = Dispatcher()
 
-  /** All the registered stores. */
+  /// All the registered stores.
   private var stores: [StoreType] = []
 
-  // The main queue used for the .async mode.
+  /// The main queue used for the .async mode.
   private let queue = OperationQueue()
 
-  // The serial queue used for the .serial mode.
+  /// The serial queue used for the .serial mode.
   private let serialQueue = OperationQueue()
 
-  // The collection of middleware registered in the dispatcher.
+  /// The collection of middleware registered in the dispatcher.
   private var middleware: [MiddlewareType] = []
 
-  /** Returns the store with the given identifier. */
+  /// Returns the store with the given identifier.
   public func store(with identifier: String) -> StoreType? {
     return self.stores.filter { $0.identifier == identifier }.first
   }
@@ -45,7 +45,7 @@ public final class Dispatcher {
     self.middleware.append(middleware)
   }
 
-  /** Dispatch an action and redirects it to the correct store. */
+  /// Dispatch an action and redirects it to the correct store.
   public func dispatch(storeIdentifier: String? = nil,
                        action: ActionType,
                        mode: Dispatcher.Mode = .async,
@@ -107,7 +107,7 @@ public final class Dispatcher {
   }
 }
 
-/** Dispatch an action on the default dispatcher and redirects it to the correct store. */
+/// Dispatch an action on the default dispatcher and redirects it to the correct store.
 public func dispatch(storeIdentifier: String? = nil,
                      action: ActionType,
                      mode: Dispatcher.Mode = .async,

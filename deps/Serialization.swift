@@ -1,16 +1,518 @@
+// Forked from johnsundell/Wrap
+// See LICENSE file.
+
+//MARK: - Encoder
+
+import Foundation
+
+/// Type alias defining what type of Dictionary that Encode produces
+public typealias EncodedDictionary = [String : Any]
+
+///
+/// Encode any object or value, encoding it into a JSON compatible Dictionary
+///
+/// - Parameter object: The object to encode
+/// - Parameter context: An optional contextual object that will be available throughout
+///   the encoding process. Can be used to inject extra information or objects needed to
+///   perform the encoding.
+/// - Parameter dateFormatter: Optionally pass in a date formatter to use to encode any
+///   `NSDate` values found while encoding the object. If this is `nil`, any found date
+///   values will be encoded using the "yyyy-MM-dd HH:mm:ss" format.
+///
+/// All the type's stored properties (both public & private) will be recursively
+/// encoded with their property names as the key.
+///
+/// The object passed to this function must be an instance of a Class, or a value
+/// based on a Struct. Standard library values, such as Ints, Strings, etc are not
+/// valid input.
+///
+/// Throws a EncodeError if the operation could not be completed.
+///
+/// For more customization options, make your type conform to `EncodeCustomizable`,
+/// that lets you override encoding keys and/or the whole encoding process.
+///
+/// See also `EncodableKey` (for dictionary keys) and `EncodableEnum` for Enum values.
+///
+public func encode<T>(_ object: T,
+                    context: Any? = nil,
+                    dateFormatter: DateFormatter? = nil) throws -> EncodedDictionary {
+  return try Encoder(context: context, dateFormatter: dateFormatter)
+      .encode(object: object, enableCustomizedEncodeping: true)
+}
+
+/// Alternative `encode()` overload that returns JSON-based `Data`
+/// See the documentation for the dictionary-based `encode()` function for more information
+public func encode<T>(_ object: T,
+                    writingOptions: JSONSerialization.WritingOptions? = nil,
+                    context: Any? = nil, dateFormatter: DateFormatter? = nil) throws -> Data {
+  return try Encoder(context: context, dateFormatter: dateFormatter)
+      .encode(object: object, writingOptions: writingOptions ?? [])
+}
+
+/// Alternative `encode()` overload that encodes an array of objects into an array of dictionaries
+/// See the documentation for the dictionary-based `encode()` function for more information
+public func encode<T>(_ objects: [T],
+                    context: Any? = nil,
+                    dateFormatter: DateFormatter? = nil) throws -> [EncodedDictionary] {
+  return try objects.map { try encode($0, context: context, dateFormatter: dateFormatter) }
+}
+
+/// Alternative `encode()` overload that encodes an array of objects into JSON-based `Data`
+/// See the documentation for the dictionary-based `encode()` function for more information
+public func encode<T>(_ objects: [T],
+                    writingOptions: JSONSerialization.WritingOptions? = nil,
+                    context: Any? = nil, dateFormatter: DateFormatter? = nil) throws -> Data {
+  let dictionaries: [EncodedDictionary] = try encode(objects, context: context)
+  return try JSONSerialization.data(withJSONObject: dictionaries, options: writingOptions ?? [])
+}
+
+// Enum describing various styles of keys in a encoded dictionary
+public enum EncodeKeyStyle {
+  /// The keys in a dictionary produced by Encode should match their property name (default)
+  case matchPropertyName
+  /// The keys in a dictionary produced by Encode should be converted to snake_case.
+  /// For example, "myProperty" will be converted to "my_property". All keys will be lowercased.
+  case convertToSnakeCase
+}
+
+/// Protocol providing the main customization point for Encode
+/// It's optional to implement all of the methods in this protocol, as Encode
+/// supplies default implementations of them.
+public protocol EncodeCustomizable {
+
+  var encodeKeyStyle: EncodeKeyStyle { get }
+
+  /// Override the encoding process for this type
+  /// All top-level types should return a `EncodedDictionary` from this method.
+  /// You may use the default encoding implementation by using a `Encoder`, but
+  /// never call `encode()` from an implementation of this method, since that might
+  /// cause an infinite recursion.
+  /// The context & dateFormatter passed to this method is any formatter that you
+  /// supplied when initiating the encoding process by calling `encode()`.
+  /// Returning nil from this method will be treated as an error, and cause
+  /// a `EncodeError.encodingFailedForObject()` error to be thrown.
+  func encode(context: Any?, dateFormatter: DateFormatter?) -> Any?
+
+  /// Override the key that will be used when encoding a certain property
+  /// Returning nil from this method will cause Encode to skip the property
+  func keyForEncodeping(propertyNamed propertyName: String) -> String?
+
+  /// Override the encoding of any property of this type
+  /// The original value passed to this method will be the original value that the
+  /// type is currently storing for the property. You can choose to either use this,
+  /// or just access the property in question directly.
+  /// The dateFormatter passed to this method is any formatter that you supplied
+  /// when initiating the encoding process by calling `encode()`.
+  /// Returning nil from this method will cause Encode to use the default
+  /// encoding mechanism for the property, so you can choose which properties
+  /// you want to customize the encoding for.
+  /// If you encounter an error while attempting to encode the property in question,
+  /// you can choose to throw. This will cause a EncodeError.EncodepingFailedForObject
+  /// to be thrown from the main `encode()` call that started the process.
+  func encode(propertyNamed propertyName: String,
+            originalValue: Any,
+            context: Any?,
+            dateFormatter: DateFormatter?) throws -> Any?
+}
+
+/// Protocol implemented by types that may be used as keys in a encoded Dictionary
+public protocol EncodableKey {
+  /// Convert this type into a key that can be used in a encoded Dictionary
+  func toEncodedKey() -> String
+}
+
+///
+/// Protocol implemented by Enums to enable them to be directly encoded
+/// If an Enum implementing this protocol conforms to `RawRepresentable` (it's based
+/// on a raw type), no further implementation is required. If you wish to customize
+/// how the Enum is encoded, you can use the APIs in `EncodeCustomizable`.
+public protocol EncodableEnum: EncodeCustomizable {}
+
+/// Protocol implemented by Date types to enable them to be encoded
+public protocol EncodableDate {
+  /// Encode the date using a date formatter, generating a string representation
+  func encode(dateFormatter: DateFormatter) -> String
+}
+
+///
+/// Class used to encode an object or value. Use this in any custom `encode()` implementations
+/// in case you only want to add on top of the default implementation.
+/// You normally don't have to interact with this API. Use the `encode()` function instead
+/// to encode an object from top-level code.
+public class Encoder {
+  fileprivate let context: Any?
+  fileprivate var dateFormatter: DateFormatter?
+
+  ///
+  /// Initialize an instance of this class
+  ///
+  /// - Parameter context: An optional contextual object that will be available throughout the
+  ///   encoding process. Can be used to inject extra information or objects needed to perform
+  ///   the encoding.
+  /// - Parameter dateFormatter: Any specific date formatter to use to encode any found `NSDate`
+  ///   values. If this is `nil`, any found date values will be encoded using the "yyyy-MM-dd
+  ///   HH:mm:ss" format.
+  public init(context: Any? = nil, dateFormatter: DateFormatter? = nil) {
+    self.context = context
+    self.dateFormatter = dateFormatter
+  }
+
+  /// Perform automatic encoding of an object or value. For more information, see `Encode()`.
+  public func encode(object: Any) throws -> EncodedDictionary {
+    return try self.encode(object: object, enableCustomizedEncodeping: false)
+  }
+}
+
+/// Error type used by Encode
+public enum EncodeError: Error {
+  /// Thrown when an invalid top level object (such as a String or Int) was passed to `Encode()`
+  case invalidTopLevelObject(Any)
+  /// Thrown when an object couldn't be encoded. This is a last resort error.
+  case encodingFailedForObject(Any)
+}
+
+/// Extension containing default implementations of `EncodeCustomizable`. Override as you see fit.
+public extension EncodeCustomizable {
+  var encodeKeyStyle: EncodeKeyStyle {
+    return .matchPropertyName
+  }
+
+  func encode(context: Any?, dateFormatter: DateFormatter?) -> Any? {
+    return try? Encoder(context: context, dateFormatter: dateFormatter).encode(object: self)
+  }
+
+  func keyForEncodeping(propertyNamed propertyName: String) -> String? {
+    switch self.encodeKeyStyle {
+    case .matchPropertyName:
+      return propertyName
+    case .convertToSnakeCase:
+      return self.convertPropertyNameToSnakeCase(propertyName: propertyName)
+    }
+  }
+
+  func encode(propertyNamed propertyName: String,
+            originalValue: Any,
+            context: Any?,
+            dateFormatter: DateFormatter?) throws -> Any? {
+    return try Encoder(context: context, dateFormatter: dateFormatter)
+        .encode(value: originalValue, propertyName: propertyName)
+  }
+}
+
+/// Extension adding convenience APIs to `EncodeCustomizable` types
+public extension EncodeCustomizable {
+  /// Convert a given property name (assumed to be camelCased) to snake_case
+  func convertPropertyNameToSnakeCase(propertyName: String) -> String {
+    let regex = try! NSRegularExpression(pattern: "(?<=[a-z])([A-Z])|([A-Z])(?=[a-z])", options: [])
+    let range = NSRange(location: 0, length: propertyName.characters.count)
+    let camelCasePropertyName =
+        regex.stringByReplacingMatches(in: propertyName,
+                                       options: [],
+                                       range: range,
+                                       withTemplate: "_$1$2")
+    return camelCasePropertyName.lowercased()
+  }
+}
+
+/// Extension providing a default encoding implementation for `RawRepresentable` Enums
+public extension EncodableEnum where Self: RawRepresentable {
+  public func encode(context: Any?, dateFormatter: DateFormatter?) -> Any? {
+    return self.rawValue
+  }
+}
+
+/// Extension customizing how Arrays are encoded
+extension Array: EncodeCustomizable {
+  public func encode(context: Any?, dateFormatter: DateFormatter?) -> Any? {
+    return try? Encoder(context: context, dateFormatter: dateFormatter).encode(collection: self)
+  }
+}
+
+/// Extension customizing how Dictionaries are encoded
+extension Dictionary: EncodeCustomizable {
+  public func encode(context: Any?, dateFormatter: DateFormatter?) -> Any? {
+    return try? Encoder(context: context, dateFormatter: dateFormatter).encode(dictionary: self)
+  }
+}
+
+/// Extension customizing how Sets are encoded
+extension Set: EncodeCustomizable {
+  public func encode(context: Any?, dateFormatter: DateFormatter?) -> Any? {
+    return try? Encoder(context: context, dateFormatter: dateFormatter).encode(collection: self)
+  }
+}
+
+/// Extension customizing how Int64s are encoded, ensuring compatbility with 32 bit systems
+extension Int64: EncodeCustomizable {
+  public func encode(context: Any?, dateFormatter: DateFormatter?) -> Any? {
+    return NSNumber(value: self)
+  }
+}
+
+/// Extension customizing how UInt64s are encoded, ensuring compatbility with 32 bit systems
+extension UInt64: EncodeCustomizable {
+  public func encode(context: Any?, dateFormatter: DateFormatter?) -> Any? {
+    return NSNumber(value: self)
+  }
+}
+
+/// Extension customizing how NSStrings are encoded
+extension NSString: EncodeCustomizable {
+  public func encode(context: Any?, dateFormatter: DateFormatter?) -> Any? {
+    return self
+  }
+}
+
+/// Extension customizing how NSURLs are encoded
+extension NSURL: EncodeCustomizable {
+  public func encode(context: Any?, dateFormatter: DateFormatter?) -> Any? {
+    return self.absoluteString
+  }
+}
+
+/// Extension customizing how URLs are encoded
+extension URL: EncodeCustomizable {
+  public func encode(context: Any?, dateFormatter: DateFormatter?) -> Any? {
+    return self.absoluteString
+  }
+}
+
+
+/// Extension customizing how NSArrays are encoded
+extension NSArray: EncodeCustomizable {
+  public func encode(context: Any?, dateFormatter: DateFormatter?) -> Any? {
+    return try? Encoder(context: context, dateFormatter: dateFormatter)
+        .encode(collection: Array(self))
+  }
+}
+
+#if !os(Linux)
+  /// Extension customizing how NSDictionaries are encoded
+  extension NSDictionary: EncodeCustomizable {
+    public func encode(context: Any?, dateFormatter: DateFormatter?) -> Any? {
+      return try? Encoder(context: context, dateFormatter: dateFormatter)
+          .encode(dictionary: self as [NSObject : AnyObject])
+    }
+  }
+#endif
+
+/// Extension making Int a EncodableKey
+extension Int: EncodableKey {
+  public func toEncodedKey() -> String {
+    return String(self)
+  }
+}
+
+/// Extension making Date a EncodableDate
+extension Date: EncodableDate {
+  public func encode(dateFormatter: DateFormatter) -> String {
+    return dateFormatter.string(from: self)
+  }
+}
+
+#if !os(Linux)
+  /// Extension making NSdate a EncodableDate
+  extension NSDate: EncodableDate {
+    public func encode(dateFormatter: DateFormatter) -> String {
+      return dateFormatter.string(from: self as Date)
+    }
+  }
+#endif
+
+private extension Encoder {
+  func encode<T>(object: T, enableCustomizedEncodeping: Bool) throws -> EncodedDictionary {
+    if enableCustomizedEncodeping {
+      if let customizable = object as? EncodeCustomizable {
+        let encoded = try self.performCustomEncodeping(object: customizable)
+
+        guard let encodedDictionary = encoded as? EncodedDictionary else {
+          throw EncodeError.invalidTopLevelObject(object)
+        }
+
+        return encodedDictionary
+      }
+    }
+
+    var mirrors = [Mirror]()
+    var currentMirror: Mirror? = Mirror(reflecting: object)
+
+    while let mirror = currentMirror {
+      mirrors.append(mirror)
+      currentMirror = mirror.superclassMirror
+    }
+
+    return try self.performEncodeping(object: object, mirrors: mirrors.reversed())
+  }
+
+  func encode<T>(object: T, writingOptions: JSONSerialization.WritingOptions) throws -> Data {
+    let dictionary = try self.encode(object: object, enableCustomizedEncodeping: true)
+    return try JSONSerialization.data(withJSONObject: dictionary, options: writingOptions)
+  }
+
+  func encode<T>(value: T, propertyName: String? = nil) throws -> Any? {
+    if let customizable = value as? EncodeCustomizable {
+      return try self.performCustomEncodeping(object: customizable)
+    }
+    if let date = value as? EncodableDate {
+      return self.encode(date: date)
+    }
+    let mirror = Mirror(reflecting: value)
+    if mirror.children.isEmpty {
+      if let displayStyle = mirror.displayStyle {
+        switch displayStyle {
+        case .enum:
+          if let encodepableEnum = value as? EncodableEnum {
+            if let encoded = encodepableEnum.encode(context: self.context,
+                                                dateFormatter: self.dateFormatter) {
+              return encoded
+            }
+            throw EncodeError.encodingFailedForObject(value)
+          }
+          return "\(value)"
+        case .struct:
+          return [:]
+        default:
+          return value
+        }
+      }
+      if !(value is CustomStringConvertible) {
+        if String(describing: value) == "(Function)" {
+          return nil
+        }
+      }
+      return value
+    } else if value is ExpressibleByNilLiteral && mirror.children.count == 1 {
+      if let firstMirrorChild = mirror.children.first {
+        return try self.encode(value: firstMirrorChild.value, propertyName: propertyName)
+      }
+    }
+    return try self.encode(object: value, enableCustomizedEncodeping: false)
+  }
+
+  func encode<T: Collection>(collection: T) throws -> [Any] {
+    var encodedArray = [Any]()
+    let encoder = Encoder(context: self.context, dateFormatter: self.dateFormatter)
+    for element in collection {
+      if let encoded = try encoder.encode(value: element) {
+        encodedArray.append(encoded)
+      }
+    }
+
+    return encodedArray
+  }
+
+  func encode<K: Hashable, V>(dictionary: [K : V]) throws -> EncodedDictionary {
+    var encodedDictionary = EncodedDictionary()
+    let encoder = Encoder(context: self.context, dateFormatter: self.dateFormatter)
+
+    for (key, value) in dictionary {
+      let encodedKey: String?
+      if let stringKey = key as? String {
+        encodedKey = stringKey
+      } else if let encodepableKey = key as? EncodableKey {
+        encodedKey = encodepableKey.toEncodedKey()
+      } else if let stringConvertible = key as? CustomStringConvertible {
+        encodedKey = stringConvertible.description
+      } else {
+        encodedKey = nil
+      }
+      if let encodedKey = encodedKey {
+        encodedDictionary[encodedKey] = try encoder.encode(value: value, propertyName: encodedKey)
+      }
+    }
+
+    return encodedDictionary
+  }
+
+  func encode(date: EncodableDate) -> String {
+    let dateFormatter: DateFormatter
+    if let existingFormatter = self.dateFormatter {
+      dateFormatter = existingFormatter
+    } else {
+      dateFormatter = DateFormatter()
+      dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+      self.dateFormatter = dateFormatter
+    }
+    return date.encode(dateFormatter: dateFormatter)
+  }
+
+  func performEncodeping<T>(object: T, mirrors: [Mirror]) throws -> EncodedDictionary {
+    let customizable = object as? EncodeCustomizable
+    var encodedDictionary = EncodedDictionary()
+    for mirror in mirrors {
+      for property in mirror.children {
+        if (property.value as? EncodeOptional)?.isNil == true {
+          continue
+        }
+        guard let propertyName = property.label else {
+          continue
+        }
+        let encodingKey: String?
+        if let customizable = customizable {
+          encodingKey = customizable.keyForEncodeping(propertyNamed: propertyName)
+        } else {
+          encodingKey = propertyName
+        }
+        if let encodingKey = encodingKey {
+          if let encodedProperty = try customizable?
+              .encode(propertyNamed: propertyName,
+                    originalValue: property.value,
+                    context: self.context,
+                    dateFormatter: self.dateFormatter) {
+            encodedDictionary[encodingKey] = encodedProperty
+          } else {
+            encodedDictionary[encodingKey] = try self.encode(value: property.value,
+                                                           propertyName: propertyName)
+          }
+        }
+      }
+    }
+
+    return encodedDictionary
+  }
+
+  func performCustomEncodeping(object: EncodeCustomizable) throws -> Any {
+    guard let encoded = object.encode(context: self.context,
+                                      dateFormatter: self.dateFormatter) else {
+      throw EncodeError.encodingFailedForObject(object)
+    }
+
+    return encoded
+  }
+}
+
+private protocol EncodeOptional {
+  var isNil: Bool { get }
+}
+
+extension Optional : EncodeOptional {
+  var isNil: Bool {
+    switch self {
+    case .none:
+      return true
+    case .some(let encoded):
+      if let nillable = encoded as? EncodeOptional {
+        return nillable.isNil
+      }
+      return false
+    }
+  }
+}
+
+
 // Forked from johnsundell/Unbox
 // See LICENSE file.
 
-import Foundation
+//MARK: - Decoder
 
 /// Extension making `Array` an decodable collection
 extension Array: DecodableCollection {
   public typealias DecodeValue = Element
 
   public static func decode<T: DecodeCollectionElementTransformer>(
-      value: Any,
-      allowInvalidElements: Bool,
-      transformer: T) throws -> Array? where T.DecodeedElement == DecodeValue {
+    value: Any,
+    allowInvalidElements: Bool,
+    transformer: T) throws -> Array? where T.DecodeedElement == DecodeValue {
     guard let array = value as? [T.DecodeRawElement] else {
       return nil
     }
@@ -18,8 +520,8 @@ extension Array: DecodableCollection {
     return try array.enumerated().map(allowInvalidElements: allowInvalidElements) {
       index, element in
       let decodedElement = try transformer.decode(
-          element: element,
-          allowInvalidCollectionElements: allowInvalidElements)
+        element: element,
+        allowInvalidCollectionElements: allowInvalidElements)
       return try decodedElement.orThrow(DecodePathError.invalidArrayElement(element, index))
     }
   }
@@ -71,7 +573,7 @@ extension Bool: DecodableRawType {
   }
 #endif
 
- extension Data {
+extension Data {
   func decode<T: Decodable>() throws -> T {
     return try Decoder(data: self).performDecodeing()
   }
@@ -86,16 +588,16 @@ extension Bool: DecodableRawType {
 
   func decode<T: Decodable>(allowInvalidElements: Bool) throws -> [T] {
     let array: [DecodableDictionary] = try JSONSerialization.decode(data: self,
-                                                                   options: [.allowFragments])
+                                                                    options: [.allowFragments])
     return try array.map(allowInvalidElements: allowInvalidElements) { dictionary in
       return try Decoder(dictionary: dictionary).performDecodeing()
     }
   }
 
   func decode<T: DecodableWithContext>(context: T.DecodeContext,
-                                      allowInvalidElements: Bool) throws -> [T] {
+              allowInvalidElements: Bool) throws -> [T] {
     let array: [DecodableDictionary] = try JSONSerialization.decode(data: self,
-                                                                   options: [.allowFragments])
+                                                                    options: [.allowFragments])
 
     return try array.map(allowInvalidElements: allowInvalidElements) { dictionary in
       return try Decoder(dictionary: dictionary).performDecodeing(context: context)
@@ -126,9 +628,9 @@ extension Dictionary: DecodableCollection {
   public typealias DecodeValue = Value
 
   public static func decode<T: DecodeCollectionElementTransformer>(
-      value: Any,
-      allowInvalidElements: Bool,
-      transformer: T) throws -> Dictionary? where T.DecodeedElement == DecodeValue {
+    value: Any,
+    allowInvalidElements: Bool,
+    transformer: T) throws -> Dictionary? where T.DecodeedElement == DecodeValue {
     guard let dictionary = value as? [String : T.DecodeRawElement] else {
       return nil
     }
@@ -141,9 +643,9 @@ extension Dictionary: DecodableCollection {
       }
 
       guard let decodedValue = try transformer.decode(
-          element: value,
-          allowInvalidCollectionElements: allowInvalidElements) else {
-        throw DecodePathError.invalidDictionaryValue(value, key)
+        element: value,
+        allowInvalidCollectionElements: allowInvalidElements) else {
+          throw DecodePathError.invalidDictionaryValue(value, key)
       }
 
       return (decodedKey, decodedValue)
@@ -170,11 +672,9 @@ extension Dictionary: DecodePathNode {
   }
 }
 
-// MARK: - Utilities
-
 private extension Dictionary {
   func map<K, V>(allowInvalidElements: Bool,
-                 transform: (Key, Value) throws -> (K, V)?) throws -> [K : V]? {
+           transform: (Key, Value) throws -> (K, V)?) throws -> [K : V]? {
     var transformedDictionary = [K : V]()
     for (key, value) in self {
       do {
@@ -250,7 +750,7 @@ extension Int64: DecodableRawType {
   }
 }
 
- extension JSONSerialization {
+extension JSONSerialization {
   static func decode<T>(data: Data, options: ReadingOptions = []) throws -> T {
     do {
       return
@@ -277,7 +777,7 @@ extension Int64: DecodableRawType {
   }
 #endif
 
- extension Optional {
+extension Optional {
   func map<T>(_ transform: (Wrapped) throws -> T?) rethrows -> T? {
     guard let value = self else {
       return nil
@@ -295,7 +795,7 @@ extension Int64: DecodableRawType {
   }
 }
 
- extension Sequence {
+extension Sequence {
   func map<T>(allowInvalidElements: Bool, transform: (Iterator.Element) throws -> T) throws -> [T] {
     if !allowInvalidElements {
       return try self.map(transform)
@@ -312,13 +812,13 @@ extension Set: DecodableCollection {
   public typealias DecodeValue = Element
 
   public static func decode<T: DecodeCollectionElementTransformer>(
-      value: Any,
-      allowInvalidElements: Bool,
-      transformer: T) throws -> Set? where T.DecodeedElement == DecodeValue {
+    value: Any,
+    allowInvalidElements: Bool,
+    transformer: T) throws -> Set? where T.DecodeedElement == DecodeValue {
     guard let array = try [DecodeValue].decode(value: value,
-                                             allowInvalidElements: allowInvalidElements,
-                                             transformer: transformer) else {
-      return nil
+                                               allowInvalidElements: allowInvalidElements,
+                                               transformer: transformer) else {
+                                                return nil
     }
 
     return Set(array)
@@ -339,7 +839,7 @@ extension String: DecodableRawType {
 /// Type alias defining what type of Dictionary that is Decodable (valid JSON)
 public typealias DecodableDictionary = [String : Any]
 
- typealias DecodeTransform<T> = (Any) throws -> T?
+typealias DecodeTransform<T> = (Any) throws -> T?
 
 /// Extension making UInt an Decodable raw type
 extension UInt: DecodableRawType {
@@ -396,35 +896,35 @@ public func decode<T: Decodable>(dictionary: DecodableDictionary, atKey key: Str
 
 /// Decode a JSON dictionary into a model `T` beginning at a certain key path. Throws `DecodeError`.
 public func decode<T: Decodable>(dictionary: DecodableDictionary,
-                                atKeyPath keyPath: String) throws -> T {
+                   atKeyPath keyPath: String) throws -> T {
   let container: DecodeContainer<T> = try decode(dictionary: dictionary, context: .keyPath(keyPath))
   return container.model
 }
 
-/// Decode an array of JSON dictionaries into an array of `T`, optionally allowing invalid elements. 
+/// Decode an array of JSON dictionaries into an array of `T`, optionally allowing invalid elements.
 /// Throws `DecodeError`.
 public func decode<T: Decodable>(dictionaries: [DecodableDictionary],
-                                allowInvalidElements: Bool = false) throws -> [T] {
+                   allowInvalidElements: Bool = false) throws -> [T] {
   return try dictionaries.map(allowInvalidElements: allowInvalidElements, transform: decode)
 }
 
-/// Decode an array JSON dictionary into an array of model `T` beginning at a certain key, 
+/// Decode an array JSON dictionary into an array of model `T` beginning at a certain key,
 /// optionally allowing invalid elements. Throws `DecodeError`.
 public func decode<T: Decodable>(dictionary: DecodableDictionary,
-                                atKey key: String,
-                                allowInvalidElements: Bool = false) throws -> [T] {
+                   atKey key: String,
+                   allowInvalidElements: Bool = false) throws -> [T] {
   let container: DecodeArrayContainer<T> = try decode(dictionary: dictionary,
-                                                    context: (.key(key), allowInvalidElements))
+                                                      context: (.key(key), allowInvalidElements))
   return container.models
 }
 
-/// Decode an array JSON dictionary into an array of model `T` beginning at a certain key path, 
+/// Decode an array JSON dictionary into an array of model `T` beginning at a certain key path,
 /// optionally allowing invalid elements. Throws `DecodeError`.
 public func decode<T: Decodable>(dictionary: DecodableDictionary,
-                                atKeyPath keyPath: String,
-                                allowInvalidElements: Bool = false) throws -> [T] {
+                   atKeyPath keyPath: String,
+                   allowInvalidElements: Bool = false) throws -> [T] {
   let container: DecodeArrayContainer<T> =
-      try decode(dictionary: dictionary, context: (.keyPath(keyPath), allowInvalidElements))
+    try decode(dictionary: dictionary, context: (.keyPath(keyPath), allowInvalidElements))
   return container.models
 }
 
@@ -435,12 +935,12 @@ public func decode<T: Decodable>(data: Data) throws -> T {
 
 /// Decode binary data into an array of `T`, optionally allowing invalid elements.
 public func decode<T: Decodable>(data: Data,
-                                atKeyPath keyPath: String? = nil,
-                                allowInvalidElements: Bool = false) throws -> [T] {
+                   atKeyPath keyPath: String? = nil,
+                   allowInvalidElements: Bool = false) throws -> [T] {
   if let keyPath = keyPath {
     return try decode(dictionary: JSONSerialization.decode(data: data),
-                     atKeyPath: keyPath,
-                     allowInvalidElements: allowInvalidElements)
+                      atKeyPath: keyPath,
+                      allowInvalidElements: allowInvalidElements)
   }
 
   return try data.decode(allowInvalidElements: allowInvalidElements)
@@ -448,15 +948,15 @@ public func decode<T: Decodable>(data: Data,
 
 /// Decode a JSON dictionary into a model `T` using a required contextual object.
 public func decode<T: DecodableWithContext>(dictionary: DecodableDictionary,
-                                           context: T.DecodeContext) throws -> T {
+                   context: T.DecodeContext) throws -> T {
   return try Decoder(dictionary: dictionary).performDecodeing(context: context)
 }
 
 /// Decode an array of JSON dictionaries into an array of `T` using a required contextual object,
 /// optionally allowing invalid elements. Throws `DecodeError`.
 public func decode<T: DecodableWithContext>(dictionaries: [DecodableDictionary],
-                                           context: T.DecodeContext,
-                                           allowInvalidElements: Bool = false) throws -> [T] {
+                   context: T.DecodeContext,
+                   allowInvalidElements: Bool = false) throws -> [T] {
   return try dictionaries.map(allowInvalidElements: allowInvalidElements, transform: {
     try decode(dictionary: $0, context: context)
   })
@@ -467,11 +967,11 @@ public func decode<T: DecodableWithContext>(data: Data, context: T.DecodeContext
   return try data.decode(context: context)
 }
 
-/// Decode binary data into an array of `T` using a required contextual object, 
+/// Decode binary data into an array of `T` using a required contextual object,
 /// optionally allowing invalid elements. Throws `DecodeError`.
 public func decode<T: DecodableWithContext>(data: Data,
-                                           context: T.DecodeContext,
-                                           allowInvalidElements: Bool = false) throws -> [T] {
+                   context: T.DecodeContext,
+                   allowInvalidElements: Bool = false) throws -> [T] {
   return try data.decode(context: context, allowInvalidElements: allowInvalidElements)
 }
 
@@ -494,7 +994,7 @@ public func decode<T: Decodable>(dictionary: DecodableDictionary) throws -> [Str
   return mappedDictionary
 }
 
- struct DecodeArrayContainer<T: Decodable>: DecodableWithContext {
+struct DecodeArrayContainer<T: Decodable>: DecodableWithContext {
   let models: [T]
 
   init(decoder: Decoder, context: (path: DecodePath, allowInvalidElements: Bool)) throws {
@@ -503,7 +1003,7 @@ public func decode<T: Decodable>(dictionary: DecodableDictionary) throws -> [Str
       self.models = try decoder.decode(key: key, allowInvalidElements: context.allowInvalidElements)
     case .keyPath(let keyPath):
       self.models = try decoder.decode(keyPath: keyPath,
-                                      allowInvalidElements: context.allowInvalidElements)
+                                       allowInvalidElements: context.allowInvalidElements)
     }
   }
 }
@@ -516,28 +1016,26 @@ public protocol DecodeCollectionElementTransformer {
   /// The decoded element type that this transformer outputs
   associatedtype DecodeedElement
 
-  /// Decode an element from a collection, optionally allowing invalid elements for 
+  /// Decode an element from a collection, optionally allowing invalid elements for
   /// nested collections
   func decode(element: DecodeRawElement,
-             allowInvalidCollectionElements: Bool) throws -> DecodeedElement?
+              allowInvalidCollectionElements: Bool) throws -> DecodeedElement?
 }
 
-/// Protocol that types that can be used in an decoding process must conform to. 
+/// Protocol that types that can be used in an decoding process must conform to.
 /// You don't conform to this protocol yourself.
 public protocol DecodeCompatible {
   /// Decode a value, or either throw or return nil if decoding couldn't be performed
   static func decode(value: Any, allowInvalidCollectionElements: Bool) throws -> Self?
 }
 
-// MARK: -  extensions
-
- extension DecodeCompatible {
+extension DecodeCompatible {
   static func decode(value: Any) throws -> Self? {
     return try self.decode(value: value, allowInvalidCollectionElements: false)
   }
 }
 
- extension DecodeCompatible where Self: Collection {
+extension DecodeCompatible where Self: Collection {
   static func makeTransform(allowInvalidElements: Bool) -> DecodeTransform<Self> {
     return {
       try self.decode(value: $0, allowInvalidCollectionElements: allowInvalidElements)
@@ -545,7 +1043,7 @@ public protocol DecodeCompatible {
   }
 }
 
- struct DecodeContainer<T: Decodable>: DecodableWithContext {
+struct DecodeContainer<T: Decodable>: DecodableWithContext {
   let model: T
 
   init(decoder: Decoder, context: DecodePath) throws {
@@ -564,7 +1062,7 @@ public enum DecodeError: Error {
   case invalidData
   /// Custom decoding failed, either by throwing or returning `nil`
   case customDecodeingFailed
-  /// An error occurred while decoding a value for a path (contains the underlying 
+  /// An error occurred while decoding a value for a path (contains the underlying
   /// path error, and the path)
   case pathError(DecodePathError, String)
 }
@@ -594,28 +1092,24 @@ public protocol DecodeFormatter {
   func format(decodedValue: DecodeRawValue) -> DecodeFormattedType?
 }
 
-// MARK: -  extensions
-
- extension DecodeFormatter {
+extension DecodeFormatter {
   func makeTransform() -> DecodeTransform<DecodeFormattedType> {
     return { ($0 as? DecodeRawValue).map(self.format) }
   }
 
   func makeCollectionTransform<C: DecodableCollection>(
-      allowInvalidElements: Bool) -> DecodeTransform<C> where C.DecodeValue == DecodeFormattedType {
+    allowInvalidElements: Bool) -> DecodeTransform<C> where C.DecodeValue == DecodeFormattedType {
     return {
       let transformer = DecodeFormatterCollectionElementTransformer(formatter: self)
       return try C.decode(value: $0,
-                         allowInvalidElements: allowInvalidElements,
-                         transformer: transformer)
+                          allowInvalidElements: allowInvalidElements,
+                          transformer: transformer)
     }
   }
 }
 
-// MARK: - Utilities
-
 private class DecodeFormatterCollectionElementTransformer<T: DecodeFormatter>:
-    DecodeCollectionElementTransformer {
+DecodeCollectionElementTransformer {
   private let formatter: T
 
   init(formatter: T) {
@@ -623,12 +1117,12 @@ private class DecodeFormatterCollectionElementTransformer<T: DecodeFormatter>:
   }
 
   func decode(element: T.DecodeRawValue,
-             allowInvalidCollectionElements: Bool) throws -> T.DecodeFormattedType? {
+              allowInvalidCollectionElements: Bool) throws -> T.DecodeFormattedType? {
     return self.formatter.format(decodedValue: element)
   }
 }
 
- enum DecodePath {
+enum DecodePath {
   case key(String)
   case keyPath(String)
 }
@@ -687,7 +1181,7 @@ extension DecodePathError: CustomStringConvertible {
   }
 }
 
- protocol DecodePathNode {
+protocol DecodePathNode {
   func decodePathValue(forKey key: String) -> Any?
 }
 
@@ -697,7 +1191,7 @@ public protocol Decodable {
   init(decoder: Decoder) throws
 }
 
- extension Decodable {
+extension Decodable {
   static func makeTransform() -> DecodeTransform<Self> {
     return { try ($0 as? DecodableDictionary).map(decode) }
   }
@@ -719,9 +1213,7 @@ public extension DecodableByTransform {
   }
 }
 
-// MARK: - Protocol
-
-/// Protocol used to enable collections to be decoded. 
+/// Protocol used to enable collections to be decoded.
 /// Default implementations exist for Array & Dictionary
 public protocol DecodableCollection: Collection, DecodeCompatible {
   /// The value type that this collection contains
@@ -729,12 +1221,10 @@ public protocol DecodableCollection: Collection, DecodeCompatible {
 
   /// Decode a value into a collection, optionally allowing invalid elements
   static func decode<T: DecodeCollectionElementTransformer>(
-      value: Any,
-      allowInvalidElements: Bool,
-      transformer: T) throws -> Self? where T.DecodeedElement == DecodeValue
+    value: Any,
+    allowInvalidElements: Bool,
+    transformer: T) throws -> Self? where T.DecodeedElement == DecodeValue
 }
-
-// MARK: - Default implementations
 
 // Default implementation of `DecodeCompatible` for collections
 public extension DecodableCollection {
@@ -751,28 +1241,26 @@ public extension DecodableCollection {
       }
 
       return try self.decode(value: value,
-                            allowInvalidElements: allowInvalidCollectionElements,
-                            transformer: transformer)
+                             allowInvalidElements: allowInvalidCollectionElements,
+                             transformer: transformer)
     }
 
     if let unboxCompatibleType = DecodeValue.self as? DecodeCompatible.Type {
       let transformer = DecodeCollectionElementClosureTransformer<Any, DecodeValue>() {
         element in
         return try unboxCompatibleType.decode(
-            value: element,
-            allowInvalidCollectionElements: allowInvalidCollectionElements) as? DecodeValue
+          value: element,
+          allowInvalidCollectionElements: allowInvalidCollectionElements) as? DecodeValue
       }
 
       return try self.decode(value: value,
-                            allowInvalidElements: allowInvalidCollectionElements,
-                            transformer: transformer)
+                             allowInvalidElements: allowInvalidCollectionElements,
+                             transformer: transformer)
     }
 
     throw DecodePathError.invalidCollectionElementType(DecodeValue.self)
   }
 }
-
-// MARK: - Utility types
 
 private class DecodeCollectionElementClosureTransformer<I, O>: DecodeCollectionElementTransformer {
   private let closure: (I) throws -> O?
@@ -826,7 +1314,7 @@ public extension DecodableRawType {
   }
 }
 
-/// Protocol used to declare a model as being Decodable with a certain context, for use with 
+/// Protocol used to declare a model as being Decodable with a certain context, for use with
 /// the decode(context:) function
 public protocol DecodableWithContext {
   /// The type of the contextual object that this model requires when decoded
@@ -836,9 +1324,7 @@ public protocol DecodableWithContext {
   init(decoder: Decoder, context: DecodeContext) throws
 }
 
-// MARK: -  extensions
-
- extension DecodableWithContext {
+extension DecodableWithContext {
   static func makeTransform(context: DecodeContext) -> DecodeTransform<Self> {
     return {
       try ($0 as? DecodableDictionary).map {
@@ -848,21 +1334,19 @@ public protocol DecodableWithContext {
   }
 
   static func makeCollectionTransform<C: DecodableCollection>(
-      context: DecodeContext,
-      allowInvalidElements: Bool) -> DecodeTransform<C> where C.DecodeValue == Self {
+    context: DecodeContext,
+    allowInvalidElements: Bool) -> DecodeTransform<C> where C.DecodeValue == Self {
     return {
       let transformer = DecodableWithContextCollectionElementTransformer<Self>(context: context)
       return try C.decode(value: $0,
-                         allowInvalidElements: allowInvalidElements,
-                         transformer: transformer)
+                          allowInvalidElements: allowInvalidElements,
+                          transformer: transformer)
     }
   }
 }
 
-// MARK: - Utilities
-
 private class DecodableWithContextCollectionElementTransformer<T: DecodableWithContext>:
-    DecodeCollectionElementTransformer {
+DecodeCollectionElementTransformer {
   private let context: T.DecodeContext
 
   init(context: T.DecodeContext) {
@@ -875,47 +1359,39 @@ private class DecodableWithContextCollectionElementTransformer<T: DecodableWithC
   }
 }
 
-// MARK: - Public
+/// Class used to Decode (decode) values from a dictionary
+/// For each supported type, simply call `decode(key: string)` (where `string` is a key
+/// in the dictionary that is being decoded)
+/// - and the correct type will be returned. If a required (non-optional) value couldn't be
+/// decoded `DecodeError` will be thrown.
 
-/**
- *  Class used to Decode (decode) values from a dictionary
- *
- *  For each supported type, simply call `decode(key: string)` (where `string` is a key 
- *  in the dictionary that is being decoded)
- *  - and the correct type will be returned. If a required (non-optional) value couldn't be 
- *  decoded `DecodeError` will be thrown.
- */
 public final class Decoder {
   /// The underlying JSON dictionary that is being decoded
   public let dictionary: DecodableDictionary
-
-  // MARK: - Initializer
 
   /// Initialize an instance with a dictionary that can then be decoded using the `decode()` methods.
   public init(dictionary: DecodableDictionary) {
     self.dictionary = dictionary
   }
 
-  /// Initialize an instance with binary data than can then be decoded using the `decode()` methods. 
+  /// Initialize an instance with binary data than can then be decoded using the `decode()` methods.
   /// Throws `DecodeError` for invalid data.
   public init(data: Data) throws {
     self.dictionary = try JSONSerialization.decode(data: data)
   }
 
-  // MARK: - Custom decoding API
-
   /// Perform custom decoding using an Decoder (created from a dictionary) passed to a closure,
   /// or throw an DecodeError
   public static func performCustomDecodeing<T>(dictionary: DecodableDictionary,
-                                              closure: (Decoder) throws -> T?) throws -> T {
+                                            closure: (Decoder) throws -> T?) throws -> T {
     return try Decoder(dictionary: dictionary).performCustomDecodeing(closure: closure)
   }
 
   /// Perform custom decoding on an array of dictionaries, executing a closure with a new Decoder
   /// for each one, or throw an DecodeError
   public static func performCustomDecodeing<T>(array: [DecodableDictionary],
-                                              allowInvalidElements: Bool = false,
-                                              closure: (Decoder) throws -> T?) throws -> [T] {
+                                            allowInvalidElements: Bool = false,
+                                            closure: (Decoder) throws -> T?) throws -> [T] {
     return try array.map(allowInvalidElements: allowInvalidElements) {
       try Decoder(dictionary: $0).performCustomDecodeing(closure: closure)
     }
@@ -924,12 +1400,10 @@ public final class Decoder {
   /// Perform custom decoding using an Decoder (created from binary data) passed to a closure,
   /// or throw an DecodeError
   public static func performCustomDecodeing<T>(
-      data: Data,
-      closure: @escaping (Decoder) throws -> T?) throws -> T {
+    data: Data,
+    closure: @escaping (Decoder) throws -> T?) throws -> T {
     return try data.decode(closure: closure)
   }
-
-  // MARK: - Decodeing required values (by key)
 
   /// Decode a required value by key
   public func decode<T: DecodeCompatible>(key: String) throws -> T {
@@ -954,12 +1428,12 @@ public final class Decoder {
 
   /// Decode a required collection of DecodableWithContext values by key
   public func decode<C: DecodableCollection, V: DecodableWithContext>(
-      key: String,
-      context: V.DecodeContext,
-      allowInvalidElements: Bool = false) throws -> C where C.DecodeValue == V {
+    key: String,
+    context: V.DecodeContext,
+    allowInvalidElements: Bool = false) throws -> C where C.DecodeValue == V {
     return try self.decode(path: .key(key), transform: V.makeCollectionTransform(
-        context: context,
-        allowInvalidElements: allowInvalidElements))
+      context: context,
+      allowInvalidElements: allowInvalidElements))
   }
 
   /// Decode a required value using a formatter by key
@@ -969,15 +1443,13 @@ public final class Decoder {
 
   /// Decode a required collection of values using a formatter by key
   public func decode<C: DecodableCollection, F: DecodeFormatter>(
-      key: String,
-      formatter: F,
-      allowInvalidElements: Bool = false) throws -> C where C.DecodeValue == F.DecodeFormattedType {
+    key: String,
+    formatter: F,
+    allowInvalidElements: Bool = false) throws -> C where C.DecodeValue == F.DecodeFormattedType {
     return try self.decode(
-        path: .key(key),
-        transform: formatter.makeCollectionTransform(allowInvalidElements: allowInvalidElements))
+      path: .key(key),
+      transform: formatter.makeCollectionTransform(allowInvalidElements: allowInvalidElements))
   }
-
-  // MARK: - Decodeing required values (by key path)
 
   /// Decode a required value by key path
   public func decode<T: DecodeCompatible>(keyPath: String) throws -> T {
@@ -986,7 +1458,7 @@ public final class Decoder {
 
   /// Decode a required collection by key path
   public func decode<T: DecodeCompatible>(keyPath: String,
-                                        allowInvalidElements: Bool) throws -> T where T: Collection{
+                     allowInvalidElements: Bool) throws -> T where T: Collection{
     let transform = T.makeTransform(allowInvalidElements: allowInvalidElements)
     return try self.decode(path: .keyPath(keyPath), transform: transform)
   }
@@ -998,38 +1470,36 @@ public final class Decoder {
 
   /// Decode a required DecodableWithContext type by key path
   public func decode<T: DecodableWithContext>(keyPath: String,
-                                              context: T.DecodeContext) throws -> T {
+                     context: T.DecodeContext) throws -> T {
     return try self.decode(path: .keyPath(keyPath), transform: T.makeTransform(context: context))
   }
 
   /// Decode a required collection of DecodableWithContext values by key path
   public func decode<C: DecodableCollection, V: DecodableWithContext>(
-      keyPath: String,
-      context: V.DecodeContext,
-      allowInvalidElements: Bool = false) throws -> C where C.DecodeValue == V {
+    keyPath: String,
+    context: V.DecodeContext,
+    allowInvalidElements: Bool = false) throws -> C where C.DecodeValue == V {
     return try self.decode(
-        path: .keyPath(keyPath),
-        transform: V.makeCollectionTransform(context: context,
-                                             allowInvalidElements: allowInvalidElements))
+      path: .keyPath(keyPath),
+      transform: V.makeCollectionTransform(context: context,
+                                           allowInvalidElements: allowInvalidElements))
   }
 
   /// Decode a required value using a formatter by key path
   public func decode<F: DecodeFormatter>(keyPath: String,
-                                       formatter: F) throws -> F.DecodeFormattedType {
+                     formatter: F) throws -> F.DecodeFormattedType {
     return try self.decode(path: .keyPath(keyPath), transform: formatter.makeTransform())
   }
 
   /// Decode a required collection of values using a formatter by key path
   public func decode<C: DecodableCollection, F: DecodeFormatter>(
-      keyPath: String,
-      formatter: F,
-      allowInvalidElements: Bool = false) throws -> C where C.DecodeValue == F.DecodeFormattedType {
+    keyPath: String,
+    formatter: F,
+    allowInvalidElements: Bool = false) throws -> C where C.DecodeValue == F.DecodeFormattedType {
     return try self.decode(
-        path: .keyPath(keyPath),
-        transform: formatter.makeCollectionTransform(allowInvalidElements: allowInvalidElements))
+      path: .keyPath(keyPath),
+      transform: formatter.makeCollectionTransform(allowInvalidElements: allowInvalidElements))
   }
-
-  // MARK: - Decodeing optional values (by key)
 
   /// Decode an optional value by key
   public func decode<T: DecodeCompatible>(key: String) -> T? {
@@ -1053,9 +1523,9 @@ public final class Decoder {
 
   /// Decode an optional collection of DecodableWithContext values by key
   public func decode<C: DecodableCollection, V: DecodableWithContext>(
-      key: String,
-      context: V.DecodeContext,
-      allowInvalidElements: Bool = false) -> C? where C.DecodeValue == V {
+    key: String,
+    context: V.DecodeContext,
+    allowInvalidElements: Bool = false) -> C? where C.DecodeValue == V {
     return try? self.decode(key: key, context: context, allowInvalidElements: allowInvalidElements)
   }
 
@@ -1066,15 +1536,13 @@ public final class Decoder {
 
   /// Decode an optional collection of values using a formatter by key
   public func decode<C: DecodableCollection, F: DecodeFormatter>(
-      key: String,
-      formatter: F,
-      allowInvalidElements: Bool = false) -> C? where C.DecodeValue == F.DecodeFormattedType {
+    key: String,
+    formatter: F,
+    allowInvalidElements: Bool = false) -> C? where C.DecodeValue == F.DecodeFormattedType {
     return try? self.decode(key: key,
-                           formatter: formatter,
-                           allowInvalidElements: allowInvalidElements)
+                            formatter: formatter,
+                            allowInvalidElements: allowInvalidElements)
   }
-
-  // MARK: - Decodeing optional values (by key path)
 
   /// Decode an optional value by key path
   public func decode<T: DecodeCompatible>(keyPath: String) -> T? {
@@ -1098,12 +1566,12 @@ public final class Decoder {
 
   /// Decode an optional collection of DecodableWithContext values by key path
   public func decode<C: DecodableCollection, V: DecodableWithContext>(
-      keyPath: String,
-      context: V.DecodeContext,
-      allowInvalidElements: Bool = false) -> C? where C.DecodeValue == V {
+    keyPath: String,
+    context: V.DecodeContext,
+    allowInvalidElements: Bool = false) -> C? where C.DecodeValue == V {
     return try? self.decode(keyPath: keyPath,
-                           context: context,
-                           allowInvalidElements: allowInvalidElements)
+                            context: context,
+                            allowInvalidElements: allowInvalidElements)
   }
 
   /// Decode an optional value using a formatter by key path
@@ -1113,18 +1581,16 @@ public final class Decoder {
 
   /// Decode an optional collection of values using a formatter by key path
   public func decode<C: DecodableCollection, F: DecodeFormatter>(
-      keyPath: String,
-      formatter: F,
-      allowInvalidElements: Bool = false) -> C? where C.DecodeValue == F.DecodeFormattedType {
+    keyPath: String,
+    formatter: F,
+    allowInvalidElements: Bool = false) -> C? where C.DecodeValue == F.DecodeFormattedType {
     return try? self.decode(keyPath: keyPath,
-                           formatter: formatter,
-                           allowInvalidElements: allowInvalidElements)
+                            formatter: formatter,
+                            allowInvalidElements: allowInvalidElements)
   }
 }
 
-// MARK: - 
-
- extension Decoder {
+extension Decoder {
   func performDecodeing<T: Decodable>() throws -> T {
     return try T(decoder: self)
   }
@@ -1133,8 +1599,6 @@ public final class Decoder {
     return try T(decoder: self, context: context)
   }
 }
-
-// MARK: - Private
 
 private extension Decoder {
   func decode<R>(path: DecodePath, transform: DecodeTransform<R>) throws -> R {

@@ -4,16 +4,16 @@ public protocol ActionType { }
 
 public struct Action<A: ActionType> {
 
-  /** The action associated to this status object. */
+  /// The action associated to this status object.
   let action: A
 
-  /** The state of the action. */
-  let state: ActionState
+  /// The state of the action.
+  let model: ActionState
 
-  /** The last time the operation was being executed. */
+  /// The last time the operation was being executed.
   let lastRun: TimeInterval
 
-  /** Additional info passed from the action. */
+  /// Additional info passed from the action.
   let userInfo: [String: Any]?
 }
 

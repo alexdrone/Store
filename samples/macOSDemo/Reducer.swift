@@ -1,9 +1,9 @@
 import Foundation
-import Dispatcher_macOS
+import DispatchStore_macOS
 
 // MARK: - State
 
-struct Counter: StateType {
+struct Counter: ModelType {
 
   var count: Int = 0
 
@@ -23,13 +23,13 @@ class CounterReducer: Reducer<Counter, Counter.Action> {
     switch action {
     case .increase:
       return ActionOperation(action: action, store: store) { operation, _, store in
-        store.updateState { state in state.count += 1 }
+        store.updateModel { model in model.count += 1 }
         operation.finish()
       }
 
     case .decrease:
       return ActionOperation(action: action, store: store) { operation, _, store in
-        store.updateState { state in state.count -= 1 }
+        store.updateModel { model in model.count -= 1 }
         operation.finish()
       }
     }

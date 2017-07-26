@@ -1,6 +1,6 @@
 import Foundation
 
-/** Logs all of the dispatched actions. */
+/// Logs all of the dispatched actions.
 final public class LoggerMiddleware: MiddlewareType {
 
   // A map from transactionIds -> timestamp.
@@ -8,14 +8,14 @@ final public class LoggerMiddleware: MiddlewareType {
 
   public init() { }
 
-  /** An action is about to be dispatched. */
+  /// An action is about to be dispatched.
   public func willDispatch(transaction: String, action: ActionType, in store: StoreType) {
     DispatchQueue.main.async {
       self.queue[transaction] = Date().timeIntervalSince1970
     }
   }
 
-  /** An action just got dispatched. */
+  /// An action just got dispatched.
   public func didDispatch(transaction: String, action: ActionType, in store: StoreType) {
     guard let timestamp = queue[transaction] else {
       return

@@ -1,17 +1,17 @@
 import Foundation
 
-/** An operation associated to a specific action. */
-public class ActionOperation<S: StateType, A: ActionType>: AsynchronousOperation {
+/// An operation associated to a specific action.
+public class ActionOperation<S: ModelType, A: ActionType>: AsynchronousOperation {
 
-  /** The operation execution block */
+  /// The operation execution block.
   public typealias ExecutionBlock = (AsynchronousOperation, A, Store<S, A>) -> Void
   public typealias FinishBlock = (Void) -> (Void)
 
-  // Arguments
+  // Arguments.
   public let action: A
   public weak var store: Store<S, A>?
 
-  // Execturin blocks
+  // Executing blocks.
   public let block: ExecutionBlock
   internal var finishBlock: FinishBlock = { }
 
@@ -35,10 +35,9 @@ public class ActionOperation<S: StateType, A: ActionType>: AsynchronousOperation
   }
 }
 
-/** Base class for an asynchronous operation.
- *  Subclasses are expected to override the 'execute' function and call
- *  the function 'finish' when they're done with their task.
- */
+/// Base class for an asynchronous operation.
+/// Subclasses are expected to override the 'execute' function and call
+/// the function 'finish' when they're done with their task.
 public class AsynchronousOperation: Operation {
 
   // property overrides
@@ -47,7 +46,7 @@ public class AsynchronousOperation: Operation {
   override public var isExecuting: Bool { return __executing }
   override public var isFinished: Bool { return __finished }
 
-  // __ to avoid name clash with the superclass
+  // __ to avoid name clashes with the superclass.
   private var __executing = false {
     willSet { willChangeValue(forKey: "isExecuting") }
     didSet { didChangeValue(forKey: "isExecuting") }
@@ -63,16 +62,14 @@ public class AsynchronousOperation: Operation {
     execute()
   }
 
-  /** Subclasses are expected to override the 'execute' function and call
-   *  the function 'finish' when they're done with their task.
-   */
+  /// Subclasses are expected to override the 'execute' function and call
+  /// the function 'finish' when they're done with their task.
   public dynamic func execute() {
     fatalError("Your subclass must override this")
   }
 
-  /** This function should be called inside 'execute' when the task for this
-   *  operation is completed.
-   */
+  /// This function should be called inside 'execute' when the task for this
+  /// operation is completed.
   public dynamic func finish() {
     __executing = false
     __finished = true

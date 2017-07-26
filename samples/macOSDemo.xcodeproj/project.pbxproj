@@ -11,9 +11,33 @@
 		16426F881E81A51600402F95 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 16426F871E81A51600402F95 /* Assets.xcassets */; };
 		16426F8B1E81A51600402F95 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 16426F891E81A51600402F95 /* MainMenu.xib */; };
 		16426F951E81A8E600402F95 /* Reducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16426F941E81A8E600402F95 /* Reducer.swift */; };
-		16857FA81E8470170008F0EB /* Dispatcher_macOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 16857FA71E8470170008F0EB /* Dispatcher_macOS.framework */; };
-		16857FA91E8470170008F0EB /* Dispatcher_macOS.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 16857FA71E8470170008F0EB /* Dispatcher_macOS.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		16CDEAA81F28C86E0076B643 /* DispatchStore_macOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 16CDEAA41F28C84E0076B643 /* DispatchStore_macOS.framework */; };
+		16CDEAA91F28C86E0076B643 /* DispatchStore_macOS.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 16CDEAA41F28C84E0076B643 /* DispatchStore_macOS.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		16CDEAA11F28C84E0076B643 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 16CDEA9C1F28C84E0076B643 /* DispatchStore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 167A43161E8452C900083790;
+			remoteInfo = DispatchStore_iOS;
+		};
+		16CDEAA31F28C84E0076B643 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 16CDEA9C1F28C84E0076B643 /* DispatchStore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 167A43321E8453E100083790;
+			remoteInfo = DispatchStore_macOS;
+		};
+		16CDEAAA1F28C86E0076B643 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 16CDEA9C1F28C84E0076B643 /* DispatchStore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 167A43311E8453E100083790;
+			remoteInfo = DispatchStore_macOS;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		16426FAB1E81A98900402F95 /* Embed Frameworks */ = {
@@ -22,7 +46,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				16857FA91E8470170008F0EB /* Dispatcher_macOS.framework in Embed Frameworks */,
+				16CDEAA91F28C86E0076B643 /* DispatchStore_macOS.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -36,7 +60,7 @@
 		16426F8A1E81A51600402F95 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		16426F8C1E81A51600402F95 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		16426F941E81A8E600402F95 /* Reducer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Reducer.swift; sourceTree = "<group>"; };
-		16857FA71E8470170008F0EB /* Dispatcher_macOS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Dispatcher_macOS.framework; path = Frameworks/Dispatcher_macOS.framework; sourceTree = "<group>"; };
+		16CDEA9C1F28C84E0076B643 /* DispatchStore.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DispatchStore.xcodeproj; path = /Users/alexusbergo/Desktop/Dispatch/DispatchStore.xcodeproj; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -44,7 +68,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				16857FA81E8470170008F0EB /* Dispatcher_macOS.framework in Frameworks */,
+				16CDEAA81F28C86E0076B643 /* DispatchStore_macOS.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -54,7 +78,7 @@
 		16426F791E81A51600402F95 = {
 			isa = PBXGroup;
 			children = (
-				16857FA71E8470170008F0EB /* Dispatcher_macOS.framework */,
+				16CDEA9C1F28C84E0076B643 /* DispatchStore.xcodeproj */,
 				16426F841E81A51600402F95 /* macOSDemo */,
 				16426F831E81A51600402F95 /* Products */,
 			);
@@ -80,6 +104,15 @@
 			path = macOSDemo;
 			sourceTree = "<group>";
 		};
+		16CDEA9D1F28C84E0076B643 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				16CDEAA21F28C84E0076B643 /* DispatchStore_iOS.framework */,
+				16CDEAA41F28C84E0076B643 /* DispatchStore_macOS.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -95,6 +128,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				16CDEAAB1F28C86E0076B643 /* PBXTargetDependency */,
 			);
 			name = macOSDemo;
 			productName = macOSDemo;
@@ -128,12 +162,35 @@
 			mainGroup = 16426F791E81A51600402F95;
 			productRefGroup = 16426F831E81A51600402F95 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 16CDEA9D1F28C84E0076B643 /* Products */;
+					ProjectRef = 16CDEA9C1F28C84E0076B643 /* DispatchStore.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				16426F811E81A51600402F95 /* macOSDemo */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		16CDEAA21F28C84E0076B643 /* DispatchStore_iOS.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = DispatchStore_iOS.framework;
+			remoteRef = 16CDEAA11F28C84E0076B643 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		16CDEAA41F28C84E0076B643 /* DispatchStore_macOS.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = DispatchStore_macOS.framework;
+			remoteRef = 16CDEAA31F28C84E0076B643 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		16426F801E81A51600402F95 /* Resources */ = {
@@ -158,6 +215,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		16CDEAAB1F28C86E0076B643 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = DispatchStore_macOS;
+			targetProxy = 16CDEAAA1F28C86E0076B643 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		16426F891E81A51600402F95 /* MainMenu.xib */ = {
@@ -264,6 +329,7 @@
 		16426F901E81A51600402F95 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -282,6 +348,7 @@
 		16426F911E81A51600402F95 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = (

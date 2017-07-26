@@ -1,47 +1,46 @@
 import Foundation
 
-open class SerializableStore<S: SerializableStateType, A: SerializableActionType> : Store<S, A> {
+open class SerializableStore<S: SerializableModelType, A: SerializableActionType> : Store<S, A> {
 
 }
 
-/** Specialization for the 'ActionType'. */
+/// Specialization for the 'ActionType'.
 public protocol SerializableActionType: ActionType {
 
-  /** Action dispatched whenever the state is being unmarshalled and injected. */
+  /// Action dispatched whenever the state is being unmarshalled and injected.
   static var injectAction: SerializableActionType { get }
 
-  /** Whether this action is the one marked for state deserialization. */
+  /// Whether this action is the one marked for state deserialization.
   var isInjectAction: Bool { get }
 }
 
-/** A state that is encodable and decodable.
- *  For the time being 'Decode' is used as json-parser.
- */
-public protocol SerializableStateType: StateType, Decodable { }
+/// A state that is encodable and decodable.
+/// For the time being 'Decode' is used as json-parser.
+public protocol SerializableModelType: ModelType, Decodable { }
 
-public extension SerializableStateType {
+public extension SerializableModelType {
 
-  /** Encodes the state into a dictionary. */
+  /// Encodes the state into a dictionary.
   public func encode(flatten: Bool = false) -> [String: Any] {
-    let result = serialize(state: self)
+    let result = serialize(model: self)
     if flatten {
-      return merge(encodedState: result)
+      return merge(encodedModel: result)
     } else {
       return result
     }
   }
 
-  /** Unmarshal the state from a dictionary */
+  /// Unmarshal the state from a dictionary
   public static func decode(dictionary: [String: Any]) -> Self {
     return deserialize(dictionary: dictionary)
   }
 
-  /** Infer the state target. */
-  public func decoder() -> ([String: Any]) -> StateType {
+  /// Infer the state target.
+  public func decoder() -> ([String: Any]) -> ModelType {
     return { dictionary in
       do {
-        let state: Self = try decode(dictionary: dictionary)
-        return state
+        let model: Self = try decode(dictionary: dictionary)
+        return model
       } catch {
         return Self()
       }
@@ -49,15 +48,15 @@ public extension SerializableStateType {
   }
 }
 
-fileprivate func serialize(state: StateType) -> [String: Any] {
+fileprivate func serialize(model: ModelType) -> [String: Any] {
   do {
-    return try encode(state)
+    return try encode(model)
   } catch {
     return [:]
   }
 }
 
-fileprivate func deserialize<S: SerializableStateType>(dictionary: [String: Any]) -> S {
+fileprivate func deserialize<S: SerializableModelType>(dictionary: [String: Any]) -> S {
   do {
     return try decode(dictionary: dictionary)
   } catch {
@@ -65,8 +64,8 @@ fileprivate func deserialize<S: SerializableStateType>(dictionary: [String: Any]
   }
 }
 
-/** Flatten down the dictionary into a map from 'path' to value. */
-fileprivate func merge(encodedState: [String: Any]) -> [String: Any] {
+/// Flatten down the dictionary into a map from 'path' to value.
+public func merge(encodedModel: [String: Any]) -> [String: Any] {
   func flatten(path: String, dictionary: [String: Any], result: inout [String: Any]) {
     let formattedPath = path.isEmpty ? "" : "\(path)/"
     for (key, value) in dictionary {
@@ -80,7 +79,7 @@ fileprivate func merge(encodedState: [String: Any]) -> [String: Any] {
     }
   }
   var result: [String: Any] = [:]
-  flatten(path: "", dictionary: encodedState, result: &result)
+  flatten(path: "", dictionary: encodedModel, result: &result)
   return result
 }
 

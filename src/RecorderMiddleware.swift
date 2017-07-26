@@ -3,18 +3,18 @@ import Foundation
   import UIKit
 #endif
 
-final public class ImmutableStateRecorderMiddleware: MiddlewareType {
+final public class ImmutableModelRecorderMiddleware: MiddlewareType {
 
   public struct Record {
 
-    /** A unique identifier for the current transaction. */
+    /// A unique identifier for the current transaction.
     public let transaction: String
 
-    public let state: StateType
+    public let model: ModelType
     public let action: ActionType
     public weak var store: StoreType?
 
-    /** When the action was performed. */
+    /// When the action was performed.
     public let timestamp: TimeInterval
   }
 
@@ -22,7 +22,7 @@ final public class ImmutableStateRecorderMiddleware: MiddlewareType {
   private var index: Int = 0
   private let lock = NSRecursiveLock()
 
-  /** How big is the history for this recorder. */
+  /// How big is the history for this recorder.
   public var maxNumberOfRecords = 20
 
   public init(enableKeyboardControls: Bool) {
@@ -41,13 +41,12 @@ final public class ImmutableStateRecorderMiddleware: MiddlewareType {
 
   public func willDispatch(transaction: String, action: ActionType, in store: StoreType) { }
 
-  /** An action just got dispatched. 
-   *  If the recorder index is not pointing to the tail, all of the records that appear after
-   *  the index are going to be removed.
-   */
+  /// An action just got dispatched.
+  /// If the recorder index is not pointing to the tail, all of the records that appear after
+  /// the index are going to be removed.
   public func didDispatch(transaction: String, action: ActionType, in store: StoreType) {
     let record = Record(transaction: transaction,
-                        state: store.stateValue,
+                        model: store.anyModel,
                         action: action,
                         store: store,
                         timestamp: Date().timeIntervalSince1970)
@@ -58,7 +57,7 @@ final public class ImmutableStateRecorderMiddleware: MiddlewareType {
     self.lock.unlock()
   }
 
-  /** Moves the cursor back in history. */
+  /// Moves the cursor back in history.
   private func previousRecord() {
     precondition(Thread.isMainThread)
     guard self.index > 0 else {
@@ -71,13 +70,13 @@ final public class ImmutableStateRecorderMiddleware: MiddlewareType {
     guard let store = record.store else {
       return
     }
-    store.inject(state: record.state, action: record.action)
+    store.inject(model: record.model, action: record.action)
 
     let date = Date(timeIntervalSince1970: record.timestamp)
     print("◀ \(store.identifier).\(record.action) @ \(date).)")
   }
 
-  /** Moves the cursor forward in history. */
+  /// Moves the cursor forward in history.
   private func nextRecord() {
     precondition(Thread.isMainThread)
     guard self.index < self.records.count-1 else {
@@ -90,7 +89,7 @@ final public class ImmutableStateRecorderMiddleware: MiddlewareType {
     guard let store = record.store else {
       return
     }
-    store.inject(state: record.state, action: record.action)
+    store.inject(model: record.model, action: record.action)
 
     let date = Date(timeIntervalSince1970: record.timestamp)
     print("▶ \(store.identifier).\(record.action) @ \(date).)")

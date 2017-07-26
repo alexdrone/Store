@@ -12,10 +12,8 @@
 		162B39C11EC08DBF0074E075 /* RecorderMiddleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16D979D11E88C4CB00F4430B /* RecorderMiddleware.swift */; };
 		1639E3E91EE2E27D00A3A182 /* PushID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1639E3E81EE2E27D00A3A182 /* PushID.swift */; };
 		1639E3EA1EE2E2B900A3A182 /* PushID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1639E3E81EE2E27D00A3A182 /* PushID.swift */; };
-		1639E3ED1EE2E3B700A3A182 /* Decoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1639E3EC1EE2E3B700A3A182 /* Decoder.swift */; };
-		1639E3EE1EE2E3B700A3A182 /* Decoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1639E3EC1EE2E3B700A3A182 /* Decoder.swift */; };
-		1639E3F01EE2E4A100A3A182 /* Encoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1639E3EF1EE2E4A100A3A182 /* Encoder.swift */; };
-		1639E3F11EE2E4A100A3A182 /* Encoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1639E3EF1EE2E4A100A3A182 /* Encoder.swift */; };
+		1639E3F01EE2E4A100A3A182 /* Serialization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1639E3EF1EE2E4A100A3A182 /* Serialization.swift */; };
+		1639E3F11EE2E4A100A3A182 /* Serialization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1639E3EF1EE2E4A100A3A182 /* Serialization.swift */; };
 		1639E3F31EE2EA1500A3A182 /* Serializable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1639E3F21EE2EA1500A3A182 /* Serializable.swift */; };
 		1639E3F41EE2EA1500A3A182 /* Serializable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1639E3F21EE2EA1500A3A182 /* Serializable.swift */; };
 		1639E3F61EE44DC900A3A182 /* KeyCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1639E3F51EE44DC900A3A182 /* KeyCommands.swift */; };
@@ -39,8 +37,7 @@
 /* Begin PBXFileReference section */
 		1601D4231E8895B6008A2CF5 /* Action.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Action.swift; sourceTree = "<group>"; };
 		1639E3E81EE2E27D00A3A182 /* PushID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PushID.swift; sourceTree = "<group>"; };
-		1639E3EC1EE2E3B700A3A182 /* Decoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Decoder.swift; path = deps/Decoder.swift; sourceTree = SOURCE_ROOT; };
-		1639E3EF1EE2E4A100A3A182 /* Encoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Encoder.swift; path = deps/Encoder.swift; sourceTree = SOURCE_ROOT; };
+		1639E3EF1EE2E4A100A3A182 /* Serialization.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Serialization.swift; path = deps/Serialization.swift; sourceTree = SOURCE_ROOT; };
 		1639E3F21EE2EA1500A3A182 /* Serializable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Serializable.swift; sourceTree = "<group>"; };
 		1639E3F51EE44DC900A3A182 /* KeyCommands.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = KeyCommands.swift; path = deps/KeyCommands.swift; sourceTree = SOURCE_ROOT; };
 		167A43161E8452C900083790 /* DispatchStore_iOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DispatchStore_iOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -76,15 +73,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		1639E3EB1EE2E39500A3A182 /* Dependencies */ = {
+		1639E3EB1EE2E39500A3A182 /* deps */ = {
 			isa = PBXGroup;
 			children = (
-				1639E3EC1EE2E3B700A3A182 /* Decoder.swift */,
-				1639E3EF1EE2E4A100A3A182 /* Encoder.swift */,
+				1639E3EF1EE2E4A100A3A182 /* Serialization.swift */,
 				1639E3F51EE44DC900A3A182 /* KeyCommands.swift */,
 				1639E3E81EE2E27D00A3A182 /* PushID.swift */,
 			);
-			name = Dependencies;
+			name = deps;
 			sourceTree = "<group>";
 		};
 		167A430C1E8452C900083790 = {
@@ -108,15 +104,9 @@
 		167A43181E8452C900083790 /* src */ = {
 			isa = PBXGroup;
 			children = (
-				1639E3EB1EE2E39500A3A182 /* Dependencies */,
-				16E2E4961E89493F005C238B /* Middleware */,
-				1601D4231E8895B6008A2CF5 /* Action.swift */,
-				167A43211E8453A300083790 /* Dispatcher.swift */,
-				167A43231E8453A300083790 /* Middleware.swift */,
-				1639E3F21EE2EA1500A3A182 /* Serializable.swift */,
-				167A43241E8453A300083790 /* Operations.swift */,
-				167A43251E8453A300083790 /* Reducer.swift */,
-				167A43261E8453A300083790 /* Store.swift */,
+				16CDEA9B1F28BB880076B643 /* core */,
+				1639E3EB1EE2E39500A3A182 /* deps */,
+				16E2E4961E89493F005C238B /* middleware */,
 				167A43191E8452C900083790 /* Dispatcher.h */,
 				167A431A1E8452C900083790 /* Info.plist */,
 			);
@@ -132,13 +122,27 @@
 			path = macos;
 			sourceTree = "<group>";
 		};
-		16E2E4961E89493F005C238B /* Middleware */ = {
+		16CDEA9B1F28BB880076B643 /* core */ = {
+			isa = PBXGroup;
+			children = (
+				1601D4231E8895B6008A2CF5 /* Action.swift */,
+				167A43211E8453A300083790 /* Dispatcher.swift */,
+				167A43231E8453A300083790 /* Middleware.swift */,
+				1639E3F21EE2EA1500A3A182 /* Serializable.swift */,
+				167A43241E8453A300083790 /* Operations.swift */,
+				167A43251E8453A300083790 /* Reducer.swift */,
+				167A43261E8453A300083790 /* Store.swift */,
+			);
+			name = core;
+			sourceTree = "<group>";
+		};
+		16E2E4961E89493F005C238B /* middleware */ = {
 			isa = PBXGroup;
 			children = (
 				167A43221E8453A300083790 /* LoggerMiddleware.swift */,
 				16D979D11E88C4CB00F4430B /* RecorderMiddleware.swift */,
 			);
-			name = Middleware;
+			name = middleware;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -260,11 +264,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				1639E3F61EE44DC900A3A182 /* KeyCommands.swift in Sources */,
-				1639E3F01EE2E4A100A3A182 /* Encoder.swift in Sources */,
+				1639E3F01EE2E4A100A3A182 /* Serialization.swift in Sources */,
 				1639E3E91EE2E27D00A3A182 /* PushID.swift in Sources */,
 				1639E3F31EE2EA1500A3A182 /* Serializable.swift in Sources */,
 				167A43291E8453A300083790 /* Middleware.swift in Sources */,
-				1639E3ED1EE2E3B700A3A182 /* Decoder.swift in Sources */,
 				167A43271E8453A300083790 /* Dispatcher.swift in Sources */,
 				167A43281E8453A300083790 /* LoggerMiddleware.swift in Sources */,
 				167A432C1E8453A300083790 /* Store.swift in Sources */,
@@ -281,7 +284,6 @@
 			files = (
 				167A433C1E84540A00083790 /* Middleware.swift in Sources */,
 				167A433A1E84540A00083790 /* Dispatcher.swift in Sources */,
-				1639E3EE1EE2E3B700A3A182 /* Decoder.swift in Sources */,
 				1639E3F71EE44DC900A3A182 /* KeyCommands.swift in Sources */,
 				1639E3F41EE2EA1500A3A182 /* Serializable.swift in Sources */,
 				167A433B1E84540A00083790 /* LoggerMiddleware.swift in Sources */,
@@ -290,7 +292,7 @@
 				1601D4251E8895D3008A2CF5 /* Action.swift in Sources */,
 				167A433E1E84540A00083790 /* Reducer.swift in Sources */,
 				167A433D1E84540A00083790 /* Operations.swift in Sources */,
-				1639E3F11EE2E4A100A3A182 /* Encoder.swift in Sources */,
+				1639E3F11EE2E4A100A3A182 /* Serialization.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

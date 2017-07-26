@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = "DispatchStore"
-  s.version          = "0.3"
+  s.version          = "0.4"
   s.summary          = "Multi-store Flux implementation in Swift."
 
 # This description is used to generate tags and improve search results.
