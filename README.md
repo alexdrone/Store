@@ -1,11 +1,11 @@
 # Dispatch [![Swift](https://img.shields.io/badge/swift-3.1-orange.svg?style=flat)](#) [![Platform](https://img.shields.io/badge/platform-ios|macos|tvos|watchos-lightgrey.svg?style=flat)](#)
  [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://opensource.org/licenses/MIT)
 
-<img src="https://raw.githubusercontent.com/alexdrone/Render/master/docs/logo_small.png" width=150 alt="Render" align=right />
+<img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/dispatch_logo_small.png" width=150 alt="Dispatch" align=right />
 
-*A lightweight, operation based, multi-store Flux implementation in Swift.*
+Dispatch is a lightweight, operation based, multi-store Flux implementation in Swift.
 
-## Installation
+### Installation
 
 If you are using **CocoaPods**:
 
