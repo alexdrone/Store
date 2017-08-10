@@ -8,16 +8,15 @@ public func makePushID() -> String {
   return PushID.default.make()
 }
 
-/** ID generator that creates 20-character string identifiers with the following properties:
- * 1. They're based on timestamp so that they sort *after* any existing ids.
- * 2. They contain 72-bits of random data after the timestamp so that IDs won't collide with
- *    other clients' IDs.
- * 3. They sort *lexicographically* (so the timestamp is converted to characters that will
- *    sort properly).
- * 4. They're monotonically increasing. Even if you generate more than one in the same timestamp,
- *    the latter ones will sort after the former ones.  We do this by using the previous random bits
- *    but "incrementing" them by 1 (only in the case of a timestamp collision).
- */
+/// ID generator that creates 20-character string identifiers with the following properties:
+/// 1. They're based on timestamp so that they sort *after* any existing ids.
+/// 2. They contain 72-bits of random data after the timestamp so that IDs won't collide with
+/// other clients' IDs.
+/// 3. They sort *lexicographically* (so the timestamp is converted to characters that will
+/// sort properly).
+/// 4. They're monotonically increasing. Even if you generate more than one in the same timestamp,
+/// the latter ones will sort after the former ones.  We do this by using the previous random bits
+/// but "incrementing" them by 1 (only in the case of a timestamp collision).
 public class PushID {
 
   // MARK: Static constants
@@ -103,8 +102,8 @@ public class PushID {
     private var spin = OS_SPINLOCK_INIT
     private var unfair = os_unfair_lock_s()
 
-    /** Locks a spinlock. Although the lock operation spins, it employs various strategies to back
-     *  off if the lock is held. */
+    /// Locks a spinlock. Although the lock operation spins, it employs various strategies to back
+    /// off if the lock is held.
     fileprivate func lock() {
       if #available(iOS 10, *) {
         os_unfair_lock_lock(&unfair)
@@ -113,7 +112,7 @@ public class PushID {
       }
     }
 
-    /** Unlocks a spinlock. */
+    /// Unlocks a spinlock.
     fileprivate func unlock() {
       if #available(iOS 10, *) {
         os_unfair_lock_unlock(&unfair)

@@ -4,6 +4,8 @@ public protocol ModelType {
   init()
 }
 
+public protocol ImmutableModelType: ModelType { }
+
 public protocol StoreType: class {
 
   /// The unique identifier for this store.
@@ -43,7 +45,7 @@ open class Store<S: ModelType, A: ActionType>: StoreType {
   /// The current state for the Store.
   public private(set) var model: S = S()
   public var anyModel: ModelType {
-    return self.model
+    return model
   }
 
   /// The reducer function for this store.
@@ -67,13 +69,13 @@ open class Store<S: ModelType, A: ActionType>: StoreType {
   public func register(observer: AnyObject, onChange: @escaping OnChange) {
     precondition(Thread.isMainThread)
     let observer = StoreObserver<S, A>(self, closure: onChange)
-    self.observers = self.observers.filter { $0.ref != nil }
-    self.observers.append(observer)
+    observers = observers.filter { $0.ref != nil }
+    observers.append(observer)
   }
 
   public func unregister(observer: AnyObject) {
     precondition(Thread.isMainThread)
-    self.observers = self.observers.filter { $0.ref != nil && $0.ref !== observer }
+    observers = observers.filter { $0.ref != nil && $0.ref !== observer }
   }
 
   /// Whether this 'store' comply with the action passed as argument.
@@ -111,7 +113,10 @@ open class Store<S: ModelType, A: ActionType>: StoreType {
     guard let model = model as? S, let action = action as? A else {
       return
     }
-    self.updateModel { _ in
+    self.updateModel { [weak self] _ in
+      guard let `self` = self else {
+        return
+      }
       self.model = model
       let action = Action(action: action,
                           model: .finished,

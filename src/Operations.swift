@@ -17,14 +17,14 @@ public class ActionOperation<S: ModelType, A: ActionType>: AsynchronousOperation
 
  public override func execute() {
     guard let store = store else {
-      self.finish()
+      finish()
       return
     }
     self.block(self, self.action, store)
   }
 
   override public func finish() {
-    self.finishBlock()
+    finishBlock()
     super.finish()
   }
 

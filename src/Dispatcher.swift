@@ -27,17 +27,17 @@ public final class Dispatcher {
 
   /// Returns the store with the given identifier.
   public func store(with identifier: String) -> StoreType? {
-    return self.stores.filter { $0.identifier == identifier }.first
+    return stores.filter { $0.identifier == identifier }.first
   }
 
   public func register(store: StoreType) {
     precondition(Thread.isMainThread)
-    self.stores.append(store)
+    stores.append(store)
   }
 
   public func unregister(identifier: String) {
     precondition(Thread.isMainThread)
-    self.stores = self.stores.filter { $0.identifier == identifier }
+    stores = stores.filter { $0.identifier == identifier }
   }
 
   public func register(middleware: MiddlewareType) {
@@ -52,10 +52,10 @@ public final class Dispatcher {
                        then: ((Void) -> (Void))? = nil) {
     var stores = self.stores
     if let storeIdentifier = storeIdentifier {
-      stores = self.stores.filter { $0.identifier == storeIdentifier }
+      stores = stores.filter { $0.identifier == storeIdentifier }
     }
     for store in stores where store.responds(to: action) {
-      self.run(action: action, mode: mode, store: store, then: then)
+      run(action: action, mode: mode, store: store, then: then)
     }
   }
 

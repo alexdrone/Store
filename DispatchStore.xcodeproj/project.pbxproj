@@ -9,11 +9,10 @@
 /* Begin PBXBuildFile section */
 		1601D4241E8895B6008A2CF5 /* Action.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1601D4231E8895B6008A2CF5 /* Action.swift */; };
 		1601D4251E8895D3008A2CF5 /* Action.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1601D4231E8895B6008A2CF5 /* Action.swift */; };
-		162B39C11EC08DBF0074E075 /* RecorderMiddleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16D979D11E88C4CB00F4430B /* RecorderMiddleware.swift */; };
 		1639E3E91EE2E27D00A3A182 /* PushID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1639E3E81EE2E27D00A3A182 /* PushID.swift */; };
 		1639E3EA1EE2E2B900A3A182 /* PushID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1639E3E81EE2E27D00A3A182 /* PushID.swift */; };
-		1639E3F01EE2E4A100A3A182 /* Serialization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1639E3EF1EE2E4A100A3A182 /* Serialization.swift */; };
-		1639E3F11EE2E4A100A3A182 /* Serialization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1639E3EF1EE2E4A100A3A182 /* Serialization.swift */; };
+		1639E3F01EE2E4A100A3A182 /* Encoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1639E3EF1EE2E4A100A3A182 /* Encoder.swift */; };
+		1639E3F11EE2E4A100A3A182 /* Encoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1639E3EF1EE2E4A100A3A182 /* Encoder.swift */; };
 		1639E3F31EE2EA1500A3A182 /* Serializable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1639E3F21EE2EA1500A3A182 /* Serializable.swift */; };
 		1639E3F41EE2EA1500A3A182 /* Serializable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1639E3F21EE2EA1500A3A182 /* Serializable.swift */; };
 		1639E3F61EE44DC900A3A182 /* KeyCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1639E3F51EE44DC900A3A182 /* KeyCommands.swift */; };
@@ -32,12 +31,13 @@
 		167A433D1E84540A00083790 /* Operations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167A43241E8453A300083790 /* Operations.swift */; };
 		167A433E1E84540A00083790 /* Reducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167A43251E8453A300083790 /* Reducer.swift */; };
 		167A433F1E84540A00083790 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167A43261E8453A300083790 /* Store.swift */; };
+		16C78B921F3C98A00054BC6E /* RecorderMiddleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16C78B911F3C98A00054BC6E /* RecorderMiddleware.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		1601D4231E8895B6008A2CF5 /* Action.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Action.swift; sourceTree = "<group>"; };
 		1639E3E81EE2E27D00A3A182 /* PushID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PushID.swift; sourceTree = "<group>"; };
-		1639E3EF1EE2E4A100A3A182 /* Serialization.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Serialization.swift; path = deps/Serialization.swift; sourceTree = SOURCE_ROOT; };
+		1639E3EF1EE2E4A100A3A182 /* Encoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Encoder.swift; path = deps/Encoder.swift; sourceTree = SOURCE_ROOT; };
 		1639E3F21EE2EA1500A3A182 /* Serializable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Serializable.swift; sourceTree = "<group>"; };
 		1639E3F51EE44DC900A3A182 /* KeyCommands.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = KeyCommands.swift; path = deps/KeyCommands.swift; sourceTree = SOURCE_ROOT; };
 		167A43161E8452C900083790 /* DispatchStore_iOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DispatchStore_iOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -52,7 +52,7 @@
 		167A43321E8453E100083790 /* DispatchStore_macOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DispatchStore_macOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		167A43341E8453E100083790 /* Dispatcher_macOS.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Dispatcher_macOS.h; sourceTree = "<group>"; };
 		167A43351E8453E100083790 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		16D979D11E88C4CB00F4430B /* RecorderMiddleware.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecorderMiddleware.swift; sourceTree = "<group>"; };
+		16C78B911F3C98A00054BC6E /* RecorderMiddleware.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecorderMiddleware.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,7 +76,7 @@
 		1639E3EB1EE2E39500A3A182 /* deps */ = {
 			isa = PBXGroup;
 			children = (
-				1639E3EF1EE2E4A100A3A182 /* Serialization.swift */,
+				1639E3EF1EE2E4A100A3A182 /* Encoder.swift */,
 				1639E3F51EE44DC900A3A182 /* KeyCommands.swift */,
 				1639E3E81EE2E27D00A3A182 /* PushID.swift */,
 			);
@@ -140,7 +140,7 @@
 			isa = PBXGroup;
 			children = (
 				167A43221E8453A300083790 /* LoggerMiddleware.swift */,
-				16D979D11E88C4CB00F4430B /* RecorderMiddleware.swift */,
+				16C78B911F3C98A00054BC6E /* RecorderMiddleware.swift */,
 			);
 			name = middleware;
 			sourceTree = "<group>";
@@ -264,7 +264,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1639E3F61EE44DC900A3A182 /* KeyCommands.swift in Sources */,
-				1639E3F01EE2E4A100A3A182 /* Serialization.swift in Sources */,
+				1639E3F01EE2E4A100A3A182 /* Encoder.swift in Sources */,
 				1639E3E91EE2E27D00A3A182 /* PushID.swift in Sources */,
 				1639E3F31EE2EA1500A3A182 /* Serializable.swift in Sources */,
 				167A43291E8453A300083790 /* Middleware.swift in Sources */,
@@ -273,8 +273,8 @@
 				167A432C1E8453A300083790 /* Store.swift in Sources */,
 				1601D4241E8895B6008A2CF5 /* Action.swift in Sources */,
 				167A432B1E8453A300083790 /* Reducer.swift in Sources */,
+				16C78B921F3C98A00054BC6E /* RecorderMiddleware.swift in Sources */,
 				167A432A1E8453A300083790 /* Operations.swift in Sources */,
-				162B39C11EC08DBF0074E075 /* RecorderMiddleware.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -292,7 +292,7 @@
 				1601D4251E8895D3008A2CF5 /* Action.swift in Sources */,
 				167A433E1E84540A00083790 /* Reducer.swift in Sources */,
 				167A433D1E84540A00083790 /* Operations.swift in Sources */,
-				1639E3F11EE2E4A100A3A182 /* Serialization.swift in Sources */,
+				1639E3F11EE2E4A100A3A182 /* Encoder.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
