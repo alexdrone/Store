@@ -47,7 +47,7 @@ This works especially well with [Render](https://github.com/alexdrone/Render)'s 
 - **Dispatcher**: Dispatches an action to the stores that respond to it.
 - **Views**: A simple function of your state. This works especially well with [Render](https://github.com/alexdrone/Render)'s declarative programming style.
 
-<img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/diag.png" width="640" alt="Diagram" />
+<img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/new_diag.png" width="640" alt="Diagram" />
 
 ### Single Dispatcher 
 
