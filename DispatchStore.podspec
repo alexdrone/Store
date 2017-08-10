@@ -22,14 +22,14 @@ Pod::Spec.new do |s|
                        DESC
 
   s.homepage         = "https://github.com/alexdrone/Dispatch"
-  s.screenshots      = "https://github.com/alexdrone/Dispatch/raw/master/docs/logo.png"
+  s.screenshots      = "https://github.com/alexdrone/Dispatch/raw/master/docs/dispatch_logo_small.png"
   s.license          = 'MIT'
   s.author           = { "Alex Usbergo" => "alexakadrone@gmail.com" }
   s.source           = { :git => "https://github.com/alexdrone/Dispatch.git", :tag => s.version.to_s }
   s.social_media_url = 'https://twitter.com/alexdrone'
 
   s.ios.deployment_target = '9.0'
-  s.source_files = 'src/**/*'
+  s.source_files = 'src/**/*', 'deps/**/*'
 
   # s.public_header_files = 'Pod/Classes/**/*.h'
   # s.dependency 'AFNetworking', '~> 2.3'

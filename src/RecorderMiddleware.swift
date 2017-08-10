@@ -80,7 +80,7 @@ public extension RecoderMiddlewareType {
   /// Moves the cursor back in history.
   public func previousRecord() {
     precondition(Thread.isMainThread)
-    guard index > 0 else {
+    guard index >= 0 else {
       return
     }
     lock.lock()
@@ -96,7 +96,7 @@ public extension RecoderMiddlewareType {
     store.inject(model: model, action: record.action)
 
     let date = Date(timeIntervalSince1970: record.timestamp)
-    print("◀◀ \(store.identifier).\(record.action) @ \(date).)")
+    print("PREV \(store.identifier).\(record.action) @ \(date).)")
   }
 
   /// Moves the cursor forward in history.
@@ -118,7 +118,7 @@ public extension RecoderMiddlewareType {
     store.inject(model: model, action: record.action)
 
     let date = Date(timeIntervalSince1970: record.timestamp)
-    print("▶▶ \(store.identifier).\(record.action) @ \(date).)")
+    print("NEXT \(store.identifier).\(record.action) @ \(date).)")
   }
 }
 
