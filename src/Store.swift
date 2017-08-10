@@ -68,7 +68,7 @@ open class Store<S: ModelType, A: ActionType>: StoreType {
   /// Adds a new observer to the store.
   public func register(observer: AnyObject, onChange: @escaping OnChange) {
     precondition(Thread.isMainThread)
-    let observer = StoreObserver<S, A>(self, closure: onChange)
+    let observer = StoreObserver<S, A>(observer, closure: onChange)
     observers = observers.filter { $0.ref != nil }
     observers.append(observer)
   }
