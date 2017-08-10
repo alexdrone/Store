@@ -1526,7 +1526,7 @@ public final class Decoder {
     key: String,
     context: V.DecodeContext,
     allowInvalidElements: Bool = false) -> C? where C.DecodeValue == V {
-    return try? self.decode(key: key, context: context, allowInvalidElements: allowInvalidElements)
+    return try! self.decode(key: key, context: context, allowInvalidElements: allowInvalidElements)
   }
 
   /// Decode an optional value using a formatter by key
@@ -1569,7 +1569,7 @@ public final class Decoder {
     keyPath: String,
     context: V.DecodeContext,
     allowInvalidElements: Bool = false) -> C? where C.DecodeValue == V {
-    return try? self.decode(keyPath: keyPath,
+    return try! self.decode(keyPath: keyPath,
                             context: context,
                             allowInvalidElements: allowInvalidElements)
   }
