@@ -84,7 +84,7 @@ First we need a `Counter` state and some actions associated to it.
 
 ```swift
 
-struct Counter: StateType {
+struct Counter: ModelType {
 
   let count: Int
 
@@ -127,19 +127,19 @@ class CounterReducer: Reducer<Counter, Counter.Action> {
 
     case .increase:
       return ActionOperation(action: action, store: store) { operation, _, store in
-        store.updateState { state in
+        store.updateModel { model in
           // In this example we are implementing our state as an immutable state (a la Redux) - but 
           // 'Dispatch' is not opinionated about it.
           // We could simply mutate our state by simply doing 'state.count += 1'. 
           // State immutability is a trade-off left to the user of this library.
-          state = state.byAdding(value: 1)
+          model = model.byAdding(value: 1)
         }
         operation.finish()
       }
 
     case .decrease:
       return ActionOperation(action: action, store: store) { operation, _, store in
-        store.updateState { state in state = state.byAdding(value: -1) }
+        store.updateModel { model in model = model.byAdding(value: -1) }
         operation.finish()
       }
 
@@ -166,8 +166,8 @@ Dispatcher.default.dispatch(Counter.Action.increase)
 Any object can register themselves as a observer for a given store by calling `register(observer:callback:)`.
 
 ```swift
-store.register(observer: self) { state, _ in
-  print(state)
+store.register(observer: self) { model, _ in
+  print(model)
 }
 ```
 
