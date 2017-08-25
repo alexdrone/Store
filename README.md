@@ -1,4 +1,4 @@
-# Dispatch [![Swift](https://img.shields.io/badge/swift-3.1-orange.svg?style=flat)](#) [![Platform](https://img.shields.io/badge/platform-ios|macos|tvos|watchos-lightgrey.svg?style=flat)](#)
+# Dispatch [![Swift](https://img.shields.io/badge/swift-3.1-orange.svg?style=flat)](#) 
 <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/dispatch_logo_small.png" width=150 alt="Dispatch" align=right />
 
 Dispatch is a lightweight, operation based, multi-store Flux implementation in Swift.
