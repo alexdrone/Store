@@ -1,4 +1,4 @@
-# Dispatch [![Swift](https://img.shields.io/badge/swift-3.1-orange.svg?style=flat)](#) 
+# Dispatch [![Swift](https://img.shields.io/badge/swift-3.1-orange.svg?style=flat)](#)
 <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/dispatch_logo_small.png" width=150 alt="Dispatch" align=right />
 
 Dispatch is a lightweight, operation based, multi-store Flux implementation in Swift.
@@ -35,9 +35,9 @@ github "alexdrone/Dispatch" "master"
 **Dispatch** is a [Flux](https://facebook.github.io/flux/docs/overview.html)-like implementation of the unidirectional data flow architecture in Swift.
 Flux applications have three major parts: the dispatcher, the stores, and the views.
 
-These should not be confused with Model-View-Controller. Controllers do exist in a Dispatch/Flux application, but they are controller-views — views often found at the top of the hierarchy that retrieve data from the stores and pass this data down to their children (views). 
+These should not be confused with Model-View-Controller. Controllers do exist in a Dispatch/Flux application, but they are controller-views — views often found at the top of the hierarchy that retrieve data from the stores and pass this data down to their children (views).
 
-Dispatch eschews MVC in favour of a unidirectional data flow. When a user interacts with a view, the view propagates an action through a central dispatcher, to the various stores that hold the application's data and business logic, which updates all of the views that are affected. 
+Dispatch eschews MVC in favour of a unidirectional data flow. When a user interacts with a view, the view propagates an action through a central dispatcher, to the various stores that hold the application's data and business logic, which updates all of the views that are affected.
 
 This works especially well with [Render](https://github.com/alexdrone/Render)'s declarative programming style, which allows the store to send updates without specifying how to transition views between states.
 
@@ -49,7 +49,7 @@ This works especially well with [Render](https://github.com/alexdrone/Render)'s 
 
 <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/new_diag.png" width="640" alt="Diagram" />
 
-### Single Dispatcher 
+### Single Dispatcher
 
 The dispatcher is the central hub that manages all data flow in your application. It is essentially a registry of callbacks into the stores and has no real intelligence of its own — it is a simple mechanism for distributing the actions to the stores. Each store registers itself and provides a callback. When an action creator provides the dispatcher with a new action, all stores in the application receive the action via the callbacks in the registry - and redirect the action to their reducer.
 
@@ -60,11 +60,11 @@ The dispatcher can run actions in four different modes: `async`, `sync`, `serial
 Additionally the trailing closure of the `dispatch` method can be used to chain some actions sequentially.
 
 
-### Stores 
+### Stores
 
 Stores contain the application state and logic. Their role is somewhat similar to a model in a traditional MVC, but they manage the state of many objects — they do not represent a single record of data like ORM models do. More than simply managing a collection of ORM-style objects, stores manage the application state for a particular domain within the application.
 
-As mentioned above, a store registers itself with the dispatcher. The store has a `Reducer` that typically has a switch statement based on the action's type — 
+As mentioned above, a store registers itself with the dispatcher. The store has a `Reducer` that typically has a switch statement based on the action's type —
 the reducer is the only *open* class provided from the framework, and the user of this library are expected to subclass it to return an operation for every action handled by the store.
 
 This allows an action to result in an update to the state of the store, via the dispatcher. After the stores are updated, they notify the observers that their state has changed, so the views may query the new state and update themselves.
@@ -95,10 +95,7 @@ struct Counter: ModelType {
   init(count: Int) {
     self.count = count
   }
-  
-  // In this example we are implementing Counter as an immutable state, but Dispatch is
-  // not opinionated about state immutability.
-  // We could have 'count' as a var and simply change its value in the reducer.
+
   func byAdding(value: Int) -> Counter {
     return Counter(count: self.count + value)
   }
@@ -120,17 +117,19 @@ The reducer will have to change the state (that is owned by the  `Store`) and to
 ```swift
 class CounterReducer: Reducer<Counter, Counter.Action> {
 
-  override func operation(for action: Counter.Action, 
-                          in store: Store<Counter, Counter.Action>) -> ActionOperation<Counter, Counter.Action> {
+  override func operation(
+    for action: Counter.Action,
+    in store: Store<Counter, Counter.Action>
+  ) -> ActionOperation<Counter, Counter.Action> {
 
     switch action {
 
     case .increase:
       return ActionOperation(action: action, store: store) { operation, _, store in
         store.updateModel { model in
-          // In this example we are implementing our state as an immutable state (a la Redux) - but 
+          // In this example we are implementing our state as an immutable state (a la Redux) - but
           // 'Dispatch' is not opinionated about it.
-          // We could simply mutate our state by simply doing 'state.count += 1'. 
+          // We could simply mutate our state by simply doing 'state.count += 1'.
           // State immutability is a trade-off left to the user of this library.
           model = model.byAdding(value: 1)
         }
@@ -176,7 +175,7 @@ That way you have a centralised unique entry-point to access all of your stores.
 
 ```swift
 
-extension Dispatcher {
+extension ActionDispatcher {
   var counterStore: Store<Counter, Counter.Action> {
     return self.store(with: "counter") as? Store<Counter, Counter.Action>
   }
@@ -192,7 +191,7 @@ Also middleware support is available allowing you to quickly add some aspect-ori
 
 ### Middleware
 
-Any object that conforms to the `Middleware` protocol can register to the `Dispatcher`.
+Any object that conforms to the `Middleware` protocol can register to `ActionDispatch`.
 This provides a third-party extension point between dispatching an action, and the moment it reaches the reducer. You could use middleware for logging, crash reporting, talking to an asynchronous API, routing, and more.
 
 ```swift
@@ -208,40 +207,24 @@ class Logger: Middleware { ... }
 Register your middleware by calling `register(middleware:)`.
 
 ```swift
-Dispatcher.default.register(middleware: LoggerMiddleware())
+ActionDispatch.default.register(middleware: LoggerMiddleware())
 ```
-
-#### Recorder
-
-The recorder middleware is probably one of the most interesting feature of Dispatch.
-
-Register your recorder by calling:
-
-```swift
-Dispatcher.default.register(middleware: RecorderMiddleware())
-```
-
-Voilà, **if your states are immutable** you simply have to press `⌘+P` to navigate back through your past states and `⌘+N` to move forward again.
-Try it in the **TodoApp** demo!
-
-# <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/record.gif" width="720" alt="Recorder" />
-
 
 ### Chaining actions
 
 You can make sure that an action will be dispatched right after another one by using the `dispatch` method trailing closure.
 
 ```swift
-Dispatcher.default.dispatch(action: Action.foo) {
-  Dispatcher.default.dispatch(action: Action.bar)
+dispatch(action: Action.foo) {
+  dispatch(action: Action.bar)
 }
 ```
 
 Similarly you can achieve the same result by dispatching the two actions serially.
 
 ```swift
-Dispatcher.default.dispatch(action: Action.foo, mode: .serial)
-Dispatcher.default.dispatch(action: Action.bar, mode: .serial)
+dispatch(action: Action.foo, mode: .serial)
+dispatch(action: Action.bar, mode: .serial)
 ```
 
 Also calling dispatch with `.sync` would have the same effect but it would block the thread that is currently dispatching the action until the operation is done - so make sure you dispatch your actions in `.sync` mode only if you are off the main thread.
@@ -256,4 +239,3 @@ Checkout the **TodoApp** example to see how to get the best out of **Dispatch** 
 
 - [Facebook Flux](https://facebook.github.io/flux/)
 - [Unbox](https://github.com/JohnSundell/Unbox) and [Wrap](https://github.com/JohnSundell/Wrap) by John Sundell are used as json decoder/encoder.
-

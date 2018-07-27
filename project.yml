@@ -1,0 +1,31 @@
+name: DispatchStore
+options:
+  deploymentTarget:
+    iOS: 10.0
+    macOS: 10.12
+  usesTabs: false
+  indentWidth: 2
+targets:
+  DispatchStore:
+    platform: [iOS, macOS]
+    type: framework
+    sources:
+      - src
+    settings:
+      base:
+        INFOPLIST_FILE: src/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: io.alexdrone.dispatchStore
+        PLATFORM: platform $platform
+        SWIFT_VERSION: 4.2
+        SWIFT_OPTIMIZATION_LEVEL: -Owholemodule
+        PLATFORM: platform $platform
+        GCC_GENERATE_DEBUGGING_SYMBOLS: YES
+        GCC_DEBUGGING_SYMBOLS: full,
+        DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
+        ONLY_ACTIVE_ARCH: NO
+      configFiles:
+        Debug: configs/Debug.xcconfig
+        Release: configs/Release.xcconfig
+    postbuildScripts:
+      - name: Dist
+      - script: PRODUCT="${BUILT_PRODUCTS_DIR}/${TARGET_NAME}"; cp -R "${PRODUCT}.framework" ./bin; cp -R "${PRODUCT}.framework.dSYM" ./bin; cd ./bin;

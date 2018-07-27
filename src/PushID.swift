@@ -23,7 +23,7 @@ public class PushID {
 
   // Modeled after base64 web-safe chars, but ordered by ASCII.
   private static let ascChars = Array(
-    "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".characters)
+    "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz")
   private static let descChars = Array(ascChars.reversed())
 
   public static let `default` = PushID()
@@ -40,12 +40,12 @@ public class PushID {
   private var lastRandChars = Array<Int>(repeating: 0, count: 12)
 
   // For testability purposes.
-  private let dateProvider: (Void) -> Date
+  private let dateProvider: () -> Date
 
   // Ensure the generator synchronization.
   private let lock = Lock()
 
-  public init(dateProvider: @escaping (Void) -> Date = { Date() }) {
+  public init(dateProvider: @escaping () -> Date = { Date() }) {
     self.dateProvider = dateProvider
   }
 

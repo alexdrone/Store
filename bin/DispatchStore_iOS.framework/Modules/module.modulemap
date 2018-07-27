@@ -1,0 +1,4 @@
+framework module DispatchStore_iOS {
+  header "DispatchStore_iOS-Swift.h"
+  requires objc
+}

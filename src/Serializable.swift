@@ -1,26 +1,23 @@
 import Foundation
 
-open class SerializableStore<S: SerializableModelType, A: SerializableActionType> : Store<S, A> {
-
-}
+open class SerializableStore<S: SerializableModelType, A: SerializableActionType> : Store<S, A> { }
 
 /// Specialization for the 'ActionType'.
 public protocol SerializableActionType: ActionType {
-
   /// Action dispatched whenever the state is being unmarshalled and injected.
   static var injectAction: SerializableActionType { get }
-
   /// Whether this action is the one marked for state deserialization.
   var isInjectAction: Bool { get }
 }
 
 /// A state that is encodable and decodable.
 /// For the time being 'Decode' is used as json-parser.
-public protocol SerializableModelType: ModelType, Decodable { }
+public protocol SerializableModelType: ModelType, Encodable, Decodable { }
 
 public extension SerializableModelType {
-
   /// Encodes the state into a dictionary.
+  /// - parameter flatten: If 'true' the resulting dictionary won't be nested and all of the keys
+  /// will be paths.
   public func encode(flatten: Bool = false) -> [String: Any] {
     let result = serialize(model: self)
     if flatten {
@@ -30,35 +27,32 @@ public extension SerializableModelType {
     }
   }
 
-  /// Unmarshal the state from a dictionary
+  /// Unmarshal the state from a dictionary.
+  /// - note: A new empty store of type *S* is returned if the dictionary is malformed.
   public static func decode(dictionary: [String: Any]) -> Self {
     return deserialize(dictionary: dictionary)
   }
-
-  /// Infer the state target.
-  public func decoder() -> ([String: Any]) -> ModelType {
-    return { dictionary in
-      do {
-        let model: Self = try decode(dictionary: dictionary)
-        return model
-      } catch {
-        return Self()
-      }
-    }
-  }
 }
 
-fileprivate func serialize(model: ModelType) -> [String: Any] {
+// MARK: - Helpers
+
+/// Serialize the model passed as argument.
+/// - note: If the serialization fails, an empty dictionary is returned instead.
+private func serialize<S: SerializableModelType>(model: S) -> [String: Any] {
   do {
-    return try encode(model)
+    let dictionary: [String: Any] = try DictionaryEncoder().encode(model)
+    return dictionary
   } catch {
     return [:]
   }
 }
 
-fileprivate func deserialize<S: SerializableModelType>(dictionary: [String: Any]) -> S {
+/// Deserialize the dictionary and returns a store of type *S*.
+/// - note: If the deserialization fails, an empty store is returned instead.
+private func deserialize<S: SerializableModelType>(dictionary: [String: Any]) -> S {
   do {
-    return try decode(dictionary: dictionary)
+    let model = try DictionaryDecoder().decode(S.self, from: dictionary)
+    return model
   } catch {
     return S()
   }
