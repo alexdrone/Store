@@ -153,13 +153,13 @@ Now let's see how to instantiate a `Store` with our newly defined `Reducer` and 
 
 ```swift
 let store = Store<Counter, Counter.Action>(identifier: "counter", reducer: CounterReducer())
-Dispatcher.default.register(store: store)
+ActionDispatch.default.register(store: store)
 ```
 
 Dispatching an action is as easy as calling:
 
 ```swift
-Dispatcher.default.dispatch(Counter.Action.increase)
+dispatch(Counter.Action.increase)
 ```
 
 Any object can register themselves as a observer for a given store by calling `register(observer:callback:)`.
