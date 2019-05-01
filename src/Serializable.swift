@@ -18,7 +18,7 @@ public extension SerializableModelType {
   /// Encodes the state into a dictionary.
   /// - parameter flatten: If 'true' the resulting dictionary won't be nested and all of the keys
   /// will be paths.
-  public func encode(flatten: Bool = false) -> [String: Any] {
+  func encode(flatten: Bool = false) -> [String: Any] {
     let result = serialize(model: self)
     if flatten {
       return merge(encodedModel: result)
@@ -29,7 +29,7 @@ public extension SerializableModelType {
 
   /// Unmarshal the state from a dictionary.
   /// - note: A new empty store of type *S* is returned if the dictionary is malformed.
-  public static func decode(dictionary: [String: Any]) -> Self {
+  static func decode(dictionary: [String: Any]) -> Self {
     return deserialize(dictionary: dictionary)
   }
 }

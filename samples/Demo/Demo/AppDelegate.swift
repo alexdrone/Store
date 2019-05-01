@@ -32,7 +32,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// Updates the view when the store changes.
     self.store.register(observer: self) { state, _ in
       self.label.stringValue = "\(state.count)"
-      self.label.setNeedsDisplay()
+      self.label.needsDisplay = true
     }
   }
 }

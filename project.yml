@@ -16,7 +16,7 @@ targets:
         INFOPLIST_FILE: src/Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: io.alexdrone.dispatchStore
         PLATFORM: platform $platform
-        SWIFT_VERSION: 4.2
+        SWIFT_VERSION: 5
         SWIFT_OPTIMIZATION_LEVEL: -Owholemodule
         PLATFORM: platform $platform
         GCC_GENERATE_DEBUGGING_SYMBOLS: YES
