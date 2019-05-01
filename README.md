@@ -3,16 +3,36 @@
 
 Dispatch is a lightweight, operation based, multi-store Flux implementation in Swift.
 
-### Installation
+### Installing the framework
+
+```bash
+cd {PROJECT_ROOT_DIRECTORY}
+curl "https://raw.githubusercontent.com/alexdrone/Dispatch/master/bin/dist.zip" > dist.zip && unzip dist.zip && rm dist.zip;
+```
+
+Drag `DispatchStore_iOS.framework` in your project and add it as an embedded binary.
+
+If you use [xcodegen](https://github.com/yonaskolb/XcodeGen) add the framework to your *project.yml* like so:
+
+```yaml
+targets:
+  YOUR_APP_TARGET:
+    ...
+    dependencies:
+      - framework: PATH/TO/YOUR/DEPS/DispatchStore_iOS.framework
+```
+
+### CocoaPods (deprecated)
 
 If you are using **CocoaPods**:
-
 
 Add the following to your [Podfile](https://guides.cocoapods.org/using/the-podfile.html):
 
 ```ruby
 pod 'DispatchStore'
 ```
+
+### Carthage (deprecated)
 
 If you are using **Carthage**:
 
