@@ -9,14 +9,14 @@ public protocol ActionType { }
 public struct Action<A: ActionType> {
   /// The action associated to this status object.
   /// -note: Typically an extensible enum.
-  let action: A
+  public let action: A
   /// The state of the action.
-  let model: ActionState
+  public let model: ActionState
   /// The last time the operation was being executed.
-  let lastRun: TimeInterval
+  public let lastRun: TimeInterval
   /// Additional info passed from the action.
   /// - note: Don't use this field to model action arguments.
-  let userInfo: [String: Any]?
+  public let userInfo: [String: Any]?
 }
 
 public enum ActionState {
