@@ -54,7 +54,7 @@ public protocol StoreType: class {
 
 open class Store<S: ModelType, A: ActionType>: StoreType {
   /// The block executed whenever the store changes.
-  public typealias OnChange = (S, Action<A>) -> (Void)
+  public typealias OnChange = (S, Action<A>?) -> (Void)
   /// The current state for the Store.
   public private(set) var model: S
   /// Opaque reference to the model wrapped by this store.
@@ -78,9 +78,13 @@ open class Store<S: ModelType, A: ActionType>: StoreType {
   /// - note: The same observer can be added several times with different *onChange* blocks.
   public func register(observer: AnyObject, onChange: @escaping OnChange) {
     precondition(Thread.isMainThread)
+
     let observer = StoreObserver<S, A>(observer, closure: onChange)
     observers = observers.filter { $0.ref != nil }
     observers.append(observer)
+    
+    // Notify observer immediately upon registration
+    observer.closure(self.model, nil)
   }
 
   /// Unregister the observer passed as argument.
