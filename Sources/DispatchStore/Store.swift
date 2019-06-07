@@ -73,7 +73,7 @@ open class Store<S: ModelType, A: ActionType>: StoreType, BindableObject {
   /// Called from the reducer to update the store state.
   public func updateModel(closure: (inout S) -> (Void)) {
     self.stateLock.lock()
-    closure(&self.model)
+    self.model = assign(model, changes: closure)
     self.stateLock.unlock()
   }
 
@@ -126,4 +126,3 @@ open class Store<S: ModelType, A: ActionType>: StoreType, BindableObject {
     return operation
   }
 }
-
