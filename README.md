@@ -84,13 +84,8 @@ class CounterReducer: Reducer<Counter, Counter.Action> {
 
 extension DispatchStore {
   var counterStore: Store<Counter, Counter.Action> {
-    let key = "counter"
-    if let store = self.store(with: key) as? Store<Counter, Counter.Action> {
-      return store
-    }
-    let store = Store<Counter, Counter.Action>(identifier: key, reducer: CounterReducer())
-    register(store: store)
-    return store
+    let store = Store<Counter, Counter.Action>(identifier: "counter", reducer: CounterReducer())
+    return register(store: store)
   }
 }
 

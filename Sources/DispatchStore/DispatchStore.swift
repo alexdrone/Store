@@ -37,10 +37,13 @@ public final class DispatchStore {
   /// - parameter store: The store that will be registered in this dispatcher.
   /// - note: If a store with the same identifier is already registered in this dispatcher,
   /// this function is a no-op.
-  public func register(store: StoreType) {
+  public func register(store: StoreType) -> StoreType {
     precondition(Thread.isMainThread)
-    guard stores.filter({ $0.identifier == store.identifier }).first == nil else { return }
+    if let existingStore = stores.filter({ $0.identifier == store.identifier }).first {
+      return existingStore
+    }
     stores.append(store)
+    return store
   }
 
   /// Unregister the store with the given identifier from this dispatcher.
@@ -139,8 +142,8 @@ public final class DispatchStore {
   }
 
   /// Register a store to the default *ActionDispatcher*
-  public static func register(store: StoreType) {
-    DispatchStore.default.register(store: store)
+  public static func register(store: StoreType) -> StoreType {
+    return DispatchStore.default.register(store: store)
   }
 }
 
