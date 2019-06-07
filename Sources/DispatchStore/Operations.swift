@@ -1,6 +1,7 @@
 import Foundation
 
 /// An operation associated to a specific action.
+@available(iOS 13.0, *)
 public class ActionOperation<S: ModelType, A: ActionType>: AsynchronousOperation {
   /// The  execution block type for this operation.
   public typealias ExecutionBlock = (AsynchronousOperation, A, Store<S, A>) -> Void
@@ -46,6 +47,7 @@ public class ActionOperation<S: ModelType, A: ActionType>: AsynchronousOperation
 /// Base class for an asynchronous operation.
 /// Subclasses are expected to override the 'execute' function and call
 /// the function 'finish' when they're done with their task.
+@available(iOS 13.0, *)
 public class AsynchronousOperation: Operation {
   // Internal properties override.
   @objc dynamic override public var isAsynchronous: Bool { return true }

@@ -3,7 +3,7 @@ import Foundation
 public typealias DispatchIdentifier = String
 
 /// The dispatcher service is used to forward an action to the stores that responds to it.
-public final class ActionDispatch {
+public final class DispatchStore {
   /// The threading strategy that should be used for a given action.
   public enum Mode {
     /// The action is dispatched asynchronously on the main thread.
@@ -16,7 +16,7 @@ public final class ActionDispatch {
     case async
   }
   /// The global instance.
-  public static let `default` = ActionDispatch()
+  public static let `default` = DispatchStore()
   /// All the registered stores.
   private var stores: [StoreType] = []
   /// The background queue used for the .async mode.
@@ -63,7 +63,7 @@ public final class ActionDispatch {
   public func dispatch(
     storeIdentifier: String? = nil,
     action: ActionType,
-    mode: ActionDispatch.Mode = .async,
+    mode: DispatchStore.Mode = .async,
     then completionBlock: (() -> (Void))? = nil
   ) -> Void {
     var stores = self.stores
@@ -77,7 +77,7 @@ public final class ActionDispatch {
 
   private func run(
     action: ActionType,
-    mode: ActionDispatch.Mode = .serial,
+    mode: DispatchStore.Mode = .serial,
     store: StoreType,
     then completionBlock: (() -> (Void))? = nil
   ) -> Void {
@@ -119,22 +119,29 @@ public final class ActionDispatch {
       }
     }
   }
+
+  /// Dispatch an action on the default *ActionDispatcher* and redirects it to the correct store.
+  /// - parameter storeIdentifier: Optional, to target a specific store.
+  /// - parameter action: The action that will be executed.
+  /// - parameter mode: The threading strategy (default is *async*).
+  /// - parameter completionBlock: Optional, completion block.
+  public static func dispatch(
+    storeIdentifier: String? = nil,
+    action: ActionType,
+    mode: DispatchStore.Mode = .async,
+    then completionBlock: (() -> (Void))? = nil
+  ) -> Void {
+    DispatchStore.default.dispatch(
+      storeIdentifier: storeIdentifier,
+      action: action,
+      mode: mode,
+      then: completionBlock)
+  }
+
+  /// Register a store to the default *ActionDispatcher*
+  public static func register(store: StoreType) {
+    DispatchStore.default.register(store: store)
+  }
 }
 
-/// Dispatch an action on the default *ActionDispatcher*  and redirects it to the correct store.
-/// - parameter storeIdentifier: Optional, to target a specific store.
-/// - parameter action: The action that will be executed.
-/// - parameter mode: The threading strategy (default is *async*).
-/// - parameter completionBlock: Optional, completion block.
-public func dispatch(
-  storeIdentifier: String? = nil,
-  action: ActionType,
-  mode: ActionDispatch.Mode = .async,
-  then completionBlock: (() -> (Void))? = nil
-) -> Void {
-  ActionDispatch.default.dispatch(
-    storeIdentifier: storeIdentifier,
-    action: action,
-    mode: mode,
-    then: completionBlock)
-}
+

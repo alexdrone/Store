@@ -1,54 +1,7 @@
-# Dispatch [![Swift](https://img.shields.io/badge/swift-5-orange.svg?style=flat)](#) [![Platform](https://img.shields.io/badge/platform-iOS|macOS-lightgrey.svg?style=flat)](#)
+# DispatchStore [![Swift](https://img.shields.io/badge/swift-5.1-orange.svg?style=flat)](#) [![Platform](https://img.shields.io/badge/platform-iOS 13|SwiftUI|Combine-lightgrey.svg?style=flat)](#)
 <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/dispatch_logo_small.png" width=150 alt="Dispatch" align=right />
 
-Dispatch is a lightweight, operation based, multi-store Flux implementation in Swift.
-
-### Installing the framework
-
-```bash
-cd {PROJECT_ROOT_DIRECTORY}
-curl "https://raw.githubusercontent.com/alexdrone/Dispatch/master/bin/dist.zip" > dist.zip && unzip dist.zip && rm dist.zip;
-```
-
-Drag `DispatchStore_iOS.framework` in your project and add it as an embedded binary.
-
-If you use [xcodegen](https://github.com/yonaskolb/XcodeGen) add the framework to your *project.yml* like so:
-
-```yaml
-targets:
-  YOUR_APP_TARGET:
-    ...
-    dependencies:
-      - framework: PATH/TO/YOUR/DEPS/DispatchStore_iOS.framework
-```
-
-### CocoaPods (deprecated)
-
-If you are using **CocoaPods**:
-
-Add the following to your [Podfile](https://guides.cocoapods.org/using/the-podfile.html):
-
-```ruby
-pod 'DispatchStore'
-```
-
-### Carthage (deprecated)
-
-If you are using **Carthage**:
-
-
-To install Carthage, run (using Homebrew):
-
-```bash
-$ brew update
-$ brew install carthage
-```
-
-Then add the following line to your `Cartfile`:
-
-```
-github "alexdrone/Dispatch" "master"    
-```
+DispatchStore is a lightweight, operation based, multi-store Flux implementation in Swift.
 
 ## Overview
 
@@ -59,13 +12,13 @@ These should not be confused with Model-View-Controller. Controllers do exist in
 
 Dispatch eschews MVC in favour of a unidirectional data flow. When a user interacts with a view, the view propagates an action through a central dispatcher, to the various stores that hold the application's data and business logic, which updates all of the views that are affected.
 
-This works especially well with [Render](https://github.com/alexdrone/Render)'s declarative programming style, which allows the store to send updates without specifying how to transition views between states.
+This works especially well with *SwiftUI*'s declarative programming style, which allows the store to send updates without specifying how to transition views between states.
 
 
 - **Stores**: Holds the state of your application. You can have multiple stores for multiple domains of your app.
 - **Actions**: You can only perform state changes through actions. Actions are small pieces of data (typically enums) that describe a state change. By drastically limiting the way state can be mutated, your app becomes easier to understand and it gets easier to work with many collaborators.
 - **Dispatcher**: Dispatches an action to the stores that respond to it.
-- **Views**: A simple function of your state. This works especially well with [Render](https://github.com/alexdrone/Render)'s declarative programming style.
+- **Views**: A simple function of your state. This works especially well with *SwiftUI*'s declarative programming style.
 
 <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/new_diag.png" width="640" alt="Diagram" />
 
@@ -89,15 +42,14 @@ the reducer is the only *open* class provided from the framework, and the user o
 
 This allows an action to result in an update to the state of the store, via the dispatcher. After the stores are updated, they notify the observers that their state has changed, so the views may query the new state and update themselves.
 
+### Redux Implementation
 
-### Y NO Redux Implementation?
-
-*Redux* can be seen as a special *Dispatch* use-case.
+*Redux* can be seen as a special *DispatchStore* use-case.
 You can recreate a Redux configuration by having a single store registered to the Dispatcher and by ensuring state immutability in your store.
 
 # Getting started
 
-Let's implement a counter application in **Dispatch**.
+Let's implement a counter application in ** DispatchStore**.
 
 First we need a `Counter` state and some actions associated to it.
 
@@ -170,16 +122,15 @@ class CounterReducer: Reducer<Counter, Counter.Action> {
 
 Now let's see how to instantiate a `Store` with our newly defined `Reducer` and how to register it to the default `Dispatcher`.
 
-
 ```swift
 let store = Store<Counter, Counter.Action>(identifier: "counter", reducer: CounterReducer())
-ActionDispatch.default.register(store: store)
+DispatchStore.register(store: store)
 ```
 
 Dispatching an action is as easy as calling:
 
 ```swift
-dispatch(Counter.Action.increase)
+DispatchStore.dispatch(Counter.Action.increase)
 ```
 
 Any object can register themselves as a observer for a given store by calling `register(observer:callback:)`.
@@ -195,12 +146,39 @@ That way you have a centralised unique entry-point to access all of your stores.
 
 ```swift
 
-extension ActionDispatcher {
+extension DispatchStore {
   var counterStore: Store<Counter, Counter.Action> {
     return self.store(with: "counter") as? Store<Counter, Counter.Action>
   }
 }
 
+```
+
+# Swift UI Integration
+Stores are conforming to *BridgeableObject*.
+
+**SceneDelegate.swift**
+
+```swift
+
+  func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+    let window = UIWindow(frame: UIScreen.main.bounds)
+    window.rootViewController = UIHostingController(rootView: ContentView().environmentObject(DispatchStore.default.counterStore))
+    self.window = window
+    window.makeKeyAndVisible()
+  }
+```
+**ContentView.swift**
+
+```swift
+struct ContentView : View {
+  @EnvironmentObject var store: Store<Counter, Counter.Action>
+  var body: some View {
+    Text("counter \(store.model.count)").tapAction {
+      DispatchStore.dispatch(action: Counter.Action.increase)
+    }
+  }
+}
 ```
 
 # Advanced use
@@ -248,14 +226,3 @@ dispatch(action: Action.bar, mode: .serial)
 ```
 
 Also calling dispatch with `.sync` would have the same effect but it would block the thread that is currently dispatching the action until the operation is done - so make sure you dispatch your actions in `.sync` mode only if you are off the main thread.
-
-### Use with Render
-
-Views in this model are simple function of your state. This works especially well with [Render](https://github.com/alexdrone/Render)'s declarative programming style.
-
-Checkout the **TodoApp** example to see how to get the best out of **Dispatch** and **Render**.
-
-### Credit
-
-- [Facebook Flux](https://facebook.github.io/flux/)
-- [Unbox](https://github.com/JohnSundell/Unbox) and [Wrap](https://github.com/JohnSundell/Wrap) by John Sundell are used as json decoder/encoder.

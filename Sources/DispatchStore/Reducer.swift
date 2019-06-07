@@ -1,5 +1,6 @@
 import Foundation
 
+@available(iOS 13.0, *)
 open class Reducer<S: ModelType, A: ActionType> {
 
   public init() { }

@@ -8,7 +8,7 @@ public protocol ActionType { }
 
 public struct Action<A: ActionType> {
   /// The action associated to this status object.
-  /// -note: Typically an extensible enum.
+  /// - note: Typically an extensible enum.
   let action: A
   /// The state of the action.
   let model: ActionState

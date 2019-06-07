@@ -1,4 +1,8 @@
 import Foundation
+#if canImport(Combine)
+import SwiftUI
+import Combine
+#endif
 
 /// Models that are going to accessed through a store must conform to this protocol.
 public protocol ModelType {
@@ -23,20 +27,6 @@ public func assign<T>(_ value: T, changes: (inout T) -> Void) -> T {
   return copy
 }
 
-/// Wraps an observer object.
-struct StoreObserver<S: ModelType, A: ActionType> {
-  // The actual reference to the observer.
-  fileprivate weak var ref: AnyObject?
-  // The onChange callback that is going to be executed for this observer.
-  fileprivate let closure: Store<S, A>.OnChange
-
-  /// Constructs a new observer wrapper object.
-  init(_ ref: AnyObject, closure: @escaping Store<S, A>.OnChange) {
-    self.ref = ref
-    self.closure = closure
-  }
-}
-
 public protocol StoreType: class {
   /// The unique identifier for this store.
   var identifier: String { get set }
@@ -51,8 +41,8 @@ public protocol StoreType: class {
   func inject(model: ModelType, action: ActionType)
 }
 
-
-open class Store<S: ModelType, A: ActionType>: StoreType {
+@available(iOS 13.0, *)
+open class Store<S: ModelType, A: ActionType>: StoreType, BindableObject {
   /// The block executed whenever the store changes.
   public typealias OnChange = (S, Action<A>) -> (Void)
   /// The current state for the Store.
@@ -65,28 +55,13 @@ open class Store<S: ModelType, A: ActionType>: StoreType {
   public var identifier: String
   // Syncronizes the access tp the state object.
   private let stateLock = NSRecursiveLock()
-  // The observers currently registered in this store.
-  private var observers: [StoreObserver<S, A>] = []
+  /// An instance that publishes an event when the object has changed.
+  public var didChange = PassthroughSubject<A, Never>()
 
   public init(identifier: String, model: S = S(), reducer: Reducer<S, A>) {
     self.identifier = identifier
     self.reducer = reducer
     self.model = model
-  }
-
-  /// Adds a new observer to the store.
-  /// - note: The same observer can be added several times with different *onChange* blocks.
-  public func register(observer: AnyObject, onChange: @escaping OnChange) {
-    precondition(Thread.isMainThread)
-    let observer = StoreObserver<S, A>(observer, closure: onChange)
-    observers = observers.filter { $0.ref != nil }
-    observers.append(observer)
-  }
-
-  /// Unregister the observer passed as argument.
-  public func unregister(observer: AnyObject) {
-    precondition(Thread.isMainThread)
-    observers = observers.filter { $0.ref != nil && $0.ref !== observer }
   }
 
   /// Whether this 'store' comply with the action passed as argument.
@@ -104,11 +79,9 @@ open class Store<S: ModelType, A: ActionType>: StoreType {
 
   /// Notify the store observers for the change of this store.
   /// - note: Observers are always notified on the main thread.
-  public func notifyObservers(action: Action<A>) {
+  open func notifyObservers(action: Action<A>) {
     func notify() {
-      for observer in self.observers where observer.ref != nil {
-        observer.closure(self.model, action)
-      }
+      didChange.send(action.action)
     }
     // Makes sure the observers are notified on the main thread.
     if Thread.isMainThread {

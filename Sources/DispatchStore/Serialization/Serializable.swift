@@ -1,5 +1,6 @@
 import Foundation
 
+@available(iOS 13.0, *)
 open class SerializableStore<S: SerializableModelType, A: SerializableActionType> : Store<S, A> { }
 
 /// Specialization for the 'ActionType'.
