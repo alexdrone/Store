@@ -1,4 +1,4 @@
-# DispatchStore [![Swift](https://img.shields.io/badge/swift-5.1-orange.svg?style=flat)](#) 
+# DispatchStore [![Swift](https://img.shields.io/badge/swift-5.1-orange.svg?style=flat)](#)
 <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/dispatch_logo_small.png" width=150 alt="Dispatch" align=right />
 
 Swift package that implements an operation based, multi-store for **SwiftUI**.
@@ -49,128 +49,53 @@ You can recreate a Redux configuration by having a single store registered to th
 
 # Getting started
 
-Let's implement a counter application in ** DispatchStore**.
-
-First we need a `Counter` state and some actions associated to it.
-
+TL;DR
 
 ```swift
+import SwiftUI
+import DispatchStore
+
+// MARK: - Store
 
 struct Counter: ModelType {
-
-  let count: Int
-
-  init() {
-    self.count = 0
-  }
-
-  init(count: Int) {
-    self.count = count
-  }
-
-  func byAdding(value: Int) -> Counter {
-    return Counter(count: self.count + value)
-  }
-
   enum Action: ActionType {
     case increase
     case decrease
-    case add(amount: Int)
-    case remove(amount: Int)
   }
+  var count: Int = 0
 }
 
-```
-
-Now we need a `Reducer` that implements the business logic for the actions defined in `Counter.Action`.
-The reducer will have to change the state (that is owned by the  `Store`) and to do that in a synchronised fashion we use the `updateState(closure:)` function.
-
-
-```swift
 class CounterReducer: Reducer<Counter, Counter.Action> {
-
-  override func operation(
-    for action: Counter.Action,
-    in store: Store<Counter, Counter.Action>
-  ) -> ActionOperation<Counter, Counter.Action> {
-
+  override func operation(for action: Counter.Action, in store: Store<Counter, Counter.Action>) -> ActionOperation<Counter, Counter.Action> {
     switch action {
-
     case .increase:
       return ActionOperation(action: action, store: store) { operation, _, store in
-        store.updateModel { model in
-          // In this example we are implementing our state as an immutable state (a la Redux) - but
-          // 'Dispatch' is not opinionated about it.
-          // We could simply mutate our state by simply doing 'state.count += 1'.
-          // State immutability is a trade-off left to the user of this library.
-          model = model.byAdding(value: 1)
-        }
+        store.updateModel { $0.count += 1 }
         operation.finish()
       }
-
     case .decrease:
       return ActionOperation(action: action, store: store) { operation, _, store in
-        store.updateModel { model in model = model.byAdding(value: -1) }
-        operation.finish()
+      store.updateModel { $0.count -= 1 }
+      operation.finish()
       }
-
-      ...
     }
   }
 }
-```
-
-Now let's see how to instantiate a `Store` with our newly defined `Reducer` and how to register it to the default `Dispatcher`.
-
-```swift
-let store = Store<Counter, Counter.Action>(identifier: "counter", reducer: CounterReducer())
-DispatchStore.register(store: store)
-```
-
-Dispatching an action is as easy as calling:
-
-```swift
-DispatchStore.dispatch(Counter.Action.increase)
-```
-
-Any object can register themselves as a observer for a given store by calling `register(observer:callback:)`.
-
-```swift
-store.register(observer: self) { model, _ in
-  print(model)
-}
-```
-
-A convenient way to have type-safe references to all of your stores is to expose them as a synthesised getter in your `Dispatcher`.
-That way you have a centralised unique entry-point to access all of your stores.
-
-```swift
 
 extension DispatchStore {
   var counterStore: Store<Counter, Counter.Action> {
-    return self.store(with: "counter") as? Store<Counter, Counter.Action>
+    let key = "counter"
+    if let store = self.store(with: key) as? Store<Counter, Counter.Action> {
+      return store
+    }
+    let store = Store<Counter, Counter.Action>(identifier: key, reducer: CounterReducer())
+    register(store: store)
+    return store
   }
 }
 
-```
+// MARK: - UI
 
-# Swift UI Integration
-Stores are conforming to *BridgeableObject*.
-
-**SceneDelegate.swift**
-
-```swift
-
-  func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-    let window = UIWindow(frame: UIScreen.main.bounds)
-    window.rootViewController = UIHostingController(rootView: ContentView().environmentObject(DispatchStore.default.counterStore))
-    self.window = window
-    window.makeKeyAndVisible()
-  }
-```
-**ContentView.swift**
-
-```swift
 struct ContentView : View {
   @EnvironmentObject var store: Store<Counter, Counter.Action>
   var body: some View {
@@ -179,6 +104,16 @@ struct ContentView : View {
     }
   }
 }
+
+// MARK: - Preview
+
+#if DEBUG
+struct ContentView_Previews : PreviewProvider {
+    static var previews: some View {
+        ContentView().environmentObject(DispatchStore.default.counterStore)
+    }
+}
+#endif
 ```
 
 # Advanced use
@@ -205,7 +140,7 @@ class Logger: Middleware { ... }
 Register your middleware by calling `register(middleware:)`.
 
 ```swift
-ActionDispatch.default.register(middleware: LoggerMiddleware())
+DispatchStore.default.register(middleware: LoggerMiddleware())
 ```
 
 ### Chaining actions
