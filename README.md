@@ -1,4 +1,4 @@
-# DispatchStore [![Swift](https://img.shields.io/badge/swift-5.1-orange.svg?style=flat)](#) [![Platform](https://img.shields.io/badge/platform-iOS 13|SwiftUI|Combine-lightgrey.svg?style=flat)](#)
+# DispatchStore [![Swift](https://img.shields.io/badge/swift-5.1-orange.svg?style=flat)](#) 
 <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/dispatch_logo_small.png" width=150 alt="Dispatch" align=right />
 
 DispatchStore is a lightweight, operation based, multi-store Flux implementation in Swift.
