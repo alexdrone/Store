@@ -143,9 +143,7 @@ DispatchStore.default.register(middleware: LoggerMiddleware())
 You can make sure that an action will be dispatched right after another one by using the `dispatch` method trailing closure.
 
 ```swift
-dispatch(action: Action.foo) {
-  dispatch(action: Action.bar)
-}
+dispatch(actions: [Action.foo, Action.bar])
 ```
 
 Similarly you can achieve the same result by dispatching the two actions serially.

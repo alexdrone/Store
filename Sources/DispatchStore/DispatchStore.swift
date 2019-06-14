@@ -141,6 +141,27 @@ public final class DispatchStore {
       then: completionBlock)
   }
 
+  /// Dispatch a sequence of actions on the default *ActionDispatcher* and redirects
+  /// it to the correct store.
+  /// - parameter storeIdentifier: Optional, to target a specific store.
+  /// - parameter actions: The actions that will be executed sequentially.
+  /// - parameter completionBlock: Optional, completion block.
+  public static func dispatch(
+    storeIdentifier: String? = nil,
+    actions: [ActionType],
+    then completionBlock: (() -> (Void))? = nil
+  ) -> Void {
+    guard let action = actions.first else {
+      completionBlock?()
+      return
+    }
+    var newActions = actions
+    newActions.remove(at: 0)
+    dispatch(storeIdentifier: storeIdentifier, action: action) {
+      dispatch(storeIdentifier: storeIdentifier, actions: newActions, then: completionBlock)
+    }
+  }
+
   /// Register a store to the default *ActionDispatcher*
   public static func register(store: StoreType) -> StoreType {
     return DispatchStore.default.register(store: store)
