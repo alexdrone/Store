@@ -56,7 +56,7 @@ open class Store<S: ModelType, A: ActionType>: StoreType, BindableObject {
   // Syncronizes the access tp the state object.
   private let stateLock = NSRecursiveLock()
   /// An instance that publishes an event when the object has changed.
-  public var didChange = PassthroughSubject<A, Never>()
+  public var willChange = PassthroughSubject<A, Never>()
 
   public init(identifier: String, model: S = S(), reducer: Reducer<S, A>) {
     self.identifier = identifier
@@ -81,7 +81,7 @@ open class Store<S: ModelType, A: ActionType>: StoreType, BindableObject {
   /// - note: Observers are always notified on the main thread.
   open func notifyObservers(action: Action<A>) {
     func notify() {
-      didChange.send(action.action)
+      willChange.send(action.action)
     }
     // Makes sure the observers are notified on the main thread.
     if Thread.isMainThread {
