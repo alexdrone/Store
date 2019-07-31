@@ -1,8 +1,5 @@
 import Foundation
-#if canImport(Combine)
-import SwiftUI
 import Combine
-#endif
 
 /// Models that are going to accessed through a store must conform to this protocol.
 public protocol ModelType {
@@ -42,7 +39,7 @@ public protocol StoreType: class {
 }
 
 @available(iOS 13.0, *)
-open class Store<S: ModelType, A: ActionType>: StoreType, BindableObject {
+open class Store<S: ModelType, A: ActionType>: StoreType, ObservableObject {
   /// The block executed whenever the store changes.
   public typealias OnChange = (S, Action<A>) -> (Void)
   /// The current state for the Store.
@@ -55,8 +52,6 @@ open class Store<S: ModelType, A: ActionType>: StoreType, BindableObject {
   public var identifier: String
   // Syncronizes the access tp the state object.
   private let stateLock = NSRecursiveLock()
-  /// An instance that publishes an event when the object has changed.
-  public var willChange = PassthroughSubject<A, Never>()
 
   public init(identifier: String, model: S = S(), reducer: Reducer<S, A>) {
     self.identifier = identifier
@@ -81,7 +76,7 @@ open class Store<S: ModelType, A: ActionType>: StoreType, BindableObject {
   /// - note: Observers are always notified on the main thread.
   open func notifyObservers(action: Action<A>) {
     func notify() {
-      willChange.send(action.action)
+      objectWillChange.send()
     }
     // Makes sure the observers are notified on the main thread.
     if Thread.isMainThread {
