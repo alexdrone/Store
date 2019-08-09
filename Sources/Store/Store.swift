@@ -32,7 +32,7 @@ public protocol StoreType: class {
   func notifyObservers()
 }
 
-@available(iOS 13.0, *)
+@available(iOS 13.0, macOS 10.15, *)
 open class Store<M: ModelType>: StoreType, ObservableObject {
   /// The current state for the Store.
   public private(set) var model: M

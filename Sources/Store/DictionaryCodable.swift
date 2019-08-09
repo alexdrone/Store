@@ -216,7 +216,9 @@ extension DictionaryEncoder {
     ) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
       codingPath.append(AnyCodingKey(index: count))
       defer { codingPath.removeLast() }
-      return KeyedEncodingContainer(KeyedContainer<NestedKey>(encoder: encoder, codingPath: codingPath))
+      return KeyedEncodingContainer(KeyedContainer<NestedKey>(
+        encoder: encoder,
+        codingPath: codingPath))
     }
 
     func nestedUnkeyedContainer() -> UnkeyedEncodingContainer {

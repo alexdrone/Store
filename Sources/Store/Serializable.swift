@@ -1,19 +1,11 @@
 import Foundation
 
-@available(iOS 13.0, *)
-open class SerializableStore<S: SerializableModelType, A: SerializableActionType> : Store<S, A> { }
-
-/// Specialization for the 'ActionType'.
-public protocol SerializableActionType: ActionType {
-  /// Action dispatched whenever the state is being unmarshalled and injected.
-  static var injectAction: SerializableActionType { get }
-  /// Whether this action is the one marked for state deserialization.
-  var isInjectAction: Bool { get }
-}
-
 /// A state that is encodable and decodable.
 /// For the time being 'Decode' is used as json-parser.
 public protocol SerializableModelType: ModelType, Encodable, Decodable { }
+
+@available(iOS 13.0, macOS 10.15, *)
+open class SerializableStore<S: SerializableModelType> : Store<S> { }
 
 public extension SerializableModelType {
   /// Encodes the state into a dictionary.

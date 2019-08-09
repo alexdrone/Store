@@ -1,6 +1,6 @@
 import Foundation
 
-@available(iOS 13.0, *)
+@available(iOS 13.0, macOS 10.15, *)
 public final class Dispatcher {
   /// The threading strategy that should be used for a given action.
   public enum Strategy {
@@ -12,14 +12,14 @@ public final class Dispatcher {
     case async(_ identifier: String?)
   }
 
-  public final class Context {
+  public final class DispatchGroupError {
     /// The last error logged by an operation in the current dispatch group (if applicable).
     @Atomic var lastError: Error? = nil
     /// Optional user defined map.
     @Atomic var userInfo: [String: Any] = [:]
   }
 
-  public typealias TransactionCompletionHandler = ((Context) -> Void)?
+  public typealias TransactionCompletionHandler = ((DispatchGroupError) -> Void)?
 
   /// Shared instance.
   public static let main = Dispatcher()
@@ -34,16 +34,17 @@ public final class Dispatcher {
     transactions: [AnyTransaction],
     handler: TransactionCompletionHandler = nil
   ) -> Void {
-    let context = Context()
+    let dispatchGroupError = DispatchGroupError()
     var completionOperation: Operation?
     if let completionHandler = handler {
       completionOperation = BlockOperation {
-        completionHandler(context)
+        completionHandler(dispatchGroupError)
       }
       transactions.map { $0.operation }.forEach { completionOperation?.addDependency($0) }
       OperationQueue.main.addOperation(completionOperation!)
     }
     for transaction in transactions {
+      transaction.error = dispatchGroupError
       run(transaction: transaction)
     }
   }
@@ -52,16 +53,19 @@ public final class Dispatcher {
     let operation = transaction.operation
     switch transaction.strategy {
     case .mainThread:
-      DispatchQueue.main.async {
+      if Thread.isMainThread {
         operation.start()
+        operation.waitUntilFinished()
+      } else {
+        OperationQueue.main.addOperation(operation)
         operation.waitUntilFinished()
       }
     case .sync:
       operation.start()
       operation.waitUntilFinished()
     case .async(let identifier):
-      let queue = operationQueue(identifier: identifier) ?? operationQueue(identifier: nil)
-      queue?.addOperation(operation)
+      let queue = operationQueue(identifier: identifier) ?? backgroundQueue
+      queue.addOperation(operation)
     }
   }
 
