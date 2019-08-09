@@ -24,6 +24,9 @@ enum CounterAction: ActionType {
   }
 
   func perform(context: TransactionContext<Store<Counter>, Self>) {
+    defer {
+      context.operation.finish()
+    }
     switch self {
     case .increase(let ammount):
       context.store.updateModel { $0.count += ammount }
@@ -32,7 +35,6 @@ enum CounterAction: ActionType {
     case .updateLabel(let newLabel):
       context.store.updateModel { $0.label = newLabel }
     }
-    context.operation.finish()
   }
 }
 
