@@ -1,16 +1,11 @@
 # Store [![Swift](https://img.shields.io/badge/swift-5.1-orange.svg?style=flat)](#)
 <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/dispatch_logo_small.png" width=150 alt="Dispatch" align=right />
 
-A unidirectional, transactional, operation based,  multi-store for **SwiftUI**.
+An unidirectional, transactional, operation based,  multi-store for **SwiftUI**.
 
 ## Overview
 
-**Dispatch** is a [Flux](https://facebook.github.io/flux/docs/overview.html)-like implementation of the unidirectional data flow architecture in Swift.
-Flux applications have three major parts: the dispatcher, the stores, and the views.
-
-These should not be confused with Model-View-Controller. Controllers do exist in a Dispatch/Flux application, but they are controller-views — views often found at the top of the hierarchy that retrieve data from the stores and pass this data down to their children (views).
-
-Dispatch eschews MVC in favour of a unidirectional data flow. When a user interacts with a view, the view propagates an action through a central dispatcher, to the various stores that hold the application's data and business logic, which updates all of the views that are affected.
+Store eschews MVC in favour of a unidirectional data flow. When a user interacts with a view, the view propagates an action through a central dispatcher, to the various stores that hold the application's data and business logic, which updates all of the views that are affected.
 
 This works especially well with *SwiftUI*'s declarative programming style, which allows the store to send updates without specifying how to transition views between states.
 
@@ -94,15 +89,19 @@ struct ContentView_Previews : PreviewProvider {
 #endif
 ```
 
+# Actions
+
+Todo: Update doc.
+
+### Middleware
+
+Todo: Update doc.
+
 # Advanced use
 
 Dispatch takes advantage of *Operations* and *OperationQueues* and you can define complex dependencies between the operations that are going to be run on your store.
 
 Also middleware support is available allowing you to quickly add some aspect-oriented feature to your design.
-
-### Middleware
-
-Todo: Update doc.
 
 ### Chaining actions
 
