@@ -1,7 +1,7 @@
-# DispatchStore [![Swift](https://img.shields.io/badge/swift-5.1-orange.svg?style=flat)](#)
+# Store [![Swift](https://img.shields.io/badge/swift-5.1-orange.svg?style=flat)](#)
 <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/dispatch_logo_small.png" width=150 alt="Dispatch" align=right />
 
-Swift package that implements an operation based, multi-store for **SwiftUI**.
+A unidirectional, transactional, operation based,  multi-store for **SwiftUI**.
 
 ## Overview
 
@@ -14,38 +14,29 @@ Dispatch eschews MVC in favour of a unidirectional data flow. When a user intera
 
 This works especially well with *SwiftUI*'s declarative programming style, which allows the store to send updates without specifying how to transition views between states.
 
-
 - **Stores**: Holds the state of your application. You can have multiple stores for multiple domains of your app.
 - **Actions**: You can only perform state changes through actions. Actions are small pieces of data (typically enums) that describe a state change. By drastically limiting the way state can be mutated, your app becomes easier to understand and it gets easier to work with many collaborators.
-- **Dispatcher**: Dispatches an action to the stores that respond to it.
+- **Transaction**:  An excution of a given action.
 - **Views**: A simple function of your state. This works especially well with *SwiftUI*'s declarative programming style.
 
 <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/new_diag.png" width="640" alt="Diagram" />
 
-### Single Dispatcher
-
-The dispatcher is the central hub that manages all data flow in your application. It is essentially a registry of callbacks into the stores and has no real intelligence of its own — it is a simple mechanism for distributing the actions to the stores. Each store registers itself and provides a callback. When an action creator provides the dispatcher with a new action, all stores in the application receive the action via the callbacks in the registry - and redirect the action to their reducer.
-
-As an application grows, the dispatcher becomes more vital, as it can be used to manage dependencies between the stores by invoking the registered callbacks in a specific order. Stores can declaratively wait for other stores to finish updating, and then update themselves accordingly.
-
-The dispatcher can run actions in four different modes: `async`, `sync`, `serial` and `mainThread`.
-
-Additionally the trailing closure of the `dispatch` method can be used to chain some actions sequentially.
-
-
-### Stores
+### Store
 
 Stores contain the application state and logic. Their role is somewhat similar to a model in a traditional MVC, but they manage the state of many objects — they do not represent a single record of data like ORM models do. More than simply managing a collection of ORM-style objects, stores manage the application state for a particular domain within the application.
 
-As mentioned above, a store registers itself with the dispatcher. The store has a `Reducer` that typically has a switch statement based on the action's type —
-the reducer is the only *open* class provided from the framework, and the user of this library are expected to subclass it to return an operation for every action handled by the store.
-
 This allows an action to result in an update to the state of the store, via the dispatcher. After the stores are updated, they notify the observers that their state has changed, so the views may query the new state and update themselves.
 
-### Redux Implementation
+### Action
 
-*Redux* can be seen as a special *DispatchStore* use-case.
-You can recreate a Redux configuration by having a single store registered to the Dispatcher and by ensuring state immutability in your store.
+An action represent an operation on the store.
+Represent as a type compliant to `ActionType`. 
+
+### Transaction
+
+A transaction represent an excution of a given action.
+The dispatcher can run transaction in four different modes: `async`, `sync`, and `mainThread`.
+Additionally the trailing closure of the `run` method can be used to run a completion closure for the actions that have had run.
 
 # Getting started
 
@@ -53,49 +44,41 @@ TL;DR
 
 ```swift
 import SwiftUI
-import DispatchStore
-
-// MARK: - Store
+import Store
 
 struct Counter: ModelType {
-  enum Action: ActionType {
-    case increase
-    case decrease
-  }
-  var count: Int = 0
+  var count = 0
 }
 
-class CounterReducer: Reducer<Counter, Counter.Action> {
-  override func operation(for action: Counter.Action, in store: Store<Counter, Counter.Action>) -> ActionOperation<Counter, Counter.Action> {
-    switch action {
-    case .increase:
-      return ActionOperation(action: action, store: store) { operation, _, store in
-        store.updateModel { $0.count += 1 }
-        operation.finish()
-      }
-    case .decrease:
-      return ActionOperation(action: action, store: store) { operation, _, store in
-      store.updateModel { $0.count -= 1 }
-      operation.finish()
-      }
+enum CounterAction: ActionType {
+  case increase(ammount: Int)
+  case decrease(ammount: Int)
+
+  var identifier: String {
+    switch self {
+    case .increase(_): return "INCREASE"
+    case .decrease(_): return "DECREASE"
     }
   }
-}
 
-extension DispatchStore {
-  var counterStore: Store<Counter, Counter.Action> {
-    let store = Store<Counter, Counter.Action>(identifier: "counter", reducer: CounterReducer())
-    return register(store: store)
+  func perform(context: TransactionContext<Store<Counter>, Self>) {
+    switch self {
+    case .increase(let ammount):
+      context.store.updateModel { $0.count += ammount }
+    case .decrease(let ammount):
+      context.store.updateModel { $0.count -= ammount }
+    }
+    context.operation.finish()
   }
 }
 
 // MARK: - UI
 
 struct ContentView : View {
-  @EnvironmentObject var store: Store<Counter, Counter.Action>
+  @EnvironmentObject var store: Store<Counter>
   var body: some View {
     Text("counter \(store.model.count)").tapAction {
-      DispatchStore.dispatch(action: Counter.Action.increase)
+      Transaction(CounterAction.increase(ammount: 1), in: store).run()
     }
   }
 }
@@ -119,38 +102,33 @@ Also middleware support is available allowing you to quickly add some aspect-ori
 
 ### Middleware
 
-Any object that conforms to the `Middleware` protocol can register to `ActionDispatch`.
-This provides a third-party extension point between dispatching an action, and the moment it reaches the reducer. You could use middleware for logging, crash reporting, talking to an asynchronous API, routing, and more.
-
-```swift
-
-protocol Middleware {
-  func willDispatch(transaction: String, action: AnyAction, in store: AnyStore)
-  func didDispatch(transaction: String, action: AnyAction, in store: AnyStore)
-}
-
-class Logger: Middleware { ... }
-
-```
-Register your middleware by calling `register(middleware:)`.
-
-```swift
-DispatchStore.default.register(middleware: LoggerMiddleware())
-```
+Todo: Update doc.
 
 ### Chaining actions
 
-You can make sure that an action will be dispatched right after another one by using the `dispatch` method trailing closure.
+```swift
+[Transaction(CounterAction.increase(ammount: 1), in: store),
+ Transaction(CounterAction.increase(ammount: 1), in: store),
+ Transaction(CounterAction.increase(ammount: 1), in: store)].run { context in
+ // Will be executed after all of the transactions are completed.
+}
+```
+Actions can also be executed in a synchronous fashion.
 
 ```swift
-dispatch(actions: [Action.foo, Action.bar])
+Transaction(CounterAction.increase(ammount: 1), in: store).on(.sync)
+Transaction(CounterAction.increase(ammount: 1), in: store).on(.mainThread)
 ```
 
-Similarly you can achieve the same result by dispatching the two actions serially.
+### Custom queues
 
-```swift
-dispatch(action: Action.foo, mode: .serial)
-dispatch(action: Action.bar, mode: .serial)
-```
+Todo: Update doc.
 
-Also calling dispatch with `.sync` would have the same effect but it would block the thread that is currently dispatching the action until the operation is done - so make sure you dispatch your actions in `.sync` mode only if you are off the main thread.
+### Tracking transaction state
+
+Todo: Update doc.
+
+### Dealing with errors
+
+Todo: Update doc.
+
