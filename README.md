@@ -23,7 +23,6 @@ This allows an action to result in an update to the state of the store, via the 
 ### Action
 
 An action represent an operation on the store.
-Represent as a type compliant to `ActionType`. 
 
 ### Transaction
 
