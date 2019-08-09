@@ -14,8 +14,6 @@ This works especially well with *SwiftUI*'s declarative programming style, which
 - **Transaction**:  An excution of a given action.
 - **Views**: A simple function of your state. This works especially well with *SwiftUI*'s declarative programming style.
 
-<img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/new_diag.png" width="640" alt="Diagram" />
-
 ### Store
 
 Stores contain the application state and logic. Their role is somewhat similar to a model in a traditional MVC, but they manage the state of many objects — they do not represent a single record of data like ORM models do. More than simply managing a collection of ORM-style objects, stores manage the application state for a particular domain within the application.
