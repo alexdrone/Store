@@ -91,11 +91,11 @@ struct ContentView_Previews : PreviewProvider {
 
 # Actions
 
-Todo: Update doc.
+TODO
 
 ### Middleware
 
-Todo: Update doc.
+TODO
 
 # Advanced use
 
@@ -121,13 +121,13 @@ Transaction(CounterAction.increase(ammount: 1), in: store).on(.mainThread)
 
 ### Custom queues
 
-Todo: Update doc.
+TODO
 
 ### Tracking transaction state
 
-Todo: Update doc.
+TODO
 
 ### Dealing with errors
 
-Todo: Update doc.
+TODO
 
