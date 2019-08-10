@@ -12,14 +12,14 @@ public final class Dispatcher {
     case async(_ identifier: String?)
   }
 
-  public final class DispatchGroupError {
+  public final class TransactionGroupError {
     /// The last error logged by an operation in the current dispatch group (if applicable).
     @Atomic var lastError: Error? = nil
     /// Optional user defined map.
     @Atomic var userInfo: [String: Any] = [:]
   }
 
-  public typealias TransactionCompletionHandler = ((DispatchGroupError) -> Void)?
+  public typealias TransactionCompletionHandler = ((TransactionGroupError) -> Void)?
 
   /// Shared instance.
   public static let main = Dispatcher()
@@ -34,7 +34,7 @@ public final class Dispatcher {
     transactions: [AnyTransaction],
     handler: TransactionCompletionHandler = nil
   ) -> Void {
-    let dispatchGroupError = DispatchGroupError()
+    let dispatchGroupError = TransactionGroupError()
     var completionOperation: Operation?
     if let completionHandler = handler {
       completionOperation = BlockOperation {
@@ -97,8 +97,12 @@ public struct Atomic<T> {
   }
 
   public var wrappedValue: T {
-    get { return queue.sync { storage } }
-    set { queue.sync(flags: .barrier) { storage = newValue } }
+    get {
+      return queue.sync { storage }
+    }
+    set {
+      queue.sync(flags: .barrier) { storage = newValue }
+    }
   }
 
   /// Atomically mutate the variable (read-modify-write).

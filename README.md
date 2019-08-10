@@ -72,7 +72,7 @@ struct ContentView : View {
   @EnvironmentObject var store: Store<Counter>
   var body: some View {
     Text("counter \(store.model.count)").tapAction {
-      Transaction(CounterAction.increase(ammount: 1), in: store).run()
+      store.run(action: CounterAction.increase(ammount: 1))
     }
   }
 }
@@ -82,7 +82,7 @@ struct ContentView : View {
 #if DEBUG
 struct ContentView_Previews : PreviewProvider {
     static var previews: some View {
-        ContentView().environmentObject(DispatchStore.default.counterStore)
+        ContentView().environmentObject(Store<Counter>())
     }
 }
 #endif

@@ -17,20 +17,20 @@ public protocol AnyTransaction: class {
   /// Randomized identifier for the current transaction that preserve the temporal information.
   /// - note: see `PushID`.
   var transactionIdentifier: String { get }
-  /// The threading strategy that should be used for a given transaction.
+  /// The threading strategy that should be used for this transaction.
   var strategy: Dispatcher.Strategy { get }
-  /// The error context for this transaction group.
-  var error: Dispatcher.DispatchGroupError? { get set }
+  /// Tracks any error that might have been raised in this transaction group.
+  var error: Dispatcher.TransactionGroupError? { get set }
+  /// Opaque reference to the transaction store.
+  var opaqueStoreRef: StoreType? { get }
   /// Represents the progress of the transaction.
   /// Trackable `@Published` property.
   var state: TransactionState { get set }
   /// Returns the aynchronous operation that is going to be executed with this transaction.
   var operation: AsyncOperation { get }
-  /// Opaque reference to the transaction store.
-  var opaqueStoreRef: StoreType? { get }
   /// Dispatch strategy modifier.
   func on(_ queueWithStrategy: Dispatcher.Strategy) -> Self
-  /// - note: Performs `ActionType.perform(operation:store:error)`.
+  /// - note: Performs `ActionType.perform(context:)`.
   func perform(operation: AsyncOperation)
   /// Execute the transaction.
   func run(handler: Dispatcher.TransactionCompletionHandler)
@@ -65,7 +65,7 @@ public struct TransactionContext<S: StoreType, A: ActionType> {
   /// The target store for this transaction.
   public let store: S
   /// Last recorded error (or side effects) in this dispatch group.
-  public let error: Dispatcher.DispatchGroupError
+  public let error: Dispatcher.TransactionGroupError
   /// The current transaction.
   public let transaction: Transaction<A>
 }
@@ -83,14 +83,20 @@ public extension ActionType {
 
 @available(iOS 13.0, macOS 10.15, *)
 public final class Transaction<A: ActionType>: AnyTransaction {
-  public var identifier: String {
-    action.identifier
-  }
+  /// Unique action identifier.
+  /// An high level description of the action (e.g. `FETCH_USER` or `DELETE_COMMENT`)
+  public var identifier: String { action.identifier }
+  /// Randomized identifier for the current transaction that preserve the temporal information.
   public let transactionIdentifier: String = PushID.default.make()
+  /// The threading strategy that should be used for this transaction.
   public var strategy = Dispatcher.Strategy.async(nil);
-  public var error: Dispatcher.DispatchGroupError?
+  /// Tracks any error that might have been raised in this transaction group.
+  public var error: Dispatcher.TransactionGroupError?
+  /// Opaque reference to the transaction store.
+  public var opaqueStoreRef: StoreType? { return store }
+  /// Represents the progress of the transaction.
   @Published public var state: TransactionState = .pending
-
+  /// Returns the aynchronous operation that is going to be executed with this transaction.
   public lazy var operation: AsyncOperation = {
     let operation = TransactionOperation(transaction: self)
     operation.finishBlock = { [weak self] in
@@ -99,11 +105,6 @@ public final class Transaction<A: ActionType>: AnyTransaction {
     }
     return operation
   }()
-
-  public var opaqueStoreRef: StoreType? {
-    return store
-  }
-
   /// The store that is going to be affected.
   public weak var store: A.AssociatedStoreType?
   /// The associated action.
@@ -114,11 +115,13 @@ public final class Transaction<A: ActionType>: AnyTransaction {
     self.action = action
   }
 
+  /// Dispatch strategy modifier.
   public func on(_ queueWithStrategy: Dispatcher.Strategy) -> Transaction<A> {
     self.strategy = queueWithStrategy
     return self
   }
 
+  /// - note: Performs `ActionType.perform(context:)`.
   public func perform(operation: AsyncOperation) {
     guard let store = store, let error = error else {
       print("warning: DispatchGroupError context is nil - the operation won't be executed.")
@@ -133,6 +136,7 @@ public final class Transaction<A: ActionType>: AnyTransaction {
     action.perform(context: context)
   }
 
+  /// Execute the transaction.
   public func run(handler: Dispatcher.TransactionCompletionHandler = nil) {
     Dispatcher.main.run(transactions: [self], handler: handler)
   }
@@ -141,7 +145,7 @@ public final class Transaction<A: ActionType>: AnyTransaction {
 @available(iOS 13.0, macOS 10.15, *)
 extension Array where Element: AnyTransaction {
   /// Execute all of the transactions.
-  public func run(then handler: Dispatcher.TransactionCompletionHandler = nil) {
+  public func run(handler: Dispatcher.TransactionCompletionHandler = nil) {
     Dispatcher.main.run(transactions: self, handler: handler)
   }
 }
