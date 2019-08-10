@@ -17,11 +17,13 @@ public class TransactionOperation<T: AnyTransaction>: AsyncOperation  {
   /// Subclasses are expected to override the ‘execute’ function and call the function ‘finish’
   /// when they’re done with their task.
   public override func execute() {
+    transaction.state = .started
     transaction.perform(operation: self)
   }
 
   /// This function should be called inside ‘execute’ when the task for this operation is completed.
   override public func finish() {
+    transaction.state = .completed
     finishBlock()
     super.finish()
   }
@@ -58,7 +60,7 @@ public class AsyncOperation: Operation {
 
   /// Subclasses are expected to override the 'execute' function and call
   /// the function 'finish' when they're done with their task.
-  @objc  public func execute() {
+  @objc public func execute() {
     fatalError("Your subclass must override this")
   }
 

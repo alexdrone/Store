@@ -97,12 +97,8 @@ public struct Atomic<T> {
   }
 
   public var wrappedValue: T {
-    get {
-      return queue.sync { storage }
-    }
-    set {
-      queue.sync(flags: .barrier) { storage = newValue }
-    }
+    get { return queue.sync { storage } }
+    set { queue.sync(flags: .barrier) { storage = newValue } }
   }
 
   /// Atomically mutate the variable (read-modify-write).

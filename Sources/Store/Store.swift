@@ -37,6 +37,9 @@ public protocol StoreType: class {
   /// Notify the store observers for the change of this store.
   /// - note: Observers are always notified on the main thread.
   func notifyObservers()
+  /// Notify all of the registered middleware services.
+  /// - note: See `MiddlewareType.onTransactionStateChange`.
+  func notifyMiddleware(transaction: AnyTransaction)
 }
 
 @available(iOS 13.0, macOS 10.15, *)
@@ -72,6 +75,14 @@ open class Store<M: ModelType>: StoreType, ObservableObject {
       notify()
     } else {
       DispatchQueue.main.sync(execute: notify)
+    }
+  }
+
+  /// Notify all of the registered middleware services.
+  /// - note: See `MiddlewareType.onTransactionStateChange`.
+  public func notifyMiddleware(transaction: AnyTransaction) {
+    for mid in middleware {
+      mid.onTransactionStateChange(transaction)
     }
   }
 

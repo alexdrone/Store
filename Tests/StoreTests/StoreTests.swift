@@ -44,6 +44,7 @@ final class StoreTests: XCTestCase {
   func testAsyncOperation() {
     let transactionExpectation = expectation(description: "Transaction completed.")
     let store = Store<Counter>()
+    store.register(middleware: LoggerMiddleware())
     store.run(action: CounterAction.increase(ammount: 42)) { context in
       XCTAssert(context.lastError == nil)
       XCTAssert(store.model.count == 42)
@@ -55,6 +56,7 @@ final class StoreTests: XCTestCase {
   func testAsyncOperationChain() {
     let transactionExpectation = expectation(description: "Transactions completed.")
     let store = Store<Counter>()
+    store.register(middleware: LoggerMiddleware())
     store.run(actions: [
       CounterAction.increase(ammount: 1),
       CounterAction.increase(ammount: 1),
@@ -68,6 +70,7 @@ final class StoreTests: XCTestCase {
 
   func testSyncOperation() {
     let store = Store<Counter>()
+    store.register(middleware: LoggerMiddleware())
     store.run(action: CounterAction.updateLabel(newLabel: "Bar"), mode: .sync)
     XCTAssert(store.model.label == "Bar")
   }

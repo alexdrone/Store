@@ -42,6 +42,9 @@ public class PushID {
   // For testability purposes.
   private let dateProvider: () -> Date
 
+  // Ensure the generator synchronization.
+  private let lock = Lock()
+
   public init(dateProvider: @escaping () -> Date = { Date() }) {
     self.dateProvider = dateProvider
   }
@@ -52,6 +55,8 @@ public class PushID {
     precondition(pushChars.count > 0)
     var timeStampChars = Array<Character>(repeating: pushChars.first!, count: 8)
 
+    self.lock.lock()
+
     var now = UInt64(self.dateProvider().timeIntervalSince1970 * 1000)
     let duplicateTime = (now == self.lastPushTime)
 
@@ -61,6 +66,7 @@ public class PushID {
       timeStampChars[i] = pushChars[Int(now % 64)]
       now >>= 6
     }
+
     assert(now == 0, "The whole timestamp should be now converted.")
     var id = String(timeStampChars)
 
@@ -79,11 +85,40 @@ public class PushID {
       }
       self.lastRandChars[index] += 1
     }
+
     // Appends the random characters.
     for i in 0..<12 {
       id.append(pushChars[self.lastRandChars[i]])
     }
     assert(id.lengthOfBytes(using: .utf8) == 20, "The id lenght should be 20.")
+
+    self.lock.unlock()
     return id
+  }
+
+  // MARK: Spinlock implementation
+
+  final class Lock {
+    private var spin = OS_SPINLOCK_INIT
+    private var unfair = os_unfair_lock_s()
+
+    /// Locks a spinlock. Although the lock operation spins, it employs various strategies to back
+    /// off if the lock is held.
+    fileprivate func lock() {
+      if #available(iOS 10, *) {
+        os_unfair_lock_lock(&unfair)
+      } else {
+        OSSpinLockLock(&spin)
+      }
+    }
+
+    /// Unlocks a spinlock.
+    fileprivate func unlock() {
+      if #available(iOS 10, *) {
+        os_unfair_lock_unlock(&unfair)
+      } else {
+        OSSpinLockUnlock(&spin)
+      }
+    }
   }
 }

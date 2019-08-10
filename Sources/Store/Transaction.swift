@@ -95,13 +95,16 @@ public final class Transaction<A: ActionType>: AnyTransaction {
   /// Opaque reference to the transaction store.
   public var opaqueStoreRef: StoreType? { return store }
   /// Represents the progress of the transaction.
-  @Published public var state: TransactionState = .pending
+  @Published public var state: TransactionState = .pending {
+    didSet {
+      store?.notifyMiddleware(transaction: self)
+    }
+  }
   /// Returns the aynchronous operation that is going to be executed with this transaction.
   public lazy var operation: AsyncOperation = {
     let operation = TransactionOperation(transaction: self)
     operation.finishBlock = { [weak self] in
       self?.store?.notifyObservers()
-      self?.state = .completed
     }
     return operation
   }()
