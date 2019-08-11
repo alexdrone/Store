@@ -2,7 +2,9 @@ import Foundation
 
 /// A state that is encodable and decodable.
 /// For the time being 'Decode' is used as json-parser.
-public protocol SerializableModelType: ModelType, Encodable, Decodable { }
+public protocol SerializableModelType: Codable {
+  init()
+}
 
 @available(iOS 13.0, macOS 10.15, *)
 open class SerializableStore<S: SerializableModelType> : Store<S> { }

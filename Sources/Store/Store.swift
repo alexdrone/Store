@@ -1,16 +1,6 @@
 import Foundation
 import Combine
 
-/// Models that are going to accessed through a store must conform to this protocol.
-public protocol ModelType {
-  /// Mandatory empty constructor.
-  init()
-}
-
-/// Mark a store model as immutable.
-/// - note: If you implement your model using structs, conform to this protocol.
-public protocol ImmutableModelType: ModelType { }
-
 /// This function is used to copy the values of all enumerable own properties from one or more
 /// source struct to a target struct. It will return the target struct.
 /// - note: This is analogous to Object.assign in Javascript and should be used to update
@@ -27,7 +17,7 @@ public func assign<T>(_ value: T, changes: (inout T) -> Void) -> T {
 @available(iOS 13.0, macOS 10.15, *)
 public protocol StoreType: class {
   /// Opaque reference to the model wrapped by this store.
-  var modelRef: ModelType { get }
+  var modelRef: Any { get }
   /// All of the registered middleware.
   var middleware: [MiddlewareType] { get }
   /// Register a new middleware service.
@@ -43,17 +33,17 @@ public protocol StoreType: class {
 }
 
 @available(iOS 13.0, macOS 10.15, *)
-open class Store<M: ModelType>: StoreType, ObservableObject {
+open class Store<M>: StoreType, ObservableObject {
   /// The current state for the Store.
   public private(set) var model: M
   /// Opaque reference to the model wrapped by this store.
-  public var modelRef: ModelType { return model }
+  public var modelRef: Any { return model }
   /// All of the registered middleware.
   public var middleware: [MiddlewareType] = []
   // Syncronizes the access tp the state object.
   private let stateLock = NSRecursiveLock()
 
-  public init(model: M = M()) {
+  public init(model: M) {
     self.model = model
   }
 
