@@ -95,30 +95,30 @@ public class PushID {
     self.lock.unlock()
     return id
   }
+}
 
-  // MARK: Spinlock implementation
+// MARK: Spinlock implementation
 
-  final class Lock {
-    private var spin = OS_SPINLOCK_INIT
-    private var unfair = os_unfair_lock_s()
+final class Lock {
+  private var spin = OS_SPINLOCK_INIT
+  private var unfair = os_unfair_lock_s()
 
-    /// Locks a spinlock. Although the lock operation spins, it employs various strategies to back
-    /// off if the lock is held.
-    fileprivate func lock() {
-      if #available(iOS 10, *) {
-        os_unfair_lock_lock(&unfair)
-      } else {
-        OSSpinLockLock(&spin)
-      }
+  /// Locks a spinlock. Although the lock operation spins, it employs various strategies to back
+  /// off if the lock is held.
+  func lock() {
+    if #available(iOS 10, *) {
+      os_unfair_lock_lock(&unfair)
+    } else {
+      OSSpinLockLock(&spin)
     }
+  }
 
-    /// Unlocks a spinlock.
-    fileprivate func unlock() {
-      if #available(iOS 10, *) {
-        os_unfair_lock_unlock(&unfair)
-      } else {
-        OSSpinLockUnlock(&spin)
-      }
+  /// Unlocks a spinlock.
+  func unlock() {
+    if #available(iOS 10, *) {
+      os_unfair_lock_unlock(&unfair)
+    } else {
+      OSSpinLockUnlock(&spin)
     }
   }
 }

@@ -2,11 +2,17 @@ import XCTest
 @testable import Store
 
 @available(iOS 13.0, macOS 10.15, *)
-struct Counter {
+struct Counter: SerializableModelType {
   struct Action { }
 
   var count = 0
   var label = "Foo"
+  var nullableLabel: String? = "Something"
+  var nested = Nested()
+
+  struct Nested: Codable {
+    var label = "Nested struct"
+  }
 }
 
 @available(iOS 13.0, macOS 10.15, *)
@@ -33,7 +39,11 @@ enum CounterAction: ActionType {
     case .decrease(let ammount):
       context.store.updateModel { $0.count -= ammount }
     case .updateLabel(let newLabel):
-      context.store.updateModel { $0.label = newLabel }
+      context.store.updateModel {
+        $0.label = newLabel
+        $0.nested.label = newLabel
+        $0.nullableLabel = nil
+      }
     }
   }
 }
@@ -45,6 +55,7 @@ final class StoreTests: XCTestCase {
     let transactionExpectation = expectation(description: "Transaction completed.")
     let store = Store(model: Counter())
     store.register(middleware: LoggerMiddleware())
+    store.register(middleware: IncrementalDiffMiddleware(store: store))
     store.run(action: CounterAction.increase(ammount: 42)) { context in
       XCTAssert(context.lastError == nil)
       XCTAssert(store.model.count == 42)
@@ -57,6 +68,7 @@ final class StoreTests: XCTestCase {
     let transactionExpectation = expectation(description: "Transactions completed.")
     let store = Store(model: Counter())
     store.register(middleware: LoggerMiddleware())
+    store.register(middleware: IncrementalDiffMiddleware(store: store))
     store.run(actions: [
       CounterAction.increase(ammount: 1),
       CounterAction.increase(ammount: 1),
@@ -71,8 +83,13 @@ final class StoreTests: XCTestCase {
   func testSyncOperation() {
     let store = Store(model: Counter())
     store.register(middleware: LoggerMiddleware())
+    store.register(middleware: IncrementalDiffMiddleware(store: store))
     store.run(action: CounterAction.updateLabel(newLabel: "Bar"), mode: .sync)
     XCTAssert(store.model.label == "Bar")
+    XCTAssert(store.model.nested.label == "Bar")
+    store.run(action: CounterAction.updateLabel(newLabel: "Foo"), mode: .sync)
+    XCTAssert(store.model.label == "Foo")
+    XCTAssert(store.model.nested.label == "Foo")
   }
 
     static var allTests = [

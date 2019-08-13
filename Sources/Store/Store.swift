@@ -40,8 +40,8 @@ open class Store<M>: StoreType, ObservableObject {
   public var modelRef: Any { return model }
   /// All of the registered middleware.
   public var middleware: [MiddlewareType] = []
-  // Syncronizes the access tp the state object.
-  private let stateLock = NSRecursiveLock()
+  // Syncronizes the access to the state object.
+  private let stateLock = Lock()
 
   public init(model: M) {
     self.model = model

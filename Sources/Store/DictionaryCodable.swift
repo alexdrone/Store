@@ -702,3 +702,24 @@ struct AnyCodingKey : CodingKey {
   }
   static let `super` = AnyCodingKey(stringValue: "super")!
 }
+
+func dynamicEqual(lhs: Any, rhs: Any) -> Bool {
+  if let lhs = lhs as? NSNumber, let rhs = rhs as? NSNumber {
+    return lhs == rhs
+  }
+  if let lhs = lhs as? String, let rhs = rhs as? String {
+    return lhs == rhs
+  }
+  if let lhs = lhs as? NSArray, let rhs = rhs as? NSArray {
+    return lhs == rhs
+  }
+  if let lhs = lhs as? NSDate, let rhs = rhs as? NSDate {
+    return lhs == rhs
+  }
+  return false
+}
+
+fileprivate func isEqual<T: Equatable>(type: T.Type, a: Any, b: Any) -> Bool {
+    guard let a = a as? T, let b = b as? T else { return false }
+    return a == b
+}
