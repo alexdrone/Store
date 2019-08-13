@@ -1,5 +1,5 @@
 # Store [![Swift](https://img.shields.io/badge/swift-5.1-orange.svg?style=flat)](#)
-<img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/dispatch_logo_small.png" width=150 alt="Dispatch" align=right />
+<img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/dispatch_logo_small.png" width=300 alt="Dispatch" align=right />
 
 Unidirectional, transactional, operation based, multi-store for **SwiftUI**.
 
