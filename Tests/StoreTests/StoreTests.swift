@@ -35,11 +35,11 @@ enum CounterAction: ActionType {
     }
     switch self {
     case .increase(let ammount):
-      context.store.updateModel { $0.count += ammount }
+      context.updateModel { $0.count += ammount }
     case .decrease(let ammount):
-      context.store.updateModel { $0.count -= ammount }
+      context.updateModel { $0.count -= ammount }
     case .updateLabel(let newLabel):
-      context.store.updateModel {
+      context.updateModel {
         $0.label = newLabel
         $0.nested.label = newLabel
         $0.nullableLabel = nil

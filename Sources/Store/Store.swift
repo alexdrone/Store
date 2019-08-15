@@ -15,7 +15,7 @@ public func assign<T>(_ value: T, changes: (inout T) -> Void) -> T {
 }
 
 @available(iOS 13.0, macOS 10.15, *)
-public protocol StoreType: class {
+public protocol AnyStoreType: class {
   /// Opaque reference to the model wrapped by this store.
   var modelRef: Any { get }
   /// All of the registered middleware.
@@ -33,8 +33,19 @@ public protocol StoreType: class {
 }
 
 @available(iOS 13.0, macOS 10.15, *)
+public protocol StoreType: AnyStoreType {
+  associatedtype ModelType
+  /// The current state of this store.
+  var model: ModelType { get }
+
+  /// Atomically update the model.
+  func updateModel(transaction: AnyTransaction?, closure: (inout ModelType) -> (Void))
+
+}
+
+@available(iOS 13.0, macOS 10.15, *)
 open class Store<M>: StoreType, ObservableObject {
-  /// The current state for the Store.
+  /// The current state of this store.
   public private(set) var model: M
   /// Opaque reference to the model wrapped by this store.
   public var modelRef: Any { return model }
@@ -47,10 +58,13 @@ open class Store<M>: StoreType, ObservableObject {
     self.model = model
   }
 
-  /// Called from the reducer to update the store state.
-  public func updateModel(closure: (inout M) -> (Void)) {
+  /// Atomically update the model.
+  public func updateModel(transaction: AnyTransaction? = nil, closure: (inout M) -> (Void)) {
     self.stateLock.lock()
-    self.model = assign(model, changes: closure)
+    let old = self.model
+    let new = assign(model, changes: closure)
+    self.model = new
+    transaction?.state = .didUpdateModel(old: old, new: new)
     self.stateLock.unlock()
   }
 

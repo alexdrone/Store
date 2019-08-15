@@ -1,11 +1,15 @@
 import Foundation
 import Combine
 
+// MARK: - Protocol
+
 @available(iOS 13.0, macOS 10.15, *)
 public protocol MiddlewareType: class {
   /// A transaction has changed its state.
   func onTransactionStateChange(_ transaction: AnyTransaction)
 }
+
+// MARK: - Logger
 
 @available(iOS 13.0, macOS 10.15, *)
 public final class LoggerMiddleware: MiddlewareType {
@@ -24,6 +28,8 @@ public final class LoggerMiddleware: MiddlewareType {
       break
     case .started:
       transactionStartNanos[transaction.transactionIdentifier] = nanos()
+    case .didUpdateModel:
+      break
     case .completed:
       let prev = transactionStartNanos[transaction.transactionIdentifier]
       let time = prev != nil ? nanos() - prev! : 0
@@ -43,9 +49,11 @@ public final class LoggerMiddleware: MiddlewareType {
   }
 }
 
+// MARK: - IncrementalDiff
+
 @available(iOS 13.0, macOS 10.15, *)
 public final class IncrementalDiffMiddleware: MiddlewareType {
-  public struct Diff: CustomStringConvertible {
+  public struct Diff: CustomStringConvertible, Encodable {
     public enum ChangeType {
       case added
       case changed
@@ -59,6 +67,10 @@ public final class IncrementalDiffMiddleware: MiddlewareType {
     /// Human readable description.
     public var description: String {
       return "<\(type) ⇒ \(value)>"
+    }
+
+    public func encode(to encoder: Encoder) throws {
+      // TODO
     }
   }
   public struct DiffSet {
@@ -77,7 +89,7 @@ public final class IncrementalDiffMiddleware: MiddlewareType {
   /// All of the transactions that have already been diffed.
   private var transactions = Set<String>()
 
-  public init(store: StoreType) {
+  public init(store: AnyStoreType) {
     guard let model = store.modelRef as? SerializableModelType else {
       return
     }
@@ -91,11 +103,12 @@ public final class IncrementalDiffMiddleware: MiddlewareType {
       // The transaction was not diffed already.
       !transactions.contains(transaction.transactionIdentifier),
       // The state of the transaction is `completed`.
-      transaction.state == .completed else {
+      transaction.state.shouldBeTrackedByIncrementalDiffMiddleware
+    else {
       return
     }
-
     lock.lock()
+    transactions.insert(transaction.transactionIdentifier)
     /// The resulting dictionary won't be nested and all of the keys will be paths.
     let encodedModel = model.encode(flatten: true)
     var diffs: [String: Diff] = [:]
@@ -118,8 +131,35 @@ public final class IncrementalDiffMiddleware: MiddlewareType {
     self.diffs = DiffSet(diffs: diffs, transaction: transaction)
     self.snapshot = encodedModel
 
-    print("Δ (\(transaction.transactionIdentifier)) \(diffs)")
+    print("Δ (\(transaction.transactionIdentifier)) \(diffs.loggedEntries)")
     lock.unlock()
   }
 
+}
+
+// MARK: - Extensions
+
+extension TransactionState {
+  /// Whether this transaction should be tracked by `IncrementalDiffMiddleware` or not.
+  var shouldBeTrackedByIncrementalDiffMiddleware: Bool {
+    switch self {
+    case .didUpdateModel(_, _), .completed:
+      return true
+    case .started, .pending:
+      return false
+    }
+  }
+}
+
+@available(iOS 13.0, macOS 10.15, *)
+extension Dictionary where Key == String, Value == IncrementalDiffMiddleware.Diff {
+  /// String representation of the diffed entries.
+  var loggedEntries: String {
+    let keys = self.keys.sorted()
+    var formats: [String] = []
+    for key in keys {
+      formats.append("\(key): \(self[key]!)")
+    }
+    return "{\(formats.joined(separator: ", "))}"
+  }
 }

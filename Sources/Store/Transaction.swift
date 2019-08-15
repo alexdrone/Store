@@ -5,6 +5,7 @@ import Combine
 public enum TransactionState {
   case pending
   case started
+  case didUpdateModel(old: Any, new: Any)
   case completed
 }
 
@@ -22,7 +23,7 @@ public protocol AnyTransaction: class {
   /// Tracks any error that might have been raised in this transaction group.
   var error: Dispatcher.TransactionGroupError? { get set }
   /// Opaque reference to the transaction store.
-  var opaqueStoreRef: StoreType? { get }
+  var opaqueStoreRef: AnyStoreType? { get }
   /// Represents the progress of the transaction.
   /// Trackable `@Published` property.
   var state: TransactionState { get set }
@@ -68,6 +69,11 @@ public struct TransactionContext<S: StoreType, A: ActionType> {
   public let error: Dispatcher.TransactionGroupError
   /// The current transaction.
   public let transaction: Transaction<A>
+
+  /// Atomically update the store's model.
+  public func updateModel(closure: (inout S.ModelType) -> (Void)) {
+    store.updateModel(transaction: transaction, closure: closure)
+  }
 }
 
 @available(iOS 13.0, macOS 10.15, *)
@@ -77,7 +83,6 @@ public extension ActionType {
     return String(describing:type(of:self))
   }
 }
-
 
 // MARK: - Implementation
 
@@ -93,7 +98,7 @@ public final class Transaction<A: ActionType>: AnyTransaction {
   /// Tracks any error that might have been raised in this transaction group.
   public var error: Dispatcher.TransactionGroupError?
   /// Opaque reference to the transaction store.
-  public var opaqueStoreRef: StoreType? { return store }
+  public var opaqueStoreRef: AnyStoreType? { return store }
   /// Represents the progress of the transaction.
   @Published public var state: TransactionState = .pending {
     didSet {

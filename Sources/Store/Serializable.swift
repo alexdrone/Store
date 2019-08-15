@@ -71,4 +71,3 @@ public func merge(encodedModel: [String: Any]) -> [String: Any] {
   flatten(path: "", dictionary: encodedModel, result: &result)
   return result
 }
-
