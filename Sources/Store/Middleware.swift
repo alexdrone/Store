@@ -54,7 +54,7 @@ public final class LoggerMiddleware: MiddlewareType {
 @available(iOS 13.0, macOS 10.15, *)
 public final class IncrementalDiffMiddleware: MiddlewareType {
   public struct Diff: CustomStringConvertible, Encodable {
-    public enum ChangeType {
+    public enum ChangeType: String {
       case added
       case changed
       case removed
@@ -70,7 +70,15 @@ public final class IncrementalDiffMiddleware: MiddlewareType {
     }
 
     public func encode(to encoder: Encoder) throws {
-      // TODO
+      if type == .removed {
+        var container = encoder.singleValueContainer()
+        try container.encodeNil()
+      } else {
+        if let value = value as? Encodable {
+          try value.encode(to: encoder)
+        }
+      }
+
     }
   }
   public struct DiffSet {
@@ -82,12 +90,17 @@ public final class IncrementalDiffMiddleware: MiddlewareType {
 
   /// Publishes a stream with the latest model changes.
   @Published public var diffs: DiffSet = DiffSet(diffs: [:], transaction: nil)
+  /// Publishes a stream with the latest model changes (as a json object).
+  @Published public var jsonDiffs: Data = Data()
+
   /// The previous state of the model.
   private var snapshot: [String: Any] = [:]
   /// Syncronizes the access to the middleware.
   private let lock = Lock()
   /// All of the transactions that have already been diffed.
   private var transactions = Set<String>()
+  /// Shared JSON encoder.
+  private let jsonEncoder = JSONEncoder()
 
   public init(store: AnyStoreType) {
     guard let model = store.modelRef as? SerializableModelType else {
@@ -129,6 +142,7 @@ public final class IncrementalDiffMiddleware: MiddlewareType {
 
     // Updates the publisher.
     self.diffs = DiffSet(diffs: diffs, transaction: transaction)
+    self.jsonDiffs = (try? jsonEncoder.encode(diffs)) ?? Data()
     self.snapshot = encodedModel
 
     print("Δ (\(transaction.transactionIdentifier)) \(diffs.loggedEntries)")
