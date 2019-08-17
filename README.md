@@ -105,17 +105,20 @@ Also middleware support is available allowing you to quickly add some aspect-ori
 ### Chaining actions
 
 ```swift
-[Transaction(CounterAction.increase(ammount: 1), in: store),
- Transaction(CounterAction.increase(ammount: 1), in: store),
- Transaction(CounterAction.increase(ammount: 1), in: store)].run { context in
- // Will be executed after all of the transactions are completed.
+store.run(actions: [
+  CounterAction.increase(ammount: 1),
+  CounterAction.increase(ammount: 1),
+  CounterAction.increase(ammount: 1),
+]) { context in
+  // Will be executed after all of the transactions are completed.
 }
+
 ```
 Actions can also be executed in a synchronous fashion.
 
 ```swift
-Transaction(CounterAction.increase(ammount: 1), in: store).on(.sync)
-Transaction(CounterAction.increase(ammount: 1), in: store).on(.mainThread)
+store.run(action: CounterAction.increase(ammount: 1), strategy: .mainThread)
+store.run(action: CounterAction.increase(ammount: 1), strategy: .sync)
 ```
 
 ### Custom queues
