@@ -5,7 +5,6 @@ import Combine
 public enum TransactionState {
   case pending
   case started
-  case didUpdateModel(old: Any, new: Any)
   case completed
 }
 

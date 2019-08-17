@@ -59,13 +59,17 @@ open class Store<M>: StoreType, ObservableObject {
   }
 
   /// Atomically update the model.
-  public func updateModel(transaction: AnyTransaction? = nil, closure: (inout M) -> (Void)) {
+  open func updateModel(transaction: AnyTransaction? = nil, closure: (inout M) -> (Void)) {
     self.stateLock.lock()
     let old = self.model
     let new = assign(model, changes: closure)
     self.model = new
-    transaction?.state = .didUpdateModel(old: old, new: new)
+    didUpdateModel(transaction: transaction, old: old, new: new)
     self.stateLock.unlock()
+  }
+
+  open func didUpdateModel(transaction: AnyTransaction?, old: M, new: M) {
+    // Subclasses to override this.
   }
 
   /// Notify the store observers for the change of this store.

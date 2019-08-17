@@ -6,9 +6,6 @@ public protocol SerializableModelType: Codable {
   init()
 }
 
-@available(iOS 13.0, macOS 10.15, *)
-open class SerializableStore<S: SerializableModelType> : Store<S> { }
-
 public extension SerializableModelType {
   /// Encodes the state into a dictionary.
   /// - parameter flatten: If 'true' the resulting dictionary won't be nested and all of the keys
