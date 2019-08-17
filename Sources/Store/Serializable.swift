@@ -50,21 +50,41 @@ private func deserialize<S: SerializableModelType>(dictionary: [String: Any]) ->
   }
 }
 
-/// Flatten down the dictionary into a map from 'path' to value.
-public func merge(encodedModel: [String: Any]) -> [String: Any] {
-  func flatten(path: String, dictionary: [String: Any], result: inout [String: Any]) {
-    let formattedPath = path.isEmpty ? "" : "\(path)/"
-    for (key, value) in dictionary {
-      if let nestedDictionary = value as? [String: Any] {
-        flatten(path: "\(formattedPath)\(key)",
-          dictionary: nestedDictionary,
-          result: &result)
-      } else {
-        result["\(formattedPath)\(key)"] = value
-      }
+fileprivate enum FlattenNode {
+  case dictionary(_ dictionary: [String: Any])
+  case array(_ array: [Any])
+}
+
+fileprivate func flatten(
+  path: String,
+  node: FlattenNode,
+  result: inout [String: Any]
+) {
+  let formattedPath = path.isEmpty ? "" : "\(path)/"
+  func process(path: String, value: Any) {
+    if let dictionary = value as? [String: Any] {
+      flatten(path: path, node: .dictionary(dictionary), result: &result)
+    }else if let array = value as? [Any] {
+        flatten(path: path, node: .array(array), result: &result)
+    } else {
+      result[path] = value
     }
   }
+  switch node {
+  case .dictionary(let dictionary):
+    for (key, value) in dictionary {
+      process(path: "\(formattedPath)\(key)", value: value)
+    }
+  case .array(let array):
+    for (index, value) in array.enumerated() {
+      process(path: "\(formattedPath)\(index)", value: value)
+    }
+  }
+}
+
+/// Flatten down the dictionary into a map from 'path' to value.
+public func merge(encodedModel: [String: Any]) -> [String: Any] {
   var result: [String: Any] = [:]
-  flatten(path: "", dictionary: encodedModel, result: &result)
+  flatten(path: "", node: .dictionary(encodedModel), result: &result)
   return result
 }

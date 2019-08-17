@@ -32,7 +32,7 @@ public final class LoggerMiddleware: MiddlewareType {
       let prev = transactionStartNanos[transaction.transactionIdentifier]
       let time = prev != nil ? nanos() - prev! : 0
       let millis = Float(time)/1000000
-      print("▩ [info] (\(id)) \(name) [\(millis) ms]")
+      print("▩ 𝙄𝙉𝙁𝙊 (\(id)) \(name) [\(millis) ms]")
     }
     lock.unlock()
   }

@@ -50,15 +50,15 @@ open class SerializableStore<M: SerializableModelType>: Store<M> {
       for (key, value) in encodedModel {
         // The (`keyPath`, `value`) pair was not in the previous snapshot.
         if self.snapshot[key] == nil {
-          diffs[key] = PropertyDiff(type: .added, value: value)
+          diffs[key] = .added(new: value)
         // The (`keyPath`, `value`) pair has changed value.
-        } else if let lhs = self.snapshot[key], !dynamicEqual(lhs: lhs, rhs: value) {
-          diffs[key] = PropertyDiff(type: .changed, value: value)
+        } else if let old = self.snapshot[key], !dynamicEqual(lhs: old, rhs: value) {
+          diffs[key] = .changed(old: old, new: value)
         }
       }
       // The (`keyPath`, `value`) was removed from the snapshot.
-      for (key, value) in self.snapshot where encodedModel[key] == nil {
-        diffs[key] = PropertyDiff(type: .removed, value: value)
+      for (key, _) in self.snapshot where encodedModel[key] == nil {
+        diffs[key] = .removed
       }
 
       // Updates the publisher.
@@ -66,7 +66,7 @@ open class SerializableStore<M: SerializableModelType>: Store<M> {
       self.jsonDiffs = (try? self.jsonEncoder.encode(diffs)) ?? Data()
       self.snapshot = encodedModel
 
-      print("▩ [diff] (\(transaction.transactionIdentifier)) \(transaction.identifier) \(diffs.log)")
+      print("▩ 𝘿𝙄𝙁𝙁 (\(transaction.transactionIdentifier)) \(transaction.identifier) \(diffs.log)")
     }
   }
 }
@@ -74,31 +74,45 @@ open class SerializableStore<M: SerializableModelType>: Store<M> {
 // MARK: - PropertyDiff
 
 @available(iOS 13.0, macOS 10.15, *)
-public struct PropertyDiff: CustomStringConvertible, Encodable {
-  public enum ChangeType: String {
-    case added
-    case changed
-    case removed
-  }
-  /// The (`keyPath`, `value`) pair has been added/removed or changed as a result of this
-  /// last transaction.
-  public let type: ChangeType
-  /// The new value if `added` is `changed` or `type`, the old value otherwise.
-  public let value: Any
-  /// Human readable description.
+public enum PropertyDiff: CustomStringConvertible, Encodable {
+  case added(new: Any)
+  case changed(old: Any, new: Any)
+  case removed
+
   public var description: String {
-    return "<\(type) ⇒ \(value)>"
+    switch self {
+    case .added(let new):
+      return "<added ⇒ \(new)>"
+    case .changed(let old, let new):
+      return "<changed ⇒ (old: \(old), new: \(new))>"
+    case .removed:
+      return "<removed>"
+    }
+  }
+
+  public var value: Any? {
+    switch self {
+    case .added(let new):
+      return new
+    case .changed(_, let new):
+      return new
+    case .removed:
+      return nil
+    }
   }
 
   /// Encodes this value into the given encoder.
   public func encode(to encoder: Encoder) throws {
-    if type == .removed {
+    switch self {
+    case .added(let new):
+      guard let value = new as? Encodable else { return }
+      try value.encode(to: encoder)
+    case .changed(_, let new):
+      guard let value = new as? Encodable else { return }
+      try value.encode(to: encoder)
+    case .removed:
       var container = encoder.singleValueContainer()
       try container.encodeNil()
-    } else {
-      if let value = value as? Encodable {
-        try value.encode(to: encoder)
-      }
     }
   }
 }
@@ -110,9 +124,9 @@ extension Dictionary where Key == String, Value == PropertyDiff {
     let keys = self.keys.sorted()
     var formats: [String] = []
     for key in keys {
-      formats.append("\(key): \(self[key]!)")
+      formats.append("\n\t\t· \(key): \(self[key]!)")
     }
-    return "{\(formats.joined(separator: ", "))}"
+    return "{\(formats.joined(separator: ", "))\n\t}"
   }
 }
 
