@@ -90,11 +90,11 @@ struct ContentView_Previews : PreviewProvider {
 
 # Actions
 
-TODO
+Documentation TODO
 
 ### Middleware
 
-TODO
+TDocumentation ODO
 
 # Advanced use
 
@@ -123,13 +123,13 @@ store.run(action: CounterAction.increase(ammount: 1), strategy: .sync)
 
 ### Custom queues
 
-TODO
+Documentation TODO
 
 ### Tracking transaction state
 
-TODO
+Documentation TODO
 
 ### Dealing with errors
 
-TODO
+Documentation TODO
 
