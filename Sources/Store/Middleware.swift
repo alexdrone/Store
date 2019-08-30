@@ -21,15 +21,15 @@ public final class LoggerMiddleware: MiddlewareType {
   /// Logs the transaction identifier, the action name and its current state.
   public func onTransactionStateChange(_ transaction: AnyTransaction) {
     lock.lock()
-    let id = transaction.transactionIdentifier
-    let name = transaction.identifier
+    let id = transaction.id
+    let name = transaction.actionId
     switch transaction.state {
     case .pending:
       break
     case .started:
-      transactionStartNanos[transaction.transactionIdentifier] = nanos()
+      transactionStartNanos[transaction.id] = nanos()
     case .completed:
-      let prev = transactionStartNanos[transaction.transactionIdentifier]
+      let prev = transactionStartNanos[transaction.id]
       let time = prev != nil ? nanos() - prev! : 0
       let millis = Float(time)/1000000
       print("▩ 𝙄𝙉𝙁𝙊 (\(id)) \(name) [\(millis) ms]")

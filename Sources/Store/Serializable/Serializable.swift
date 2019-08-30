@@ -17,7 +17,7 @@ public extension SerializableModelType {
 
   /// Encodes the state into a dictionary.
   /// The resulting dictionary won't be nested and all of the keys will be paths.
-  func encodeToFlattenDictionary() -> FlattenEncodedDictionary {
+  func encodeToFlattenDictionary() -> FlatEncoding.Dictionary {
     let result = serialize(model: self)
     return flatten(encodedModel: result)
   }

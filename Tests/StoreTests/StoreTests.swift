@@ -23,7 +23,7 @@ enum Action: ActionType {
   case updateLabel(newLabel: String)
   case setArray(index: Int, value: String)
 
-  var identifier: String {
+  var id: String {
     switch self {
     case .increase(_): return "INCREASE"
     case .decrease(_): return "DECREASE"

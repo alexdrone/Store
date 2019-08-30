@@ -12,12 +12,12 @@ public enum TransactionState {
 public protocol AnyTransaction: class {
   /// Unique action identifier.
   /// An high level description of the action (e.g. `FETCH_USER` or `DELETE_COMMENT`)
-  /// - note: See `ActionType.identifier`.
-  var identifier: String { get }
+  /// - note: See `ActionType.id`.
+  var actionId: String { get }
   /// Randomized identifier for the current transaction that preserve the temporal information.
   /// - note: see `PushID`.
-  var transactionIdentifier: String { get }
-  /// The threading strategy that should be used for this transaction.
+  var id: String { get }
+  /// The threading strategy that should be used to dispatch this transaction.
   var strategy: Dispatcher.Strategy { get }
   /// Tracks any error that might have been raised in this transaction group.
   var error: Dispatcher.TransactionGroupError? { get set }
@@ -47,11 +47,11 @@ public extension AnyTransaction {
 // MARK: - ActionType
 
 @available(iOS 13.0, macOS 10.15, *)
-public protocol ActionType {
+public protocol ActionType: Identifiable {
   associatedtype AssociatedStoreType: StoreType
   /// Unique action identifier.
   /// An high level description of the action (e.g. `FETCH_USER` or `DELETE_COMMENT`)
-  var identifier: String { get }
+  var id: String { get }
   /// The execution body for this action.
   /// - note: Invoke `context.operation.finish` to signal task completion.
   func perform(context: TransactionContext<AssociatedStoreType, Self>)
@@ -78,7 +78,7 @@ public struct TransactionContext<S: StoreType, A: ActionType> {
 @available(iOS 13.0, macOS 10.15, *)
 public extension ActionType {
   /// Default identifier implementation.
-  var identifier: String {
+  var id: String {
     return String(describing:type(of:self))
   }
 }
@@ -86,12 +86,12 @@ public extension ActionType {
 // MARK: - Implementation
 
 @available(iOS 13.0, macOS 10.15, *)
-public final class Transaction<A: ActionType>: AnyTransaction {
+public final class Transaction<A: ActionType>: AnyTransaction, Identifiable {
   /// Unique action identifier.
   /// An high level description of the action (e.g. `FETCH_USER` or `DELETE_COMMENT`)
-  public var identifier: String { action.identifier }
+  public var actionId: String { action.id }
   /// Randomized identifier for the current transaction that preserve the temporal information.
-  public let transactionIdentifier: String = PushID.default.make()
+  public let id: String = PushID.default.make()
   /// The threading strategy that should be used for this transaction.
   public var strategy = Dispatcher.Strategy.async(nil);
   /// Tracks any error that might have been raised in this transaction group.

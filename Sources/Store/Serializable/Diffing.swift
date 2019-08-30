@@ -1,44 +1,6 @@
 import Foundation
 
-public typealias FlattenEncodedDictionary = [FlattenEncodedDictionaryKeyPath: Codable?]
-
-public struct FlattenEncodedDictionaryKeyPath: Encodable, Equatable, Hashable {
-  public static let separator = "/"
-
-  public var segments: [String]
-  public var isEmpty: Bool { return segments.isEmpty }
-  public var path: String {
-    return segments.joined(separator: FlattenEncodedDictionaryKeyPath.separator)
-  }
-
-  /// Strips off the first segment and returns a pair consisting of the first segment and the
-  /// remaining key path.
-  /// Returns `nil` if the key path has no segments.
-  public func pop() -> (head: String, tail: FlattenEncodedDictionaryKeyPath)? {
-    guard !isEmpty else { return nil }
-    var tail = segments
-    let head = tail.removeFirst()
-    return (head, FlattenEncodedDictionaryKeyPath(segments: tail))
-  }
-
-  public init(segments: [String]) {
-    self.segments = segments
-  }
-
-  public init(_ string: String) {
-    segments = string.components(separatedBy: FlattenEncodedDictionaryKeyPath.separator)
-  }
-
-  public func encode(to encoder: Encoder) throws {
-    return try path.encode(to: encoder)
-  }
-
-  public var description: String {
-    return path
-  }
-}
-
-/// Flatten down the dictionary into a map from `path` to value.
+/// Flatten down the dictionary into a path/value map.
 /// e.g. `{user: {name: "John", lastname: "Appleseed"}, tokens: ["foo", "bar"]`
 /// turns into ``` {
 ///   user/name: "John",
@@ -46,38 +8,111 @@ public struct FlattenEncodedDictionaryKeyPath: Encodable, Equatable, Hashable {
 ///   tokens/0: "foo",
 ///   tokens/1: "bar"
 /// } ```
-public func flatten(encodedModel: EncodedDictionary) -> FlattenEncodedDictionary {
-  var result: FlattenEncodedDictionary = [:]
-  flatten(path: "", node: .dictionary(encodedModel), result: &result)
+public func flatten(encodedModel: EncodedDictionary) -> FlatEncoding.Dictionary {
+  var result: FlatEncoding.Dictionary = [:]
+  FlatEncoding.flatten(path: "", node: .dictionary(encodedModel), result: &result)
   return result
 }
 
-// MARK: - Private
+public struct FlatEncoding {
+  /// A flat dictionary is a non-nested dictionary where keys are paths and all of the values are
+  /// encodable values.
+  /// This representation is very efficient for object diffing.
+  /// - note: Arrays are represented by indices in the path.
+  /// e.g. ``` {
+  ///   user/name: "John",
+  ///   user/lastname: "Appleseed",
+  ///   tokens/0: "foo",
+  ///   tokens/1: "bar"
+  /// } ```
+  public typealias Dictionary = [KeyPath: Codable?]
 
-enum FlattenNode {
-  case dictionary(_ dictionary: EncodedDictionary)
-  case array(_ array: [Any])
-}
+  /// Represent a path in a `FlatEncoding` dictionary.
+  public struct KeyPath: Encodable, Equatable, Hashable {
+    static let separator = "/"
 
-func flatten(path: String, node: FlattenNode, result: inout FlattenEncodedDictionary) {
-  let formattedPath = path.isEmpty ? "" : "\(path)\(FlattenEncodedDictionaryKeyPath.separator)"
-  func process(path: String, value: Any) {
-    if let dictionary = value as? [String: Any] {
-      flatten(path: path, node: .dictionary(dictionary), result: &result)
-    }else if let array = value as? [Any] {
-        flatten(path: path, node: .array(array), result: &result)
-    } else {
-      result[FlattenEncodedDictionaryKeyPath(path)] = value as? Codable
+    /// All of the individual components of this KeyPath.
+    public var segments: [String]
+    /// Wheter is an empty KeyPath or not.
+    public var isEmpty: Bool {
+      return segments.isEmpty
+    }
+    /// The KeyPath string.
+    public let path: String
+
+    /// Strips off the first segment and returns a pair consisting of the first segment and the
+    /// remaining key path.
+    /// Returns `nil` if the key path has no segments.
+    public func pop() -> (head: String, tail: KeyPath)? {
+      guard !isEmpty else { return nil }
+      var tail = segments
+      let head = tail.removeFirst()
+      return (head, KeyPath(segments: tail))
+    }
+
+    /// Construct a new FlatEncoding KeyPath from a array of components.
+    public init(segments: [String]) {
+      self.segments = segments
+      self.path = segments.joined(separator: KeyPath.separator)
+    }
+
+    /// Constructs a new FlatEncoding KeyPath from a given string.
+    /// - note: Returns `nil` if the string is in not in the format `path/path`.
+    public init?(_ string: String) {
+      guard string.range(
+        of: "(([a-zA-Z0-9])+(\\/?))*",
+        options: [.regularExpression, .anchored]) != nil else {
+        return nil
+      }
+      path = string
+      segments = string.components(separatedBy: KeyPath.separator)
+    }
+
+    /// Returns the KeyPath string.
+    public func encode(to encoder: Encoder) throws {
+      return try path.encode(to: encoder)
+    }
+
+    /// Returns the KeyPath string.
+    public var description: String {
+      return path
     }
   }
-  switch node {
-  case .dictionary(let dictionary):
-    for (key, value) in dictionary {
-      process(path: "\(formattedPath)\(key)", value: value)
+
+  // MARK: - Private
+
+  /// Intermediate dictionary represntation for `EncodedDictionary` ⇒ `FlatEncoding.Dictionary`
+  fileprivate enum Node {
+    case dictionary(_ dictionary: EncodedDictionary)
+    case array(_ array: [Any])
+  }
+
+  /// Private recursive flatten method.
+  /// - note: See `flatten(encodedModel:)`.
+  fileprivate static func flatten(path: String, node: Node, result: inout Dictionary) {
+    let formattedPath = path.isEmpty ? "" : "\(path)\(KeyPath.separator)"
+    func process(path: String, value: Any) {
+      if let dictionary = value as? [String: Any] {
+        flatten(path: path, node: .dictionary(dictionary), result: &result)
+      } else if let array = value as? [Any] {
+          flatten(path: path, node: .array(array), result: &result)
+      } else {
+        guard let keyPath = KeyPath(path) else {
+          print("warning: Malformed FlatEncoding keypath: \(path).")
+          return
+        }
+        result[keyPath] = value as? Codable
+      }
     }
-  case .array(let array):
-    for (index, value) in array.enumerated() {
-      process(path: "\(formattedPath)\(index)", value: value)
+    switch node {
+    case .dictionary(let dictionary):
+      for (key, value) in dictionary {
+        process(path: "\(formattedPath)\(key)", value: value)
+      }
+    case .array(let array):
+      for (index, value) in array.enumerated() {
+        process(path: "\(formattedPath)\(index)", value: value)
+      }
     }
   }
 }
@@ -85,6 +120,8 @@ func flatten(path: String, node: FlattenNode, result: inout FlattenEncodedDictio
 // MARK: - PropertyDiff
 
 @available(iOS 13.0, macOS 10.15, *)
+/// Represent a property change.
+/// A change can be an *addition*, a *removal* or a *value change*.
 public enum PropertyDiff: CustomStringConvertible, Encodable {
   case added(new: Codable?)
   case changed(old: Codable?, new: Codable?)
@@ -129,9 +166,10 @@ public enum PropertyDiff: CustomStringConvertible, Encodable {
 }
 
 @available(iOS 13.0, macOS 10.15, *)
+/// A collection of changes associated to a transaction.
 public struct PropertyDiffSet {
   /// The set of (`keyPath`, `value`) pair that has been added/removed or changed.
-  public let diffs: [FlattenEncodedDictionaryKeyPath: PropertyDiff]
+  public let diffs: [FlatEncoding.KeyPath: PropertyDiff]
   /// The transaction that caused this change set.
   public weak var transaction: AnyTransaction?
 }
@@ -139,13 +177,13 @@ public struct PropertyDiffSet {
 // MARK: - Extensions
 
 @available(iOS 13.0, macOS 10.15, *)
-extension Dictionary where Key == FlattenEncodedDictionaryKeyPath, Value == PropertyDiff {
+extension Dictionary where Key == FlatEncoding.KeyPath, Value == PropertyDiff {
   /// String representation of the diffed entries.
   var log: String {
     let keys = self.keys.map { $0.path }.sorted()
     var formats: [String] = []
     for key in keys {
-      formats.append("\n\t\t· \(key): \(self[FlattenEncodedDictionaryKeyPath(key)]!)")
+      formats.append("\n\t\t· \(key): \(self[FlatEncoding.KeyPath(key)!]!)")
     }
     return "{\(formats.joined(separator: ", "))\n\t}"
   }

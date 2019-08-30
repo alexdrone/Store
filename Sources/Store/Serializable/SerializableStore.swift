@@ -16,10 +16,10 @@ open class SerializableStore<M: SerializableModelType>: Store<M> {
   @Published public var jsonDiffs: Data = Data()
 
   // Private.
-  private var queue = DispatchQueue(label: "io.store.serializable.diff")
-  private var transactions = Set<String>()
+  private let queue = DispatchQueue(label: "io.store.serializable")
   private let jsonEncoder = JSONEncoder()
-  private var snapshot: [FlattenEncodedDictionaryKeyPath: Codable?] = [:]
+  private var transactions = Set<String>()
+  private var snapshot: [FlatEncoding.KeyPath: Codable?] = [:]
 
   override public init(model: M) {
     super.init(model: model)
@@ -43,10 +43,10 @@ open class SerializableStore<M: SerializableModelType>: Store<M> {
       }
     }
     dispatch(option: diffing) {
-      self.transactions.insert(transaction.transactionIdentifier)
+      self.transactions.insert(transaction.id)
       /// The resulting dictionary won't be nested and all of the keys will be paths.
-      let encodedModel: FlattenEncodedDictionary = new.encodeToFlattenDictionary()
-      var diffs: [FlattenEncodedDictionaryKeyPath: PropertyDiff] = [:]
+      let encodedModel: FlatEncoding.Dictionary = new.encodeToFlattenDictionary()
+      var diffs: [FlatEncoding.KeyPath: PropertyDiff] = [:]
       for (key, value) in encodedModel {
         // The (`keyPath`, `value`) pair was not in the previous snapshot.
         if self.snapshot[key] == nil {
@@ -60,13 +60,12 @@ open class SerializableStore<M: SerializableModelType>: Store<M> {
       for (key, _) in self.snapshot where encodedModel[key] == nil {
         diffs[key] = .removed
       }
-
       // Updates the publisher.
       self.diffs = PropertyDiffSet(diffs: diffs, transaction: transaction)
       self.jsonDiffs = (try? self.jsonEncoder.encode(diffs)) ?? Data()
       self.snapshot = encodedModel
 
-      print("▩ 𝘿𝙄𝙁𝙁 (\(transaction.transactionIdentifier)) \(transaction.identifier) \(diffs.log)")
+      print("▩ 𝘿𝙄𝙁𝙁 (\(transaction.id)) \(transaction.actionId) \(diffs.log)")
     }
   }
 }
@@ -77,16 +76,16 @@ open class SerializableStore<M: SerializableModelType>: Store<M> {
 public final class SerializableUpdateModelTransaction: AnyTransaction {
   /// Every access to `SerializableStore.updateModel` without a transaction argument results in
   /// a `SERIALIZABLE_UPDATE_MODEL` transaction.
-  public let identifier: String = "SERIALIZABLE_UPDATE_MODEL"
+  public let actionId: String = "SERIALIZABLE_UPDATE_MODEL"
   /// Randomized identifier for the current transaction that preserve the temporal information.
-  public let transactionIdentifier: String = PushID.default.make()
+  public let id: String = PushID.default.make()
   /// - note: SERIALIZABLE_UPDATE_MODEL transaction don't have an associated operation..
   public let strategy: Dispatcher.Strategy = .async(nil)
   /// - note: SERIALIZABLE_UPDATE_MODEL transaction don't have an associated operation..
   public var error: Dispatcher.TransactionGroupError? = nil
   /// - note: SERIALIZABLE_UPDATE_MODEL transaction don't have an associated operation..
   public  var operation: AsyncOperation {
-    fatalError("SERIALIZABLE_UPDATE_MODEL transaction don't have an associated operation.")
+    fatalError("SERIALIZABLE_UPDATE_MODEL transaction does not spawn any operation.")
   }
   /// - note: SERIALIZABLE_UPDATE_MODEL transaction don't have an associated operation..
   public var opaqueStoreRef: AnyStoreType? = nil

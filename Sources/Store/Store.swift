@@ -37,10 +37,8 @@ public protocol StoreType: AnyStoreType {
   associatedtype ModelType
   /// The current state of this store.
   var model: ModelType { get }
-
   /// Atomically update the model.
   func updateModel(transaction: AnyTransaction?, closure: (inout ModelType) -> (Void))
-
 }
 
 @available(iOS 13.0, macOS 10.15, *)
