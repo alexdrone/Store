@@ -19,11 +19,11 @@ open class SerializableStore<M: SerializableModelType>: Store<M> {
   private var queue = DispatchQueue(label: "io.store.serializable.diff")
   private var transactions = Set<String>()
   private let jsonEncoder = JSONEncoder()
-  private var snapshot: [String: Any] = [:]
+  private var snapshot: [FlattenEncodedDictionaryKeyPath: Codable?] = [:]
 
   override public init(model: M) {
     super.init(model: model)
-    self.snapshot = model.encode(flatten: true)
+    self.snapshot = model.encodeToFlattenDictionary()
   }
 
   override open func updateModel(transaction: AnyTransaction?, closure: (inout M) -> (Void)) {
@@ -45,8 +45,8 @@ open class SerializableStore<M: SerializableModelType>: Store<M> {
     dispatch(option: diffing) {
       self.transactions.insert(transaction.transactionIdentifier)
       /// The resulting dictionary won't be nested and all of the keys will be paths.
-      let encodedModel = new.encode(flatten: true)
-      var diffs: [String: PropertyDiff] = [:]
+      let encodedModel: FlattenEncodedDictionary = new.encodeToFlattenDictionary()
+      var diffs: [FlattenEncodedDictionaryKeyPath: PropertyDiff] = [:]
       for (key, value) in encodedModel {
         // The (`keyPath`, `value`) pair was not in the previous snapshot.
         if self.snapshot[key] == nil {
@@ -69,73 +69,6 @@ open class SerializableStore<M: SerializableModelType>: Store<M> {
       print("▩ 𝘿𝙄𝙁𝙁 (\(transaction.transactionIdentifier)) \(transaction.identifier) \(diffs.log)")
     }
   }
-}
-
-// MARK: - PropertyDiff
-
-@available(iOS 13.0, macOS 10.15, *)
-public enum PropertyDiff: CustomStringConvertible, Encodable {
-  case added(new: Any)
-  case changed(old: Any, new: Any)
-  case removed
-
-  public var description: String {
-    switch self {
-    case .added(let new):
-      return "<added ⇒ \(new)>"
-    case .changed(let old, let new):
-      return "<changed ⇒ (old: \(old), new: \(new))>"
-    case .removed:
-      return "<removed>"
-    }
-  }
-
-  public var value: Any? {
-    switch self {
-    case .added(let new):
-      return new
-    case .changed(_, let new):
-      return new
-    case .removed:
-      return nil
-    }
-  }
-
-  /// Encodes this value into the given encoder.
-  public func encode(to encoder: Encoder) throws {
-    switch self {
-    case .added(let new):
-      guard let value = new as? Encodable else { return }
-      try value.encode(to: encoder)
-    case .changed(_, let new):
-      guard let value = new as? Encodable else { return }
-      try value.encode(to: encoder)
-    case .removed:
-      var container = encoder.singleValueContainer()
-      try container.encodeNil()
-    }
-  }
-}
-
-@available(iOS 13.0, macOS 10.15, *)
-extension Dictionary where Key == String, Value == PropertyDiff {
-  /// String representation of the diffed entries.
-  var log: String {
-    let keys = self.keys.sorted()
-    var formats: [String] = []
-    for key in keys {
-      formats.append("\n\t\t· \(key): \(self[key]!)")
-    }
-    return "{\(formats.joined(separator: ", "))\n\t}"
-  }
-}
-
-@available(iOS 13.0, macOS 10.15, *)
-public struct PropertyDiffSet {
-  /// The set of (`keyPath`, `value`) pair that has been added/removed or changed.
-  public let diffs: [String: PropertyDiff]
-  /// The transaction that caused this change set.
-  public weak var transaction: AnyTransaction?
 }
 
 // MARK: - SerializableUpdateModelTransaction
