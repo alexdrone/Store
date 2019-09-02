@@ -87,6 +87,12 @@ public struct TransactionContext<S: StoreType, A: ActionType> {
     operation.finish()
     return true
   }
+  
+  /// Terminates this operation with an error.
+  public func kill(error: Error) {
+    self.error.lastError = error
+    operation.finish()
+  }
 }
 
 @available(iOS 13.0, macOS 10.15, *)
