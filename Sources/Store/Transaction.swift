@@ -1,13 +1,17 @@
 import Foundation
 import Combine
 
-/// The transaction state.
+/// Transaction state.
 public enum TransactionState {
+  /// The transaction is pending execution.
   case pending
+  /// The transaction has started and is ongoing.
   case started
+  /// The transaction is completed.
   case completed
 }
 
+/// Represents an individual execution of a given action.
 @available(iOS 13.0, macOS 10.15, *)
 public protocol AnyTransaction: class {
   /// Unique action identifier.
@@ -73,6 +77,16 @@ public struct TransactionContext<S: StoreType, A: ActionType> {
   public func updateModel(closure: (inout S.ModelType) -> (Void)) {
     store.updateModel(transaction: transaction, closure: closure)
   }
+  
+  /// Terminates the operation if there was an error raised by a previous action in the following
+  /// transaction group.
+  public func killOnGroupError() -> Bool {
+    guard error.lastError != nil else {
+      return false
+    }
+    operation.finish()
+    return true
+  }
 }
 
 @available(iOS 13.0, macOS 10.15, *)
@@ -114,7 +128,7 @@ public final class Transaction<A: ActionType>: AnyTransaction, Identifiable {
   }()
   /// The store that is going to be affected.
   public weak var store: A.AssociatedStoreType?
-  /// The associated action.
+  /// The action associated with this transaction.
   public let action: A
 
   init(_ action: A, in store: A.AssociatedStoreType?) {

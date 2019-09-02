@@ -60,8 +60,7 @@ final class StoreTests: XCTestCase {
 
   func testAsyncOperation() {
     let transactionExpectation = expectation(description: "Transaction completed.")
-    let store = SerializableStore(model: TestModel())
-    store.diffing = .sync
+    let store = SerializableStore(model: TestModel(), diffing: .sync)
     store.register(middleware: LoggerMiddleware())
     store.run(action: Action.increase(ammount: 42)) { context in
       XCTAssert(context.lastError == nil)
@@ -73,8 +72,7 @@ final class StoreTests: XCTestCase {
 
   func testAsyncOperationChain() {
     let transactionExpectation = expectation(description: "Transactions completed.")
-    let store = SerializableStore(model: TestModel())
-    store.diffing = .sync
+    let store = SerializableStore(model: TestModel(), diffing: .sync)
     store.register(middleware: LoggerMiddleware())
     store.run(actions: [
       Action.increase(ammount: 1),
@@ -88,8 +86,7 @@ final class StoreTests: XCTestCase {
   }
 
   func testSyncOperation() {
-    let store = SerializableStore(model: TestModel())
-    store.diffing = .sync
+    let store = SerializableStore(model: TestModel(), diffing: .sync)
     store.register(middleware: LoggerMiddleware())
     store.run(action: Action.updateLabel(newLabel: "Bar"), mode: .sync)
     XCTAssert(store.model.label == "Bar")
@@ -100,8 +97,7 @@ final class StoreTests: XCTestCase {
   }
 
   func testAccessNestedKeyPathInArray() {
-    let store = SerializableStore(model: TestModel())
-    store.diffing = .sync
+    let store = SerializableStore(model: TestModel(), diffing: .sync)
     store.register(middleware: LoggerMiddleware())
     store.run(action: Action.setArray(index: 1, value: "Foo"), mode: .sync)
     XCTAssert(store.model.array[1].label == "Foo")

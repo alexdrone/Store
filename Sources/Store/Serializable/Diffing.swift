@@ -1,5 +1,44 @@
 import Foundation
 
+/// A collection of changes associated to a transaction.
+@available(iOS 13.0, macOS 10.15, *)
+public struct TransactionDiff {
+  /// The set of (`path`, `value`) that has been **added**/**removed**/**changed**.
+  ///
+  /// e.g. ``` {
+  ///   user/name: <added ⇒ "John">,
+  ///   user/lastname: <removed>,
+  ///   tokens/1:  <changed ⇒ "Bar">,
+  /// } ```
+  public let diffs: [FlatEncoding.KeyPath: PropertyDiff]
+  /// The identifier of the transaction that caused this change.
+  public let transactionId: String
+  /// The action that caused this change.
+  public let actionId: String
+  /// Reference to the transaction that cause this change.
+  public private(set) weak var transaction: AnyTransaction?
+  /// Returns the `diffs` map encoded as **JSON** data.
+  public var json: Data {
+    return (try? sharedJSONEncoder.encode(diffs)) ?? Data()
+  }
+  
+  public init(transaction: AnyTransaction, diffs: [FlatEncoding.KeyPath: PropertyDiff]) {
+    self.transaction = transaction
+    self.diffs = diffs
+    self.transactionId = transaction.id
+    self.actionId = transaction.actionId
+  }
+}
+
+/// Represent a property change.
+/// A change can be an **addition**, a **removal** or a **value change**.
+@available(iOS 13.0, macOS 10.15, *)
+public enum PropertyDiff {
+  case added(new: Codable?)
+  case changed(old: Codable?, new: Codable?)
+  case removed
+}
+
 /// Flatten down the dictionary into a path/value map.
 /// e.g. `{user: {name: "John", lastname: "Appleseed"}, tokens: ["foo", "bar"]`
 /// turns into ``` {
@@ -14,9 +53,10 @@ public func flatten(encodedModel: EncodedDictionary) -> FlatEncoding.Dictionary 
   return result
 }
 
+// MARK: - Internal
+
 public struct FlatEncoding {
-  /// A flat dictionary is a non-nested dictionary where keys are paths and all of the values are
-  /// encodable values.
+  /// A flat non-nested dictionary.
   /// This representation is very efficient for object diffing.
   /// - note: Arrays are represented by indices in the path.
   /// e.g. ``` {
@@ -29,15 +69,16 @@ public struct FlatEncoding {
 
   /// Represent a path in a `FlatEncoding` dictionary.
   public struct KeyPath: Encodable, Equatable, Hashable {
+    /// KeyPath components separator.
+    /// e.g. `user/address/street` or `tokens/0`.
     static let separator = "/"
-
     /// All of the individual components of this KeyPath.
     public var segments: [String]
-    /// Wheter is an empty KeyPath or not.
+    /// Whether this is an empty KeyPath or not.
     public var isEmpty: Bool {
       return segments.isEmpty
     }
-    /// The KeyPath string.
+    /// The raw string for this KeyPath.
     public let path: String
 
     /// Strips off the first segment and returns a pair consisting of the first segment and the
@@ -50,14 +91,15 @@ public struct FlatEncoding {
       return (head, KeyPath(segments: tail))
     }
 
-    /// Construct a new FlatEncoding KeyPath from a array of components.
+    /// Construct a new KeyPath from a array of components.
     public init(segments: [String]) {
       self.segments = segments
       self.path = segments.joined(separator: KeyPath.separator)
     }
 
     /// Constructs a new FlatEncoding KeyPath from a given string.
-    /// - note: Returns `nil` if the string is in not in the format `path/path`.
+    /// - note: Returns `nil` if the string is in not in the format `PATH(/PATH)*` where `PATH` is
+    /// a valid descriptor, like for example: `foo`, `foo/bar`, `foo/1/bar`.
     public init?(_ string: String) {
       guard string.range(
         of: "(([a-zA-Z0-9])+(\\/?))*",
@@ -68,12 +110,12 @@ public struct FlatEncoding {
       segments = string.components(separatedBy: KeyPath.separator)
     }
 
-    /// Returns the KeyPath string.
+    /// Encodes this value into the given encoder.
     public func encode(to encoder: Encoder) throws {
       return try path.encode(to: encoder)
     }
 
-    /// Returns the KeyPath string.
+    /// The raw string for this KeyPath.
     public var description: String {
       return path
     }
@@ -117,15 +159,13 @@ public struct FlatEncoding {
   }
 }
 
+/// Shared **JSON** Encoder.
+fileprivate let sharedJSONEncoder = JSONEncoder()
+
 // MARK: - PropertyDiff
 
 @available(iOS 13.0, macOS 10.15, *)
-/// Represent a property change.
-/// A change can be an *addition*, a *removal* or a *value change*.
-public enum PropertyDiff: CustomStringConvertible, Encodable {
-  case added(new: Codable?)
-  case changed(old: Codable?, new: Codable?)
-  case removed
+extension PropertyDiff: CustomStringConvertible, Encodable {
 
   public var description: String {
     switch self {
@@ -163,15 +203,6 @@ public enum PropertyDiff: CustomStringConvertible, Encodable {
       try container.encodeNil()
     }
   }
-}
-
-@available(iOS 13.0, macOS 10.15, *)
-/// A collection of changes associated to a transaction.
-public struct PropertyDiffSet {
-  /// The set of (`keyPath`, `value`) pair that has been added/removed or changed.
-  public let diffs: [FlatEncoding.KeyPath: PropertyDiff]
-  /// The transaction that caused this change set.
-  public weak var transaction: AnyTransaction?
 }
 
 // MARK: - Extensions
