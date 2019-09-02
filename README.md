@@ -1,7 +1,7 @@
 # Store [![Swift](https://img.shields.io/badge/swift-5.1-orange.svg?style=flat)](#)
 <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/dispatch_logo_small.png" width=300 alt="Dispatch" align=right />
 
-Unidirectional, transactional, operation based, multi-store for **SwiftUI**.
+Unidirectional, transactional, operation based, multi-store for **Swift** (and **SwiftUI**).
 
 ## Overview
 
@@ -10,24 +10,71 @@ Store eschews MVC in favour of a unidirectional data flow. When a user interacts
 This works especially well with *SwiftUI*'s declarative programming style, which allows the store to send updates without specifying how to transition views between states.
 
 - **Stores**: Holds the state of your application. You can have multiple stores for multiple domains of your app.
-- **Actions**: You can only perform state changes through actions. Actions are small pieces of data (typically enums) that describe a state change. By drastically limiting the way state can be mutated, your app becomes easier to understand and it gets easier to work with many collaborators.
-- **Transaction**:  An excution of a given action.
+- **Actions**: You can only perform state changes through actions. Actions are small pieces of data (typically *enums* or *structs*) that describe a state change. By drastically limiting the way state can be mutated, your app becomes easier to understand and it gets easier to work with many collaborators.
+- **Transaction**:  A single execution of an action.
 - **Views**: A simple function of your state. This works especially well with *SwiftUI*'s declarative programming style.
 
 ### Store
 
 Stores contain the application state and logic. Their role is somewhat similar to a model in a traditional MVC, but they manage the state of many objects — they do not represent a single record of data like ORM models do. More than simply managing a collection of ORM-style objects, stores manage the application state for a particular domain within the application.
 
-This allows an action to result in an update to the state of the store, via the dispatcher. After the stores are updated, they notify the observers that their state has changed, so the views may query the new state and update themselves.
+This allows an action to result in an update to the state of the store. After the stores are updated, they notify the observers that their state has changed, so the views may query the new state and update themselves.
+
+```swift
+struct Counter: ModelType {
+  var count = 0
+}
+
+let store = Store<Counter>()
+```
 
 ### Action
 
 An action represent an operation on the store.
 
+It can be represented using an enum:
+
+```swift
+enum CounterAction: ActionType {
+  case increase
+  case decrease
+
+  var identifier: String {
+    switch self {
+    case .increase: return "INCREASE"
+    case .decrease: return "DECREASE"
+    }
+  }
+
+  func perform(context: TransactionContext<Store<Counter>, Self>) {
+    defer { context.operation.finish() }
+    switch self {
+    case .increase: context.store.updateModel { $0.count += 1 }
+    case .decrease: context.store.updateModel { $0.count -= 1 }
+
+    }
+  }
+}
+
+```
+
+Or a struct:
+
+```swift
+struct INCREASE: ActionType {
+  let count: Int
+  
+  func perform(context: TransactionContext<Store<Counter>, Self>) {
+    defer { context.operation.finish() }
+    context.store.updateModel { $0.count += 1 }
+  }
+}
+```
+
 ### Transaction
 
 A transaction represent an excution of a given action.
-The dispatcher can run transaction in four different modes: `async`, `sync`, and `mainThread`.
+The dispatcher can run transaction in three different modes: `async`, `sync`, and `mainThread`.
 Additionally the trailing closure of the `run` method can be used to run a completion closure for the actions that have had run.
 
 # Getting started
@@ -88,13 +135,9 @@ struct ContentView_Previews : PreviewProvider {
 #endif
 ```
 
-# Actions
-
-Documentation TODO
-
 ### Middleware
 
-TDocumentation ODO
+Documentaton in progress...
 
 # Advanced use
 
@@ -121,15 +164,35 @@ store.run(action: CounterAction.increase(ammount: 1), strategy: .mainThread)
 store.run(action: CounterAction.increase(ammount: 1), strategy: .sync)
 ```
 
-### Custom queues
-
-Documentation TODO
-
 ### Tracking transaction state
 
-Documentation TODO
+Sometimes it's useful to track the state of a transaction (it might be useful to update the UI state to reflect that).
+
+```swift
+store.run(action: CounterAction.increase(ammount: 1)).$state.sink { state in
+  switch(state) {
+  case .pending: ...
+  case .started: ...
+  case .completed: ...
+  }
+}
+```
 
 ### Dealing with errors
 
-Documentation TODO
+```swift
+struct INCREASE: ActionType {
+  let count: Int
+  
+  func perform(context: TransactionContext<Store<Counter>, Self>) {
+    defer { context.operation.finish() }
+    // The operation terminates here because an error has been raised in this dispatch group.
+    guard !context.killOnGroupError() { else return }
+    // Kill the transaction and set TransactionGroupError.lastError.
+    guard store.model.count != 42 { context.kill(error: Error("Max count reach") }
+    // Business as usual.  
+    context.store.updateModel { $0.count += 1 }
+  }
+}
+```
 
