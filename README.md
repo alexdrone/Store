@@ -1,7 +1,7 @@
 # Store [![Swift](https://img.shields.io/badge/swift-5.1-orange.svg?style=flat)](#)
 <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/dispatch_logo_small.png" width=300 alt="Dispatch" align=right />
 
-Unidirectional, transactional, operation based, multi-store for **Swift** (and **SwiftUI**).
+Unidirectional, transactional, operation-based Store implementation for **Swift** (and **SwiftUI**).
 
 ## Overview
 
