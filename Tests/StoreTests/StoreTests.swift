@@ -34,7 +34,7 @@ enum Action: ActionType {
 
   func perform(context: TransactionContext<Store<TestModel>, Self>) {
     defer {
-      context.operation.finish()
+      context.fulfill()
     }
     switch self {
     case .increase(let ammount):

@@ -18,7 +18,7 @@ open class SerializableStore<M: SerializableModelType>: Store<M> {
   public let diffing: DiffingOption = .async
   /// Publishes a stream with the model changes caused by the last transaction.
   @Published public var lastTransactionDiff: TransactionDiff = TransactionDiff(
-    transaction: SignalTransaction(signal: .initial),
+    transaction: SigPostTransaction(signal: .initial),
     diffs: [:])
   /// Serial queue used to run the diffing algorithm.
   private let queue = DispatchQueue(label: "io.store.serializable")
@@ -33,7 +33,7 @@ open class SerializableStore<M: SerializableModelType>: Store<M> {
   }
 
   override open func updateModel(transaction: AnyTransaction?, closure: (inout M) -> (Void)) {
-    let transaction = transaction ?? SignalTransaction(signal: .serializableModelUpdate)
+    let transaction = transaction ?? SigPostTransaction(signal: .serializableModelUpdate)
     super.updateModel(transaction: transaction, closure: closure)
   }
 

@@ -102,7 +102,7 @@ enum CounterAction: ActionType {
 
   func perform(context: TransactionContext<Store<Counter>, Self>) {
     defer {
-      context.operation.finish()
+      context.fulfill()
     }
     switch self {
     case .increase(let ammount):
@@ -185,11 +185,11 @@ struct INCREASE: ActionType {
   let count: Int
   
   func perform(context: TransactionContext<Store<Counter>, Self>) {
-    defer { context.operation.finish() }
+    defer { context.fulfill() }
     // The operation terminates here because an error has been raised in this dispatch group.
-    guard !context.killOnGroupError() { else return }
+    guard !context.rejectOnGroupError() { else return }
     // Kill the transaction and set TransactionGroupError.lastError.
-    guard store.model.count != 42 { context.kill(error: Error("Max count reach") }
+    guard store.model.count != 42 { context.reject(error: Error("Max count reach") }
     // Business as usual.  
     context.store.updateModel { $0.count += 1 }
   }

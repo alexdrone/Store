@@ -61,6 +61,8 @@ public protocol ActionType: Identifiable {
   func perform(context: TransactionContext<AssociatedStoreType, Self>)
 }
 
+// MARK: - Context
+
 @available(iOS 13.0, macOS 10.15, *)
 public struct TransactionContext<S: StoreType, A: ActionType> {
   /// The operation that is currently running.
@@ -80,7 +82,7 @@ public struct TransactionContext<S: StoreType, A: ActionType> {
   
   /// Terminates the operation if there was an error raised by a previous action in the following
   /// transaction group.
-  public func killOnGroupError() -> Bool {
+  public func rejectOnGroupError() -> Bool {
     guard error.lastError != nil else {
       return false
     }
@@ -89,8 +91,13 @@ public struct TransactionContext<S: StoreType, A: ActionType> {
   }
   
   /// Terminates this operation with an error.
-  public func kill(error: Error) {
+  public func reject(error: Error) {
     self.error.lastError = error
+    operation.finish()
+  }
+
+  /// Terminates the operation.
+  public func fulfill() {
     operation.finish()
   }
 }
