@@ -64,7 +64,7 @@ enum CounterAction: ActionType {
 Or a struct:
 
 ```swift
-struct INCREASE: ActionType {
+struct IncreaseAction: ActionType {
   let count: Int
   
   func perform(context: TransactionContext<Store<Counter>, Self>) {
@@ -143,13 +143,25 @@ struct ContentView_Previews : PreviewProvider {
 
 ### Middleware
 
-Documentaton in progress...
+Middleware objects must conform to:
+
+```swift
+public protocol MiddlewareType: class {
+  /// A transaction has changed its state.
+  func onTransactionStateChange(_ transaction: AnyTransaction)
+}
+```
+
+And can be registered to a store by calling the `register(middleware:)` method.
+
+```swift
+store.register(middleware: MyMiddleware())
+```
 
 # Advanced use
 
 Dispatch takes advantage of *Operations* and *OperationQueues* and you can define complex dependencies between the operations that are going to be run on your store.
 
-Also middleware support is available allowing you to quickly add some aspect-oriented feature to your design.
 
 ### Chaining actions
 
@@ -161,13 +173,25 @@ store.run(actions: [
 ]) { context in
   // Will be executed after all of the transactions are completed.
 }
-
 ```
 Actions can also be executed in a synchronous fashion.
 
 ```swift
 store.run(action: CounterAction.increase(ammount: 1), strategy: .mainThread)
 store.run(action: CounterAction.increase(ammount: 1), strategy: .sync)
+```
+
+### Dependency Graph
+
+You can form a dependency graph by manually constructing your transactions and use the `depend(on:)` method.
+
+```swift
+let t1 = Transaction(.addItem(cost: 125), store: store)
+let t2 = Transaction(.checkout, store: store)
+let t3 = Transaction(.showOrdern, store: store)
+t2.depend(on: [t1])
+t3.depend(on: [t2])
+[t1, t2, t3].run()
 ```
 
 ### Tracking transaction state
@@ -187,16 +211,17 @@ store.run(action: CounterAction.increase(ammount: 1)).$state.sink { state in
 ### Dealing with errors
 
 ```swift
-struct INCREASE: ActionType {
+struct IncreaseAction: ActionType {
   let count: Int
   
   func perform(context: TransactionContext<Store<Counter>, Self>) {
+    // Remember to always call `fulfill` to signal the completion of this operation.
     defer { context.fulfill() }
     // The operation terminates here because an error has been raised in this dispatch group.
     guard !context.rejectOnGroupError() { else return }
     // Kill the transaction and set TransactionGroupError.lastError.
     guard store.model.count != 42 { context.reject(error: Error("Max count reach") }
-    // Business as usual.  
+    // Business as usual...
     context.store.updateModel { $0.count += 1 }
   }
 }
