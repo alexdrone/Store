@@ -47,7 +47,11 @@ enum CounterAction: ActionType {
   }
 
   func perform(context: TransactionContext<Store<Counter>, Self>) {
-    defer { context.operation.finish() }
+    defer { 
+      // Remember to always call `fulfill` to signal the 
+      // completion of this operation.
+      context.fulfill()
+    }
     switch self {
     case .increase: context.store.updateModel { $0.count += 1 }
     case .decrease: context.store.updateModel { $0.count -= 1 }
