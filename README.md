@@ -52,8 +52,8 @@ enum CounterAction: ActionType {
       context.fulfill()
     }
     switch self {
-    case .increase: context.store.updateModel { $0.count += 1 }
-    case .decrease: context.store.updateModel { $0.count -= 1 }
+    case .increase: context.updateModel { $0.count += 1 }
+    case .decrease: context.updateModel { $0.count -= 1 }
 
     }
   }
@@ -72,7 +72,7 @@ struct IncreaseAction: ActionType {
       // Remember to always call `fulfill` to signal the completion of this operation.
       context.fulfill()
     }
-    context.store.updateModel { $0.count += 1 }
+    context.updateModel { $0.count += 1 }
   }
 }
 ```
@@ -112,9 +112,9 @@ enum CounterAction: ActionType {
     }
     switch self {
     case .increase(let amount):
-      context.store.updateModel { $0.count += amount }
+      context.updateModel { $0.count += amount }
     case .decrease(let amount):
-      context.store.updateModel { $0.count -= amount }
+      context.updateModel { $0.count -= amount }
     }
   }
 }
@@ -284,7 +284,7 @@ struct IncreaseAction: ActionType {
     // Kill the transaction and set TransactionGroupError.lastError.
     guard store.model.count != 42 { context.reject(error: Error("Max count reach") }
     // Business as usual...
-    context.store.updateModel { $0.count += 1 }
+    context.updateModel { $0.count += 1 }
   }
 }
 ```
