@@ -158,6 +158,11 @@ And can be registered to a store by calling the `register(middleware:)` method.
 store.register(middleware: MyMiddleware())
 ```
 
+# Serialization and Diffing
+
+Documentation in progress..
+
+
 # Advanced use
 
 Dispatch takes advantage of *Operations* and *OperationQueues* and you can define complex dependencies between the operations that are going to be run on your store.
@@ -181,7 +186,7 @@ store.run(action: CounterAction.increase(ammount: 1), strategy: .mainThread)
 store.run(action: CounterAction.increase(ammount: 1), strategy: .sync)
 ```
 
-### Dependency Graph
+### Complex Dependency Graph
 
 You can form a dependency graph by manually constructing your transactions and use the `depend(on:)` method.
 
@@ -194,7 +199,7 @@ t3.depend(on: [t2])
 [t1, t2, t3].run()
 ```
 
-### Tracking transaction state
+### Tracking a transaction state
 
 Sometimes it's useful to track the state of a transaction (it might be useful to update the UI state to reflect that).
 
