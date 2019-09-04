@@ -176,16 +176,45 @@ var array: [Nested] = [Nested(), Nested()]
 
 let store = SerializableStore(model: TestModel(), diffing: .async)
 store.$lastTransactionDiff.sink { diff in
-// diff is a TransactionDiff obj containing all of the changes that
-// the last transaction has applied to the store's model.
+  // diff is a `TransactionDiff` obj containing all of the changes that the last transaction has applied to the store's model.
+}
+```
+A quick look at the  `TransactionDiff` interface.
+
+```swift
+public struct TransactionDiff {
+  /// The set of (`path`, `value`) that has been **added**/**removed**/**changed**.
+  ///
+  /// e.g. ``` {
+  ///   user/name: <added ⇒ "John">,
+  ///   user/lastname: <removed>,
+  ///   tokens/1:  <changed ⇒ "Bar">,
+  /// } ```
+  public let diffs: [FlatEncoding.KeyPath: PropertyDiff]
+  /// The identifier of the transaction that caused this change.
+  public let transactionId: String
+  /// The action that caused this change.
+  public let actionId: String
+  /// Reference to the transaction that cause this change.
+  public var transaction: AnyTransaction
+  /// Returns the `diffs` map encoded as **JSON** data.
+  public var json: Data 
+}
+
+/// Represent a property change.
+/// A change can be an **addition**, a **removal** or a **value change**.
+public enum PropertyDiff {
+  case added(new: Codable?)
+  case changed(old: Codable?, new: Codable?)
+  case removed
 }
 ```
 
 Using a  `SerializableModelType` improves debuggability thanks to the console output for every transaction. e.g. 
 
 ```
-▩ 𝙄𝙉𝙁𝙊 (-LnpwxkPuE3t1YNCPjjD) UPDATE_LABEL [0.045134 ms]
-▩ 𝘿𝙄𝙁𝙁 (-LnpwxkPuE3t1YNCPjjD) UPDATE_LABEL {
+▩ INFO (-LnpwxkPuE3t1YNCPjjD) UPDATE_LABEL [0.045134 ms]
+▩ DIFF (-LnpwxkPuE3t1YNCPjjD) UPDATE_LABEL {
     · label: <changed ⇒ (old: Foo, new: Bar)>, 
     · nested/label: <changed ⇒ (old: Nested struct, new: Bar)>, 
     · nullableLabel: <removed>
