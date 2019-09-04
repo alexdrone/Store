@@ -160,9 +160,37 @@ store.register(middleware: MyMiddleware())
 
 # Serialization and Diffing
 
-Documentation in progress..
+TL;DR
 
+```swift
+struct MySerializableModel: SerializableModelType {
+var count = 0
+var label = "Foo"
+var nullableLabel: String? = "Bar"
+var nested = Nested()
+var array: [Nested] = [Nested(), Nested()]
+  struct Nested: Codable {
+  var label = "Nested struct"
+  }
+}
 
+let store = SerializableStore(model: TestModel(), diffing: .async)
+store.$lastTransactionDiff.sink { diff in
+// diff is a TransactionDiff obj containing all of the changes that
+// the last transaction has applied to the store's model.
+}
+```
+
+Using a  `SerializableModelType` improves debuggability thanks to the console output for every transaction. e.g. 
+
+```
+▩ 𝙄𝙉𝙁𝙊 (-LnpwxkPuE3t1YNCPjjD) UPDATE_LABEL [0.045134 ms]
+▩ 𝘿𝙄𝙁𝙁 (-LnpwxkPuE3t1YNCPjjD) UPDATE_LABEL {
+    · label: <changed ⇒ (old: Foo, new: Bar)>, 
+    · nested/label: <changed ⇒ (old: Nested struct, new: Bar)>, 
+    · nullableLabel: <removed>
+  }
+```
 # Advanced use
 
 Dispatch takes advantage of *Operations* and *OperationQueues* and you can define complex dependencies between the operations that are going to be run on your store.

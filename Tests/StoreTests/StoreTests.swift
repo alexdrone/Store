@@ -61,6 +61,9 @@ final class StoreTests: XCTestCase {
   func testAsyncOperation() {
     let transactionExpectation = expectation(description: "Transaction completed.")
     let store = SerializableStore(model: TestModel(), diffing: .sync)
+    store.$lastTransactionDiff.sink { diff in
+
+    }
     store.register(middleware: LoggerMiddleware())
     store.run(action: Action.increase(ammount: 42)) { context in
       XCTAssert(context.lastError == nil)
