@@ -18,8 +18,8 @@ struct TestModel: SerializableModelType {
 
 @available(iOS 13.0, macOS 10.15, *)
 enum Action: ActionType {
-  case increase(ammount: Int)
-  case decrease(ammount: Int)
+  case increase(amount: Int)
+  case decrease(amount: Int)
   case updateLabel(newLabel: String)
   case setArray(index: Int, value: String)
 
@@ -37,10 +37,10 @@ enum Action: ActionType {
       context.fulfill()
     }
     switch self {
-    case .increase(let ammount):
-      context.updateModel { $0.count += ammount }
-    case .decrease(let ammount):
-      context.updateModel { $0.count -= ammount }
+    case .increase(let amount):
+      context.updateModel { $0.count += amount }
+    case .decrease(let amount):
+      context.updateModel { $0.count -= amount }
     case .updateLabel(let newLabel):
       context.updateModel {
         $0.label = newLabel
@@ -65,7 +65,7 @@ final class StoreTests: XCTestCase {
 
     }
     store.register(middleware: LoggerMiddleware())
-    store.run(action: Action.increase(ammount: 42)) { context in
+    store.run(action: Action.increase(amount: 42)) { context in
       XCTAssert(context.lastError == nil)
       XCTAssert(store.model.count == 42)
       transactionExpectation.fulfill()
@@ -78,9 +78,9 @@ final class StoreTests: XCTestCase {
     let store = SerializableStore(model: TestModel(), diffing: .sync)
     store.register(middleware: LoggerMiddleware())
     store.run(actions: [
-      Action.increase(ammount: 1),
-      Action.increase(ammount: 1),
-      Action.increase(ammount: 1),
+      Action.increase(amount: 1),
+      Action.increase(amount: 1),
+      Action.increase(amount: 1),
     ]) { context in
       XCTAssert(store.model.count == 3)
       transactionExpectation.fulfill()

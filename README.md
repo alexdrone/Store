@@ -79,7 +79,7 @@ struct IncreaseAction: ActionType {
 
 ### Transaction
 
-A transaction represent an excution of a given action.
+A transaction represent an execution of a given action.
 The dispatcher can run transaction in three different modes: `async`, `sync`, and `mainThread`.
 Additionally the trailing closure of the `run` method can be used to run a completion closure for the actions that have had run.
 
@@ -96,8 +96,8 @@ struct Counter: ModelType {
 }
 
 enum CounterAction: ActionType {
-  case increase(ammount: Int)
-  case decrease(ammount: Int)
+  case increase(amount: Int)
+  case decrease(amount: Int)
 
   var identifier: String {
     switch self {
@@ -111,10 +111,10 @@ enum CounterAction: ActionType {
       context.fulfill()
     }
     switch self {
-    case .increase(let ammount):
-      context.store.updateModel { $0.count += ammount }
-    case .decrease(let ammount):
-      context.store.updateModel { $0.count -= ammount }
+    case .increase(let amount):
+      context.store.updateModel { $0.count += amount }
+    case .decrease(let amount):
+      context.store.updateModel { $0.count -= amount }
     }
   }
 }
@@ -125,7 +125,7 @@ struct ContentView : View {
   @EnvironmentObject var store: Store<Counter>
   var body: some View {
     Text("counter \(store.model.count)").tapAction {
-      store.run(action: CounterAction.increase(ammount: 1))
+      store.run(action: CounterAction.increase(amount: 1))
     }
   }
 }
@@ -179,7 +179,7 @@ store.$lastTransactionDiff.sink { diff in
   // diff is a `TransactionDiff` obj containing all of the changes that the last transaction has applied to the store's model.
 }
 ```
-A quick look at the  `TransactionDiff` interface.
+A quick look at the  `TransactionDiff` interface:
 
 ```swift
 public struct TransactionDiff {
@@ -229,9 +229,9 @@ Dispatch takes advantage of *Operations* and *OperationQueues* and you can defin
 
 ```swift
 store.run(actions: [
-  CounterAction.increase(ammount: 1),
-  CounterAction.increase(ammount: 1),
-  CounterAction.increase(ammount: 1),
+  CounterAction.increase(amount: 1),
+  CounterAction.increase(amount: 1),
+  CounterAction.increase(amount: 1),
 ]) { context in
   // Will be executed after all of the transactions are completed.
 }
@@ -239,8 +239,8 @@ store.run(actions: [
 Actions can also be executed in a synchronous fashion.
 
 ```swift
-store.run(action: CounterAction.increase(ammount: 1), strategy: .mainThread)
-store.run(action: CounterAction.increase(ammount: 1), strategy: .sync)
+store.run(action: CounterAction.increase(amount: 1), strategy: .mainThread)
+store.run(action: CounterAction.increase(amount: 1), strategy: .sync)
 ```
 
 ### Complex Dependency Graph
@@ -261,7 +261,7 @@ t3.depend(on: [t2])
 Sometimes it's useful to track the state of a transaction (it might be useful to update the UI state to reflect that).
 
 ```swift
-store.run(action: CounterAction.increase(ammount: 1)).$state.sink { state in
+store.run(action: CounterAction.increase(amount: 1)).$state.sink { state in
   switch(state) {
   case .pending: ...
   case .started: ...
