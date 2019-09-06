@@ -703,7 +703,7 @@ struct AnyCodingKey : CodingKey {
   static let `super` = AnyCodingKey(stringValue: "super")!
 }
 
-func dynamicEqual(lhs: Any, rhs: Any) -> Bool {
+func dynamicEqual(lhs: Any?, rhs: Any?) -> Bool {
   if let lhs = lhs as? NSNumber, let rhs = rhs as? NSNumber {
     return lhs == rhs
   }

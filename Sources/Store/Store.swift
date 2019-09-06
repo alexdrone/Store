@@ -2,7 +2,8 @@ import Foundation
 import Combine
 
 /// This function is used to copy the values of all enumerable own properties from one or more
-/// source struct to a target struct. It will return the target struct.
+/// source struct to a target struct.
+/// - returns: The target struct.
 /// - note: This is analogous to Object.assign in Javascript and should be used to update
 /// immutabel model types.
 public func assign<T>(_ value: T, changes: (inout T) -> Void) -> T {

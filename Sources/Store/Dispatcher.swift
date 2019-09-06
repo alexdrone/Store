@@ -6,7 +6,7 @@ public final class Dispatcher {
   public enum Strategy {
     /// The action is dispatched asynchronously on the main thread.
     case mainThread
-    /// The action is dispatched synchronously on the main thread.
+    /// The action is dispatched synchronously without changing context.
     case sync
     /// The action is dispatched on a serial background queue.
     case async(_ identifier: String?)
@@ -25,8 +25,6 @@ public final class Dispatcher {
   public static let main = Dispatcher()
   /// The background queue used for the .async mode.
   private let backgroundQueue = OperationQueue()
-  /// The queue on which completion closures are run.
-  private let completionHandlerQueue = OperationQueue()
   /// User-defined operation queues.
   @Atomic private var queues: [String: OperationQueue] = [:]
 
@@ -63,27 +61,35 @@ public final class Dispatcher {
     case .sync:
       operation.start()
       operation.waitUntilFinished()
-    case .async(let identifier):
-      let queue = operationQueue(identifier: identifier) ?? backgroundQueue
+    case .async(let id):
+      let queue = operationQueue(id: id) ?? backgroundQueue
       queue.addOperation(operation)
     }
   }
 
   /// Returns the queue registered with the given identifier
-  public func operationQueue(identifier: String? = nil) -> OperationQueue? {
-    guard let identifier = identifier else {
+  /// - note: If no identifier is passed as argument, the global background queue is returned.
+  public func operationQueue(id: String? = nil) -> OperationQueue? {
+    guard let id = id else {
       return backgroundQueue
     }
-    let queue = queues[identifier]
+    let queue = queues[id]
     if queue == nil {
-      print("warning: No queue registered with identifier \(identifier).")
+      print("warning: No queue registered with identifier \(id).")
     }
     return queue
   }
 
   /// Registers a new operation queue.
-  public func registerOperationQueue(identifier: String, queue: OperationQueue) {
-    _queues.mutate { $0[identifier] = queue; }
+  public func registerOperationQueue(id: String, queue: OperationQueue) {
+    _queues.mutate { $0[id] = queue; }
+  }
+
+  /// Cancel all of the operations of the given queue.
+  /// - note: if no identifier is passed as argument, all of the operations on the global queue
+  /// will be canceled.
+  public func cancelAllTransactions(queueId: String? = nil) {
+    operationQueue(id: queueId)?.cancelAllOperations()
   }
 }
 

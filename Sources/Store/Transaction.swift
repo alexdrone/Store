@@ -9,6 +9,8 @@ public enum TransactionState {
   case started
   /// The transaction is completed.
   case completed
+  /// The transaction has been canceled.
+  case canceled
 }
 
 /// Represents an individual execution of a given action.

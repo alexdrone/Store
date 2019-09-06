@@ -17,13 +17,17 @@ public class TransactionOperation<T: AnyTransaction>: AsyncOperation  {
   /// Subclasses are expected to override the ‘execute’ function and call the function ‘finish’
   /// when they’re done with their task.
   public override func execute() {
+    guard !isCancelled else {
+      finish()
+      return
+    }
     transaction.state = .started
     transaction.perform(operation: self)
   }
 
   /// This function should be called inside ‘execute’ when the task for this operation is completed.
   override public func finish() {
-    transaction.state = .completed
+    transaction.state = isCancelled ? .canceled : .completed
     finishBlock()
     super.finish()
   }

@@ -248,9 +248,9 @@ store.run(action: CounterAction.increase(amount: 1), strategy: .sync)
 You can form a dependency graph by manually constructing your transactions and use the `depend(on:)` method.
 
 ```swift
-let t1 = Transaction(.addItem(cost: 125), store: store)
-let t2 = Transaction(.checkout, store: store)
-let t3 = Transaction(.showOrdern, store: store)
+let t1 = store.transaction(.addItem(cost: 125))
+let t2 = store.transaction(.checkout)
+let t3 = store.transaction(.showOrdern)
 t2.depend(on: [t1])
 t3.depend(on: [t2])
 [t1, t2, t3].run()

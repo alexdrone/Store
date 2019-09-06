@@ -6,34 +6,35 @@ import Combine
 @available(iOS 13.0, macOS 10.15, *)
 open class SerializableStore<M: SerializableModelType>: Store<M> {
   /// Transaction diffing options.
-  public enum DiffingOption {
+  public enum TransactionDiffStrategy {
     /// Does not compute any diff.
     case none
     /// Computes the diff synchrously right after the transaction has completed.
     case sync
-    /// Computes the diff asynchrously right after the transaction has completed.
+    /// Computes the diff asynchrously (in a serial queue) when transaction is completed.
     case async
   }
-  /// The diffing dispatch strategy.
-  public let diffing: DiffingOption = .async
   /// Publishes a stream with the model changes caused by the last transaction.
   @Published public var lastTransactionDiff: TransactionDiff = TransactionDiff(
-    transaction: SigPostTransaction(signal: .initial),
+    transaction: SignpostTransaction(singpost: Signpost.prior),
     diffs: [:])
-  /// Serial queue used to run the diffing algorithm.
+  /// Where the diffing routine should be dispatched.
+  public let transactionDiffStrategy: TransactionDiffStrategy
+  /// Serial queue used to run the diffing routine.
   private let queue = DispatchQueue(label: "io.store.serializable")
   /// Set of `transaction.id` for all of the transaction that have run of this store.
-  private var transactionHistory = Set<String>()
+  private var transactionIdsHistory = Set<String>()
   /// Last serialized snapshot for the model.
   private var lastModelSnapshot: [FlatEncoding.KeyPath: Codable?] = [:]
 
-  public init(model: M, diffing: DiffingOption = .async) {
+  public init(model: M, diffing: TransactionDiffStrategy = .async) {
+    self.transactionDiffStrategy = diffing
     super.init(model: model)
     self.lastModelSnapshot = model.encodeFlatDictionary()
   }
 
   override open func updateModel(transaction: AnyTransaction?, closure: (inout M) -> (Void)) {
-    let transaction = transaction ?? SigPostTransaction(signal: .serializableModelUpdate)
+    let transaction = transaction ?? SignpostTransaction(singpost: Signpost.modelUpdate)
     super.updateModel(transaction: transaction, closure: closure)
   }
 
@@ -41,7 +42,7 @@ open class SerializableStore<M: SerializableModelType>: Store<M> {
     guard let transaction = transaction else {
       return
     }
-    func dispatch(option: DiffingOption, execute: @escaping () -> Void) {
+    func dispatch(option: TransactionDiffStrategy, execute: @escaping () -> Void) {
       switch option {
       case .sync:
         queue.sync(execute: execute)
@@ -51,8 +52,8 @@ open class SerializableStore<M: SerializableModelType>: Store<M> {
         return
       }
     }
-    dispatch(option: diffing) {
-      self.transactionHistory.insert(transaction.id)
+    dispatch(option: transactionDiffStrategy) {
+      self.transactionIdsHistory.insert(transaction.id)
       /// The resulting dictionary won't be nested and all of the keys will be paths.
       let encodedModel: FlatEncoding.Dictionary = new.encodeFlatDictionary()
       var diffs: [FlatEncoding.KeyPath: PropertyDiff] = [:]

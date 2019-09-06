@@ -1,24 +1,26 @@
 import Foundation
 import Combine
 
-public enum SigPostAction: String {
-  case initial = "SIGPOST_INITIAL"
-  case serializableModelUpdate = "SIGPOST_SERIALIZABLE_MODEL_UPDATE"
+public struct Signpost {
+  public static let prior = "signpost_prior"
+  public static let modelUpdate = "signpost_model_update"
+  public static let undoRedo = "signpost_undo_redo"
 }
 
 // MARK: - SigPostTransaction
 
 @available(iOS 13.0, macOS 10.15, *)
-public final class SigPostTransaction: AnyTransaction {
-  /// See `SigPostAction`.
+public final class SignpostTransaction: AnyTransaction {
+  /// See `SignpostAction`.
   public let actionId: String
-  /// Randomized identifier for the current transaction that preserve the temporal information.
+
   public let id: String = PushID.default.make()
 
   public let strategy: Dispatcher.Strategy = .async(nil)
 
+  /// - note: Never set because `SignpostTransaction`s do not have a backing operation.
   public var error: Dispatcher.TransactionGroupError? = nil
-  /// - note: This transaction don't have an associated operation..
+  /// - note: Never set because `SignpostTransaction`s do not have a backing operation.
   public  var operation: AsyncOperation {
     fatalError("This transaction does not spawn any operation.")
   }
@@ -32,8 +34,8 @@ public final class SigPostTransaction: AnyTransaction {
     return self
   }
   
-  init(signal: SigPostAction) {
-    self.actionId = signal.rawValue
+  init(singpost: String) {
+    self.actionId = singpost
   }
 
   public func perform(operation: AsyncOperation) {

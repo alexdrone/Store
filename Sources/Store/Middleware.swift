@@ -33,6 +33,9 @@ public final class LoggerMiddleware: MiddlewareType {
       let time = prev != nil ? nanos() - prev! : 0
       let millis = Float(time)/1000000
       print("▩ 𝙄𝙉𝙁𝙊 (\(id)) \(name) [\(millis) ms]")
+    case .canceled:
+      print("▩ 𝙄𝙉𝙁𝙊 (\(id)) \(name) [✖ CANCELED]")
+
     }
     lock.unlock()
   }
