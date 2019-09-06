@@ -52,7 +52,7 @@ final class StoreTests: XCTestCase {
     XCTAssert(store.model.array[1].label == "Foo")
   }
 
-  func testCancelation() {
+  func testCancellation() {
     let transactionExpectation = expectation(description: "Transactions canceled.")
     let store = SerializableStore(model: TestModel(), diffing: .sync)
     store.register(middleware: LoggerMiddleware())

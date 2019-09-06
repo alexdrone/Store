@@ -289,3 +289,19 @@ struct IncreaseAction: ActionType {
 }
 ```
 
+### Cancellation
+
+```swift
+store.run(action: CounterAction.increase(amount: 1))
+Dispatcher.main.cancelAllTransactions()
+
+// or with a custom queue.
+let queueId = "myCancellableQueue"
+Dispatcher.main.registerQueue(id: queueId, queue: OperationQueue())
+store.run(action: CounterAction.increase(amount: 1), mode: .async(queueId))
+Dispatcher.main.cancelAllTransactions(id: queueId)
+```
+
+```
+▩ 𝙄𝙉𝙁𝙊 (-Lo4riSWZ3m5v1AvhgOb) INCREASE [✖ canceled]
+```
