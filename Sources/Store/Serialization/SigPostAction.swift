@@ -2,8 +2,8 @@ import Foundation
 import Combine
 
 public enum SigPostAction: String {
-  case initial = "SIGNAL_INITIAL"
-  case serializableModelUpdate = "SIGNAL_SERIALIZABLE_MODEL_UPDATE"
+  case initial = "SIGPOST_INITIAL"
+  case serializableModelUpdate = "SIGPOST_SERIALIZABLE_MODEL_UPDATE"
 }
 
 // MARK: - SigPostTransaction
