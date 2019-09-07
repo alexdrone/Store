@@ -18,6 +18,8 @@ public final class LoggerMiddleware: MiddlewareType {
   /// The transactions start time (in µs).
   private var transactionStartNanos: [String: UInt64] = [:]
 
+  public init() { }
+
   /// Logs the transaction identifier, the action name and its current state.
   public func onTransactionStateChange(_ transaction: AnyTransaction) {
     lock.lock()
