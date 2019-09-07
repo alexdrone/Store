@@ -43,14 +43,16 @@ public protocol StoreType: AnyStoreType {
 }
 
 @available(iOS 13.0, macOS 10.15, *)
-open class Store<M>: StoreType, ObservableObject {
+open class Store<M>: StoreType {
   /// The current state of this store.
-  public private(set) var model: M
+  @Published public private(set) var model: M
   /// Opaque reference to the model wrapped by this store.
   public var modelRef: Any { return model }
   /// All of the registered middleware.
   public var middleware: [MiddlewareType] = []
-  // Syncronizes the access to the state object.
+  /// Triggered when the model changes.
+  public let objectDidChange = PassthroughSubject<Void, Never>()
+  /// Syncronizes the access to the state object.
   private let stateLock = Lock()
 
   public init(model: M) {
@@ -75,7 +77,7 @@ open class Store<M>: StoreType, ObservableObject {
   /// - note: Observers are always notified on the main thread.
   open func notifyObservers() {
     func notify() {
-      objectWillChange.send()
+      objectDidChange.send()
     }
     // Makes sure the observers are notified on the main thread.
     if Thread.isMainThread {
