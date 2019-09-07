@@ -57,12 +57,22 @@ open class Store<M>: StoreType, ObservableObject {
     self.model = model
   }
 
+  private func onMainThread(_ closure: () -> Void) {
+    if Thread.isMainThread {
+      closure()
+    } else {
+      DispatchQueue.main.sync(execute: closure)
+    }
+  }
+
   /// Atomically update the model.
   open func updateModel(transaction: AnyTransaction? = nil, closure: (inout M) -> (Void)) {
     self.stateLock.lock()
     let old = self.model
     let new = assign(model, changes: closure)
-    self.model = new
+    onMainThread {
+      self.model = new
+    }
     didUpdateModel(transaction: transaction, old: old, new: new)
     self.stateLock.unlock()
   }
@@ -74,14 +84,8 @@ open class Store<M>: StoreType, ObservableObject {
   /// Notify the store observers for the change of this store.
   /// - note: Observers are always notified on the main thread.
   open func notifyObservers() {
-    func notify() {
+    onMainThread {
       objectWillChange.send()
-    }
-    // Makes sure the observers are notified on the main thread.
-    if Thread.isMainThread {
-      notify()
-    } else {
-      DispatchQueue.main.sync(execute: notify)
     }
   }
 
