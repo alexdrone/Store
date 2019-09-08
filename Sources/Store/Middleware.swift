@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import os.log
 
 // MARK: - Protocol
 
@@ -31,13 +32,14 @@ public final class LoggerMiddleware: MiddlewareType {
     case .started:
       transactionStartNanos[transaction.id] = nanos()
     case .completed:
-      let prev = transactionStartNanos[transaction.id]
-      let time = prev != nil ? nanos() - prev! : 0
+      guard let prev = transactionStartNanos[transaction.id] else { break }
+      let time = nanos() - prev
       let millis = Float(time)/1000000
-      print("▩ 𝙄𝙉𝙁𝙊 (\(id)) \(name) [\(millis) ms]")
+      os_log(.info, log: OSLog.primary, "▩ (%s) %s [%fs ms]", id, name, millis)
+      transactionStartNanos[transaction.id] = nil
     case .canceled:
-      print("▩ 𝙄𝙉𝙁𝙊 (\(id)) \(name) [✖ CANCELED]")
-
+      os_log(.info, log: OSLog.primary, "▩ (%s) %s [✖ cancelled]", id, name)
+      transactionStartNanos[transaction.id] = nil
     }
     lock.unlock()
   }

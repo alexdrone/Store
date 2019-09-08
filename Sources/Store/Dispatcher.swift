@@ -1,4 +1,5 @@
 import Foundation
+import os.log
 
 @available(iOS 13.0, macOS 10.15, *)
 public final class Dispatcher {
@@ -75,7 +76,7 @@ public final class Dispatcher {
     }
     let queue = queues[id]
     if queue == nil {
-      print("warning: No queue registered with identifier \(id).")
+      os_log(.error, log: OSLog.primary, " No queue registered with identifier: %s.", id)
     }
     return queue
   }

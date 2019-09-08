@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import os.log
 
 /// Transaction state.
 public enum TransactionState {
@@ -111,7 +112,7 @@ public final class Transaction<A: ActionType>: AnyTransaction, Identifiable {
   /// - note: Performs `ActionType.perform(context:)`.
   public func perform(operation: AsyncOperation) {
     guard let store = store, let error = error else {
-      print("warning: DispatchGroupError context is nil - the operation won't be executed.")
+      os_log(.error, log: OSLog.primary, "context is nil - the operation won't be executed.")
       return
     }
 

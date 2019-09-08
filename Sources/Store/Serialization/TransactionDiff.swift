@@ -1,4 +1,5 @@
 import Foundation
+import os.log
 
 /// A collection of changes associated to a transaction.
 @available(iOS 13.0, macOS 10.15, *)
@@ -47,6 +48,7 @@ public enum PropertyDiff {
 ///   tokens/0: "foo",
 ///   tokens/1: "bar"
 /// } ```
+@available(iOS 13.0, macOS 10.15, *)
 public func flatten(encodedModel: EncodedDictionary) -> FlatEncoding.Dictionary {
   var result: FlatEncoding.Dictionary = [:]
   FlatEncoding.flatten(path: "", node: .dictionary(encodedModel), result: &result)
@@ -55,6 +57,7 @@ public func flatten(encodedModel: EncodedDictionary) -> FlatEncoding.Dictionary 
 
 // MARK: - Internal
 
+@available(iOS 13.0, macOS 10.15, *)
 public struct FlatEncoding {
   /// A flat non-nested dictionary.
   /// This representation is very efficient for object diffing.
@@ -140,7 +143,7 @@ public struct FlatEncoding {
           flatten(path: path, node: .array(array), result: &result)
       } else {
         guard let keyPath = KeyPath(path) else {
-          print("warning: Malformed FlatEncoding keypath: \(path).")
+          os_log(.error, log: OSLog.primary, "Malformed FlatEncoding keypath: %s.", path)
           return
         }
         result[keyPath] = value as? Codable

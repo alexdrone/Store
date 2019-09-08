@@ -66,7 +66,7 @@ final class StoreTests: XCTestCase {
     }
     transaction.run()
     Dispatcher.main.cancelAllTransactions()
-    waitForExpectations(timeout: 1)
+    waitForExpectations(timeout: 2)
   }
 
     static var allTests = [

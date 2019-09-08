@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import os.log
 
 // MARK: - SerializableStore
 
@@ -74,7 +75,8 @@ open class SerializableStore<M: SerializableModelType>: Store<M> {
       self.lastTransactionDiff = TransactionDiff(transaction: transaction, diffs: diffs)
       self.lastModelSnapshot = encodedModel
 
-      print("▩ 𝘿𝙄𝙁𝙁 (\(transaction.id)) \(transaction.actionId) \(diffs.log)")
+      os_log(.debug, log: OSLog.diff, "▩ 𝘿𝙄𝙁𝙁 (%s) %s %s",
+        transaction.id, transaction.actionId, diffs.log)
     }
   }
 }
@@ -87,6 +89,7 @@ public protocol SerializableModelType: Codable {
   init()
 }
 
+@available(iOS 13.0, macOS 10.15, *)
 public extension SerializableModelType {
   /// Encodes the model into a dictionary.
   func encode() -> EncodedDictionary {
