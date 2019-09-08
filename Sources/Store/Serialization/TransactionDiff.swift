@@ -212,12 +212,20 @@ extension PropertyDiff: CustomStringConvertible, Encodable {
 
 @available(iOS 13.0, macOS 10.15, *)
 extension Dictionary where Key == FlatEncoding.KeyPath, Value == PropertyDiff {
-  /// String representation of the diffed entries.
-  var log: String {
+  /// Debug description for a change set.
+  func storeDebugDecription(short: Bool) -> String {
     let keys = self.keys.map { $0.path }.sorted()
+    let threshold = 8
+    let noChangesLeft = keys.count - threshold
+    var countChanges = 0
     var formats: [String] = []
     for key in keys {
+      if short && countChanges == threshold { break }
       formats.append("\n\t\t· \(key): \(self[FlatEncoding.KeyPath(key)!]!)")
+      countChanges += 1
+    }
+    if short && noChangesLeft > 0 {
+      formats.append("\n\t\t<<< \(noChangesLeft) more change(s) >>>")
     }
     return "{\(formats.joined(separator: ", "))\n\t}"
   }

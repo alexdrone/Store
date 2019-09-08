@@ -76,7 +76,7 @@ open class SerializableStore<M: SerializableModelType>: Store<M> {
       self.lastModelSnapshot = encodedModel
 
       os_log(.debug, log: OSLog.diff, "▩ 𝘿𝙄𝙁𝙁 (%s) %s %s",
-        transaction.id, transaction.actionId, diffs.log)
+        transaction.id, transaction.actionId, diffs.storeDebugDecription(short: true))
     }
   }
 }
