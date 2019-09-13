@@ -61,7 +61,7 @@ public protocol ActionType: Identifiable {
   var id: String { get }
   /// The execution body for this action.
   /// - note: Invoke `context.operation.finish` to signal task completion.
-  func perform(context: TransactionContext<AssociatedStoreType, Self>)
+  func reduce(context: TransactionContext<AssociatedStoreType, Self>)
 }
 
 // MARK: - Implementation
@@ -121,7 +121,7 @@ public final class Transaction<A: ActionType>: AnyTransaction, Identifiable {
       store: store,
       error: error,
       transaction: self)
-    action.perform(context: context)
+    action.reduce(context: context)
   }
 
   /// Execute the transaction.

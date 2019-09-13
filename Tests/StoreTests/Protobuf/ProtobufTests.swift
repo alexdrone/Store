@@ -10,9 +10,9 @@ struct ProtoAction {
     typealias AssociatedStoreType = Store<BookInfo>
     let title: String
 
-    func perform(context: TransactionContext<Store<BookInfo>, Self>) -> Void {
+    func reduce(context: TransactionContext<Store<BookInfo>, Self>) -> Void {
       defer { context.fulfill() }
-      context.updateModel { book in book.title = self.title }
+      context.reduceModel { book in book.title = self.title }
     }
   }
 }

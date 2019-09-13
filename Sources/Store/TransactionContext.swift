@@ -16,8 +16,8 @@ public struct TransactionContext<S: StoreType, A: ActionType> {
   public let transaction: Transaction<A>
 
   /// Atomically update the store's model.
-  public func updateModel(closure: (inout S.ModelType) -> (Void)) {
-    store.updateModel(transaction: transaction, closure: closure)
+  public func reduceModel(closure: (inout S.ModelType) -> (Void)) {
+    store.reduceModel(transaction: transaction, closure: closure)
   }
 
   /// Terminates the operation if there was an error raised by a previous action in the following

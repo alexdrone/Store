@@ -39,7 +39,7 @@ public protocol StoreType: AnyStoreType {
   /// The current state of this store.
   var model: ModelType { get }
   /// Atomically update the model.
-  func updateModel(transaction: AnyTransaction?, closure: (inout ModelType) -> (Void))
+  func reduceModel(transaction: AnyTransaction?, closure: (inout ModelType) -> (Void))
 }
 
 @available(iOS 13.0, macOS 10.15, *)
@@ -66,7 +66,7 @@ open class Store<M>: StoreType, ObservableObject {
   }
 
   /// Atomically update the model.
-  open func updateModel(transaction: AnyTransaction? = nil, closure: (inout M) -> (Void)) {
+  open func reduceModel(transaction: AnyTransaction? = nil, closure: (inout M) -> (Void)) {
     self.stateLock.lock()
     let old = self.model
     let new = assign(model, changes: closure)

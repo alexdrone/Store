@@ -46,14 +46,14 @@ enum CounterAction: ActionType {
     }
   }
 
-  func perform(context: TransactionContext<Store<Counter>, Self>) {
+  func reduce(context: TransactionContext<Store<Counter>, Self>) {
     defer { 
       // Remember to always call `fulfill` to signal the completion of this operation.
       context.fulfill()
     }
     switch self {
-    case .increase: context.updateModel { $0.count += 1 }
-    case .decrease: context.updateModel { $0.count -= 1 }
+    case .increase: context.reduceModel { $0.count += 1 }
+    case .decrease: context.reduceModel { $0.count -= 1 }
 
     }
   }
@@ -67,12 +67,12 @@ Or a struct:
 struct IncreaseAction: ActionType {
   let count: Int
   
-  func perform(context: TransactionContext<Store<Counter>, Self>) {
+  func reduce(context: TransactionContext<Store<Counter>, Self>) {
     defer { 
       // Remember to always call `fulfill` to signal the completion of this operation.
       context.fulfill()
     }
-    context.updateModel { $0.count += 1 }
+    context.reduceModel { $0.count += 1 }
   }
 }
 ```
@@ -112,9 +112,9 @@ enum CounterAction: ActionType {
     }
     switch self {
     case .increase(let amount):
-      context.updateModel { $0.count += amount }
+      context.reduceModel { $0.count += amount }
     case .decrease(let amount):
-      context.updateModel { $0.count -= amount }
+      context.reduceModel { $0.count -= amount }
     }
   }
 }
@@ -276,7 +276,7 @@ store.run(action: CounterAction.increase(amount: 1)).$state.sink { state in
 struct IncreaseAction: ActionType {
   let count: Int
   
-  func perform(context: TransactionContext<Store<Counter>, Self>) {
+  func reduce(context: TransactionContext<Store<Counter>, Self>) {
     // Remember to always call `fulfill` to signal the completion of this operation.
     defer { context.fulfill() }
     // The operation terminates here because an error has been raised in this dispatch group.
@@ -284,7 +284,7 @@ struct IncreaseAction: ActionType {
     // Kill the transaction and set TransactionGroupError.lastError.
     guard store.model.count != 42 { context.reject(error: Error("Max count reach") }
     // Business as usual...
-    context.updateModel { $0.count += 1 }
+    context.reduceModel { $0.count += 1 }
   }
 }
 ```

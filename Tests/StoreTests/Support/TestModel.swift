@@ -32,23 +32,23 @@ enum Action: ActionType {
     }
   }
 
-  func perform(context: TransactionContext<Store<TestModel>, Self>) {
+  func reduce(context: TransactionContext<Store<TestModel>, Self>) {
     defer {
       context.fulfill()
     }
     switch self {
     case .increase(let amount):
-      context.updateModel { $0.count += amount }
+      context.reduceModel { $0.count += amount }
     case .decrease(let amount):
-      context.updateModel { $0.count -= amount }
+      context.reduceModel { $0.count -= amount }
     case .updateLabel(let newLabel):
-      context.updateModel {
+      context.reduceModel {
         $0.label = newLabel
         $0.nested.label = newLabel
         $0.nullableLabel = nil
       }
     case .setArray(let index, let value):
-      context.updateModel {
+      context.reduceModel {
         $0.array[index].label = value
       }
     }

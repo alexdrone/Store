@@ -34,9 +34,9 @@ open class SerializableStore<M: SerializableModelType>: Store<M> {
     self.lastModelSnapshot = model.encodeFlatDictionary()
   }
 
-  override open func updateModel(transaction: AnyTransaction?, closure: (inout M) -> (Void)) {
+  override open func reduceModel(transaction: AnyTransaction?, closure: (inout M) -> (Void)) {
     let transaction = transaction ?? SignpostTransaction(singpost: Signpost.modelUpdate)
-    super.updateModel(transaction: transaction, closure: closure)
+    super.reduceModel(transaction: transaction, closure: closure)
   }
 
   override open func didUpdateModel(transaction: AnyTransaction?, old: M, new: M) {
