@@ -7,8 +7,10 @@ public final class Dispatcher {
   public enum Strategy {
     /// The action is dispatched asynchronously on the main thread.
     case mainThread
+
     /// The action is dispatched synchronously without changing context.
     case sync
+
     /// The action is dispatched on a serial background queue.
     case async(_ identifier: String?)
   }
@@ -16,6 +18,7 @@ public final class Dispatcher {
   public final class TransactionGroupError {
     /// The last error logged by an operation in the current dispatch group (if applicable).
     @Atomic var lastError: Error? = nil
+
     /// Optional user defined map.
     @Atomic var userInfo: [String: Any] = [:]
   }
@@ -24,21 +27,24 @@ public final class Dispatcher {
 
   /// Shared instance.
   public static let main = Dispatcher()
+
   /// The background queue used for the .async mode.
   private let backgroundQueue = OperationQueue()
+
   /// User-defined operation queues.
   @Atomic private var queues: [String: OperationQueue] = [:]
 
   public func run(
     transactions: [AnyTransaction],
     handler: TransactionCompletionHandler = nil
-  ) -> Void {
+  ) {
     let dispatchGroupError = TransactionGroupError()
     var completionOperation: Operation?
     if let completionHandler = handler {
-      completionOperation = BlockOperation {
-        completionHandler(dispatchGroupError)
-      }
+      completionOperation
+        = BlockOperation {
+          completionHandler(dispatchGroupError)
+        }
       transactions.map { $0.operation }.forEach { completionOperation?.addDependency($0) }
       OperationQueue.main.addOperation(completionOperation!)
     }
@@ -83,7 +89,7 @@ public final class Dispatcher {
 
   /// Registers a new operation queue.
   public func registerOperationQueue(id: String, queue: OperationQueue) {
-    _queues.mutate { $0[id] = queue; }
+    _queues.mutate { $0[id] = queue }
   }
 
   /// Cancel all of the operations of the given queue.
@@ -99,6 +105,7 @@ public final class Dispatcher {
 public struct Atomic<T> {
   let queue = DispatchQueue(label: "Atomic write access queue", attributes: .concurrent)
   var storage: T
+
   public init(wrappedValue value: T) {
     self.storage = value
   }

@@ -12,17 +12,21 @@ public struct TransactionDiff {
   ///   tokens/1:  <changed ⇒ "Bar">,
   /// } ```
   public let diffs: [FlatEncoding.KeyPath: PropertyDiff]
+
   /// The identifier of the transaction that caused this change.
   public let transactionId: String
+
   /// The action that caused this change.
   public let actionId: String
+
   /// Reference to the transaction that cause this change.
   public private(set) weak var transaction: AnyTransaction?
+
   /// Returns the `diffs` map encoded as **JSON** data.
   public var json: Data {
     return (try? sharedJSONEncoder.encode(diffs)) ?? Data()
   }
-  
+
   public init(transaction: AnyTransaction, diffs: [FlatEncoding.KeyPath: PropertyDiff]) {
     self.transaction = transaction
     self.diffs = diffs
@@ -54,11 +58,7 @@ public func flatten(encodedModel: EncodedDictionary) -> FlatEncoding.Dictionary 
   FlatEncoding.flatten(path: "", node: .dictionary(encodedModel), result: &result)
   return result
 }
-
-// MARK: - Internal
-
-@available(iOS 13.0, macOS 10.15, *)
-public struct FlatEncoding {
+public enum FlatEncoding {
   /// A flat non-nested dictionary.
   /// This representation is very efficient for object diffing.
   /// - note: Arrays are represented by indices in the path.
@@ -75,12 +75,15 @@ public struct FlatEncoding {
     /// KeyPath components separator.
     /// e.g. `user/address/street` or `tokens/0`.
     static let separator = "/"
+
     /// All of the individual components of this KeyPath.
     public var segments: [String]
+
     /// Whether this is an empty KeyPath or not.
     public var isEmpty: Bool {
       return segments.isEmpty
     }
+
     /// The raw string for this KeyPath.
     public let path: String
 
@@ -104,9 +107,11 @@ public struct FlatEncoding {
     /// - note: Returns `nil` if the string is in not in the format `PATH(/PATH)*` where `PATH` is
     /// a valid descriptor, like for example: `foo`, `foo/bar`, `foo/1/bar`.
     public init?(_ string: String) {
-      guard string.range(
-        of: "(([a-zA-Z0-9])+(\\/?))*",
-        options: [.regularExpression, .anchored]) != nil else {
+      guard
+        string.range(
+          of: "(([a-zA-Z0-9])+(\\/?))*",
+          options: [.regularExpression, .anchored]) != nil
+      else {
         return nil
       }
       path = string
@@ -140,7 +145,7 @@ public struct FlatEncoding {
       if let dictionary = value as? [String: Any] {
         flatten(path: path, node: .dictionary(dictionary), result: &result)
       } else if let array = value as? [Any] {
-          flatten(path: path, node: .array(array), result: &result)
+        flatten(path: path, node: .array(array), result: &result)
       } else {
         guard let keyPath = KeyPath(path) else {
           os_log(.error, log: OSLog.primary, "Malformed FlatEncoding keypath: %s.", path)

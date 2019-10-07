@@ -1,5 +1,5 @@
-import Foundation
 import Combine
+import Foundation
 import os.log
 
 // MARK: - SerializableStore
@@ -10,21 +10,28 @@ open class SerializableStore<M: SerializableModelType>: Store<M> {
   public enum TransactionDiffStrategy {
     /// Does not compute any diff.
     case none
+
     /// Computes the diff synchrously right after the transaction has completed.
     case sync
+
     /// Computes the diff asynchrously (in a serial queue) when transaction is completed.
     case async
   }
+
   /// Publishes a stream with the model changes caused by the last transaction.
   @Published public var lastTransactionDiff: TransactionDiff = TransactionDiff(
     transaction: SignpostTransaction(singpost: Signpost.prior),
     diffs: [:])
+
   /// Where the diffing routine should be dispatched.
   public let transactionDiffStrategy: TransactionDiffStrategy
+
   /// Serial queue used to run the diffing routine.
   private let queue = DispatchQueue(label: "io.store.serializable")
+
   /// Set of `transaction.id` for all of the transaction that have run of this store.
   private var transactionIdsHistory = Set<String>()
+
   /// Last serialized snapshot for the model.
   private var lastModelSnapshot: [FlatEncoding.KeyPath: Codable?] = [:]
 
@@ -62,7 +69,7 @@ open class SerializableStore<M: SerializableModelType>: Store<M> {
         // The (`keyPath`, `value`) pair was not in the previous lastModelSnapshot.
         if self.lastModelSnapshot[key] == nil {
           diffs[key] = .added(new: value)
-        // The (`keyPath`, `value`) pair has changed value.
+          // The (`keyPath`, `value`) pair has changed value.
         } else if let old = self.lastModelSnapshot[key], !dynamicEqual(lhs: old, rhs: value) {
           diffs[key] = .changed(old: old, new: value)
         }
@@ -75,7 +82,8 @@ open class SerializableStore<M: SerializableModelType>: Store<M> {
       self.lastTransactionDiff = TransactionDiff(transaction: transaction, diffs: diffs)
       self.lastModelSnapshot = encodedModel
 
-      os_log(.debug, log: OSLog.diff, "▩ 𝘿𝙄𝙁𝙁 (%s) %s %s",
+      os_log(
+        .debug, log: OSLog.diff, "▩ 𝘿𝙄𝙁𝙁 (%s) %s %s",
         transaction.id, transaction.actionId, diffs.storeDebugDecription(short: true))
     }
   }
@@ -90,9 +98,9 @@ public protocol SerializableModelType: Codable {
 }
 
 @available(iOS 13.0, macOS 10.15, *)
-public extension SerializableModelType {
+extension SerializableModelType {
   /// Encodes the model into a dictionary.
-  func encode() -> EncodedDictionary {
+  public func encode() -> EncodedDictionary {
     let result = serialize(model: self)
     return result
   }
@@ -106,13 +114,13 @@ public extension SerializableModelType {
   ///   tokens/0: "foo",
   ///   tokens/1: "bar"
   /// } ```
-  func encodeFlatDictionary() -> FlatEncoding.Dictionary {
+  public func encodeFlatDictionary() -> FlatEncoding.Dictionary {
     let result = serialize(model: self)
     return flatten(encodedModel: result)
   }
 
   /// Decodes the model from a dictionary.
-  static func decode(dictionary: EncodedDictionary) -> Self {
+  public static func decode(dictionary: EncodedDictionary) -> Self {
     return deserialize(dictionary: dictionary)
   }
 }

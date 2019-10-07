@@ -1,12 +1,13 @@
 import Foundation
 
 @available(iOS 13.0, macOS 10.15, *)
-public class TransactionOperation<T: AnyTransaction>: AsyncOperation  {
+public class TransactionOperation<T: AnyTransaction>: AsyncOperation {
   /// The associated transaction.
   public let transaction: T
+
   /// The completion block type for this operation.
   /// - note: Internal only.
-  var finishBlock: CompletionBlock = { }
+  var finishBlock: CompletionBlock = {}
 
   /// Constructs a new action operation.
   /// - parameter transaction: The transaction for this operation.
@@ -40,16 +41,20 @@ public class TransactionOperation<T: AnyTransaction>: AsyncOperation  {
 public class AsyncOperation: Operation {
   /// The completion block type for this operation.
   public typealias CompletionBlock = () -> Void
+
   // Internal properties override.
   @objc dynamic override public var isAsynchronous: Bool { return true }
+
   @objc dynamic override public var isConcurrent: Bool { return true }
   @objc dynamic override public var isExecuting: Bool { return __executing }
   @objc dynamic override public var isFinished: Bool { return __finished }
+
   // __ to avoid name clashes with the superclass.
   @objc dynamic private var __executing = false {
     willSet { willChangeValue(forKey: "isExecuting") }
     didSet { didChangeValue(forKey: "isExecuting") }
   }
+
   // __ to avoid name clashes with the superclass.
   @objc dynamic private var __finished = false {
     willSet { willChangeValue(forKey: "isFinished") }
@@ -75,4 +80,3 @@ public class AsyncOperation: Operation {
     __finished = true
   }
 }
-

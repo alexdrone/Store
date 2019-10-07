@@ -1,5 +1,5 @@
-import Foundation
 import Combine
+import Foundation
 
 // MARK: - Context
 
@@ -8,10 +8,13 @@ public struct TransactionContext<S: StoreType, A: ActionType> {
   /// The operation that is currently running.
   /// - note: Invoke `context.operation.finish` to signal task completion.
   public let operation: AsyncOperation
+
   /// The target store for this transaction.
   public let store: S
+
   /// Last recorded error (or side effects) in this dispatch group.
   public let error: Dispatcher.TransactionGroupError
+
   /// The current transaction.
   public let transaction: Transaction<A>
 
@@ -43,9 +46,9 @@ public struct TransactionContext<S: StoreType, A: ActionType> {
 }
 
 @available(iOS 13.0, macOS 10.15, *)
-public extension ActionType {
+extension ActionType {
   /// Default identifier implementation.
-  var id: String {
-    return String(describing:type(of:self))
+  public var id: String {
+    return String(describing: type(of: self))
   }
 }

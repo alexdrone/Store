@@ -1,5 +1,5 @@
-import Foundation
 import Combine
+import Foundation
 
 /// This function is used to copy the values of all enumerable own properties from one or more
 /// source struct to a target struct.
@@ -19,15 +19,20 @@ public func assign<T>(_ value: T, changes: (inout T) -> Void) -> T {
 public protocol AnyStoreType: class {
   /// Opaque reference to the model wrapped by this store.
   var modelRef: Any { get }
+
   /// All of the registered middleware.
   var middleware: [MiddlewareType] { get }
+
   /// Register a new middleware service.
   func register(middleware: MiddlewareType)
+
   /// Unregister a middleware service.
   func unregister(middleware: MiddlewareType)
+
   /// Notify the store observers for the change of this store.
   /// - note: Observers are always notified on the main thread.
   func notifyObservers()
+
   /// Notify all of the registered middleware services.
   /// - note: See `MiddlewareType.onTransactionStateChange`.
   func notifyMiddleware(transaction: AnyTransaction)
@@ -36,8 +41,10 @@ public protocol AnyStoreType: class {
 @available(iOS 13.0, macOS 10.15, *)
 public protocol StoreType: AnyStoreType {
   associatedtype ModelType
+
   /// The current state of this store.
   var model: ModelType { get }
+
   /// Atomically update the model.
   func reduceModel(transaction: AnyTransaction?, closure: (inout ModelType) -> (Void))
 }
@@ -46,10 +53,13 @@ public protocol StoreType: AnyStoreType {
 open class Store<M>: StoreType, ObservableObject {
   /// The current state of this store.
   @Published public private(set) var model: M
+
   /// Opaque reference to the model wrapped by this store.
   public var modelRef: Any { return model }
+
   /// All of the registered middleware.
   public var middleware: [MiddlewareType] = []
+
   /// Syncronizes the access to the state object.
   private let stateLock = Lock()
 
@@ -113,7 +123,7 @@ open class Store<M>: StoreType, ObservableObject {
   public func transaction<A: ActionType, M>(
     action: A,
     mode: Dispatcher.Strategy = .async(nil)
-  ) -> Transaction<A> where A.AssociatedStoreType : Store<M> {
+  ) -> Transaction<A> where A.AssociatedStoreType: Store<M> {
     guard let store = self as? A.AssociatedStoreType else {
       fatalError("error: Store type mismatch.")
     }
@@ -125,7 +135,7 @@ open class Store<M>: StoreType, ObservableObject {
     action: A,
     mode: Dispatcher.Strategy = .async(nil),
     handler: Dispatcher.TransactionCompletionHandler = nil
-  ) -> Transaction<A> where A.AssociatedStoreType : Store<M> {
+  ) -> Transaction<A> where A.AssociatedStoreType: Store<M> {
     let tranctionObj = transaction(action: action, mode: mode)
     tranctionObj.run(handler: handler)
     return tranctionObj
@@ -136,7 +146,7 @@ open class Store<M>: StoreType, ObservableObject {
     actions: [A],
     mode: Dispatcher.Strategy = .async(nil),
     handler: Dispatcher.TransactionCompletionHandler = nil
-  ) -> [Transaction<A>] where A.AssociatedStoreType : Store<M> {
+  ) -> [Transaction<A>] where A.AssociatedStoreType: Store<M> {
     let transactions = actions.map { transaction(action: $0, mode: mode) }
     transactions.run(handler: handler)
     return transactions

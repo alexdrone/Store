@@ -1,7 +1,7 @@
-import Foundation
 import Combine
+import Foundation
 
-public struct Signpost {
+public enum Signpost {
   public static let prior = "signpost_prior"
   public static let modelUpdate = "signpost_model_update"
   public static let undoRedo = "signpost_undo_redo"
@@ -20,20 +20,23 @@ public final class SignpostTransaction: AnyTransaction {
 
   /// - note: Never set because `SignpostTransaction`s do not have a backing operation.
   public var error: Dispatcher.TransactionGroupError? = nil
+
   /// - note: Never set because `SignpostTransaction`s do not have a backing operation.
-  public  var operation: AsyncOperation {
+  public var operation: AsyncOperation {
     fatalError("This transaction does not spawn any operation.")
   }
+
   /// No associated store ref.
   public var opaqueStoreRef: AnyStoreType? = nil
+
   /// Represents the progress of the transaction.
   public var state: TransactionState = .pending
-  
+
   public func on(_ queueWithStrategy: Dispatcher.Strategy) -> Self {
     // No op.
     return self
   }
-  
+
   init(singpost: String) {
     self.actionId = singpost
   }

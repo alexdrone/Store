@@ -32,10 +32,12 @@ extension DictionaryEncoder {
     do {
       return try castOrThrow([String: Any].self, try box(value))
     } catch (let error) {
-      throw EncodingError.invalidValue(value, EncodingError.Context(
-        codingPath: [],
-        debugDescription: "Top-evel \(T.self) did not encode any values.",
-        underlyingError: error))
+      throw EncodingError.invalidValue(
+        value,
+        EncodingError.Context(
+          codingPath: [],
+          debugDescription: "Top-evel \(T.self) did not encode any values.",
+          underlyingError: error))
     }
   }
 }
@@ -55,14 +57,15 @@ extension DictionaryEncoder {
 
     deinit {
       guard let dictionary = storage.popContainer() as? [String: Any] else {
-        assertionFailure(); return
+        assertionFailure()
+        return
       }
       storage.push(container: dictionary)
     }
 
     private func set(_ value: Any, forKey key: String) {
       guard var dictionary = storage.popContainer() as? [String: Any] else {
-        assertionFailure();
+        assertionFailure()
         return
       }
       dictionary[key] = value
@@ -70,48 +73,76 @@ extension DictionaryEncoder {
     }
 
     func encodeNil(forKey key: Key) throws {}
+
     func encode(
       _ value: Bool,
-      forKey key: Key) throws { set(value, forKey: key.stringValue) }
+      forKey key: Key
+    ) throws { set(value, forKey: key.stringValue) }
+
     func encode(
       _ value: Int,
-      forKey key: Key) throws { set(value, forKey: key.stringValue) }
+      forKey key: Key
+    ) throws { set(value, forKey: key.stringValue) }
+
     func encode(
       _ value: Int8,
-      forKey key: Key) throws { set(value, forKey: key.stringValue) }
+      forKey key: Key
+    ) throws { set(value, forKey: key.stringValue) }
+
     func encode(
       _ value: Int16,
-      forKey key: Key) throws { set(value, forKey: key.stringValue) }
+      forKey key: Key
+    ) throws { set(value, forKey: key.stringValue) }
+
     func encode(
       _ value: Int32,
-      forKey key: Key) throws { set(value, forKey: key.stringValue) }
+      forKey key: Key
+    ) throws { set(value, forKey: key.stringValue) }
+
     func encode(
       _ value: Int64,
-      forKey key: Key) throws { set(value, forKey: key.stringValue) }
+      forKey key: Key
+    ) throws { set(value, forKey: key.stringValue) }
+
     func encode(
       _ value: UInt,
-      forKey key: Key) throws { set(value, forKey: key.stringValue) }
+      forKey key: Key
+    ) throws { set(value, forKey: key.stringValue) }
+
     func encode(
       _ value: UInt8,
-      forKey key: Key) throws { set(value, forKey: key.stringValue) }
+      forKey key: Key
+    ) throws { set(value, forKey: key.stringValue) }
+
     func encode(
       _ value: UInt16,
-      forKey key: Key) throws { set(value, forKey: key.stringValue) }
+      forKey key: Key
+    ) throws { set(value, forKey: key.stringValue) }
+
     func encode(
       _ value: UInt32,
-      forKey key: Key) throws { set(value, forKey: key.stringValue) }
+      forKey key: Key
+    ) throws { set(value, forKey: key.stringValue) }
+
     func encode(
       _ value: UInt64,
-      forKey key: Key) throws { set(value, forKey: key.stringValue) }
+      forKey key: Key
+    ) throws { set(value, forKey: key.stringValue) }
+
     func encode(
       _ value: Float,
-      forKey key: Key) throws { set(value, forKey: key.stringValue) }
+      forKey key: Key
+    ) throws { set(value, forKey: key.stringValue) }
+
     func encode(
       _ value: Double,
-      forKey key: Key) throws { set(value, forKey: key.stringValue) }
+      forKey key: Key
+    ) throws { set(value, forKey: key.stringValue) }
+
     func encode(
       value: String,
-      forKey key: Key) throws { set(value, forKey: key.stringValue) }
+      forKey key: Key
+    ) throws { set(value, forKey: key.stringValue) }
 
     func encode<T: Encodable>(
       _ value: T,
@@ -128,9 +159,10 @@ extension DictionaryEncoder {
     ) -> KeyedEncodingContainer<NestedKey> {
       codingPath.append(key)
       defer { codingPath.removeLast() }
-      return KeyedEncodingContainer(KeyedContainer<NestedKey>(
-        encoder: encoder,
-        codingPath: codingPath))
+      return KeyedEncodingContainer(
+        KeyedContainer<NestedKey>(
+          encoder: encoder,
+          codingPath: codingPath))
     }
 
     func nestedUnkeyedContainer(forKey key: Key) -> UnkeyedEncodingContainer {
@@ -163,47 +195,78 @@ extension DictionaryEncoder {
 
     deinit {
       guard let array = storage.popContainer() as? [Any] else {
-        assertionFailure();
+        assertionFailure()
         return
       }
       storage.push(container: array)
     }
 
     private func push(_ value: Any) {
-      guard var array = storage.popContainer() as? [Any] else { assertionFailure(); return }
+      guard var array = storage.popContainer() as? [Any] else {
+        assertionFailure()
+        return
+      }
       array.append(value)
       storage.push(container: array)
     }
 
     func encodeNil() throws {}
+
     func encode(
-      _ value: Bool) throws {}
+      _ value: Bool
+    ) throws {}
+
     func encode(
-      _ value: Int) throws { push(try encoder.box(value)) }
+      _ value: Int
+    ) throws { push(try encoder.box(value)) }
+
     func encode(
-      _ value: Int8) throws { push(try encoder.box(value)) }
+      _ value: Int8
+    ) throws { push(try encoder.box(value)) }
+
     func encode(
-      _ value: Int16) throws { push(try encoder.box(value)) }
+      _ value: Int16
+    ) throws { push(try encoder.box(value)) }
+
     func encode(
-      _ value: Int32) throws { push(try encoder.box(value)) }
+      _ value: Int32
+    ) throws { push(try encoder.box(value)) }
+
     func encode(
-      _ value: Int64) throws { push(try encoder.box(value)) }
+      _ value: Int64
+    ) throws { push(try encoder.box(value)) }
+
     func encode(
-      _ value: UInt) throws { push(try encoder.box(value)) }
+      _ value: UInt
+    ) throws { push(try encoder.box(value)) }
+
     func encode(
-      _ value: UInt8) throws { push(try encoder.box(value)) }
+      _ value: UInt8
+    ) throws { push(try encoder.box(value)) }
+
     func encode(
-      _ value: UInt16) throws { push(try encoder.box(value)) }
+      _ value: UInt16
+    ) throws { push(try encoder.box(value)) }
+
     func encode(
-      _ value: UInt32) throws { push(try encoder.box(value)) }
+      _ value: UInt32
+    ) throws { push(try encoder.box(value)) }
+
     func encode(
-      _ value: UInt64) throws { push(try encoder.box(value)) }
+      _ value: UInt64
+    ) throws { push(try encoder.box(value)) }
+
     func encode(
-      _ value: Float) throws { push(try encoder.box(value)) }
+      _ value: Float
+    ) throws { push(try encoder.box(value)) }
+
     func encode(
-      _ value: Double) throws { push(try encoder.box(value)) }
+      _ value: Double
+    ) throws { push(try encoder.box(value)) }
+
     func encode(
-      _ value: String) throws { push(try encoder.box(value)) }
+      _ value: String
+    ) throws { push(try encoder.box(value)) }
 
     func encode<T: Encodable>(_ value: T) throws {
       encoder.codingPath.append(AnyCodingKey(index: count))
@@ -213,12 +276,13 @@ extension DictionaryEncoder {
 
     func nestedContainer<NestedKey>(
       keyedBy keyType: NestedKey.Type
-    ) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
+    ) -> KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {
       codingPath.append(AnyCodingKey(index: count))
       defer { codingPath.removeLast() }
-      return KeyedEncodingContainer(KeyedContainer<NestedKey>(
-        encoder: encoder,
-        codingPath: codingPath))
+      return KeyedEncodingContainer(
+        KeyedContainer<NestedKey>(
+          encoder: encoder,
+          codingPath: codingPath))
     }
 
     func nestedUnkeyedContainer() -> UnkeyedEncodingContainer {
@@ -245,40 +309,71 @@ extension DictionaryEncoder {
     }
 
     private func push(_ value: Any) {
-      guard var array = storage.popContainer() as? [Any] else { assertionFailure(); return }
+      guard var array = storage.popContainer() as? [Any] else {
+        assertionFailure()
+        return
+      }
       array.append(value)
       storage.push(container: array)
     }
 
     func encodeNil() throws {}
+
     func encode(
-      _ value: Bool) throws { storage.push(container: value) }
+      _ value: Bool
+    ) throws { storage.push(container: value) }
+
     func encode(
-      _ value: Int) throws { storage.push(container: value) }
+      _ value: Int
+    ) throws { storage.push(container: value) }
+
     func encode(
-      _ value: Int8) throws { storage.push(container: value) }
+      _ value: Int8
+    ) throws { storage.push(container: value) }
+
     func encode(
-      _ value: Int16) throws { storage.push(container: value) }
+      _ value: Int16
+    ) throws { storage.push(container: value) }
+
     func encode(
-      _ value: Int32) throws { storage.push(container: value) }
+      _ value: Int32
+    ) throws { storage.push(container: value) }
+
     func encode(
-      _ value: Int64) throws { storage.push(container: value) }
+      _ value: Int64
+    ) throws { storage.push(container: value) }
+
     func encode(
-      _ value: UInt) throws { storage.push(container: value) }
+      _ value: UInt
+    ) throws { storage.push(container: value) }
+
     func encode(
-      _ value: UInt8) throws { storage.push(container: value) }
+      _ value: UInt8
+    ) throws { storage.push(container: value) }
+
     func encode(
-      _ value: UInt16) throws { storage.push(container: value) }
+      _ value: UInt16
+    ) throws { storage.push(container: value) }
+
     func encode(
-      _ value: UInt32) throws { storage.push(container: value) }
+      _ value: UInt32
+    ) throws { storage.push(container: value) }
+
     func encode(
-      _ value: UInt64) throws { storage.push(container: value) }
+      _ value: UInt64
+    ) throws { storage.push(container: value) }
+
     func encode(
-      _ value: Float) throws { storage.push(container: value) }
+      _ value: Float
+    ) throws { storage.push(container: value) }
+
     func encode(
-      _ value: Double) throws { storage.push(container: value) }
+      _ value: Double
+    ) throws { storage.push(container: value) }
+
     func encode(
-      _ value: String) throws { storage.push(container: value) }
+      _ value: String
+    ) throws { storage.push(container: value) }
 
     func encode<T: Encodable>(_ value: T) throws {
       storage.push(container: try encoder.box(value))
@@ -306,10 +401,11 @@ open class DictionaryDecoder: Decoder {
     keyedBy type: Key.Type
   ) throws -> KeyedDecodingContainer<Key> {
     let container = try lastContainer(forType: [String: Any].self)
-    return KeyedDecodingContainer(KeyedContainer<Key>(
-      decoder: self,
-      codingPath: [],
-      container: container))
+    return KeyedDecodingContainer(
+      KeyedContainer<Key>(
+        decoder: self,
+        codingPath: [],
+        container: container))
   }
 
   open func unkeyedContainer() throws -> UnkeyedDecodingContainer {
@@ -386,7 +482,7 @@ open class DictionaryDecoder: Decoder {
 }
 
 extension DictionaryDecoder {
-  open func decode<T : Decodable>(_ type: T.Type, from container: Any) throws -> T {
+  open func decode<T: Decodable>(_ type: T.Type, from container: Any) throws -> T {
     storage.push(container: container)
     return try unbox(container, as: T.self)
   }
@@ -419,65 +515,97 @@ extension DictionaryDecoder {
     }
 
     func decodeNil(
-      forKey key: Key) throws -> Bool { throw decoder.notFound(key: key) }
+      forKey key: Key
+    ) throws -> Bool { throw decoder.notFound(key: key) }
+
     func decode(
       _ type: Bool.Type,
-      forKey key: Key) throws -> Bool { return try _decode(type, forKey: key) }
+      forKey key: Key
+    ) throws -> Bool { return try _decode(type, forKey: key) }
+
     func decode(
       _ type: Int.Type,
-      forKey key: Key) throws -> Int { return try _decode(type, forKey: key) }
+      forKey key: Key
+    ) throws -> Int { return try _decode(type, forKey: key) }
+
     func decode(
       _ type: Int8.Type,
-      forKey key: Key) throws -> Int8 { return try _decode(type, forKey: key) }
+      forKey key: Key
+    ) throws -> Int8 { return try _decode(type, forKey: key) }
+
     func decode(
       _ type: Int16.Type,
-      forKey key: Key) throws -> Int16 { return try _decode(type, forKey: key) }
+      forKey key: Key
+    ) throws -> Int16 { return try _decode(type, forKey: key) }
+
     func decode(
       _ type: Int32.Type,
-      forKey key: Key) throws -> Int32 { return try _decode(type, forKey: key) }
+      forKey key: Key
+    ) throws -> Int32 { return try _decode(type, forKey: key) }
+
     func decode(
       _ type: Int64.Type,
-      forKey key: Key) throws -> Int64 { return try _decode(type, forKey: key) }
+      forKey key: Key
+    ) throws -> Int64 { return try _decode(type, forKey: key) }
+
     func decode(
       _ type: UInt.Type,
-      forKey key: Key) throws -> UInt { return try _decode(type, forKey: key) }
+      forKey key: Key
+    ) throws -> UInt { return try _decode(type, forKey: key) }
+
     func decode(
       _ type: UInt8.Type,
-      forKey key: Key) throws -> UInt8 { return try _decode(type, forKey: key) }
+      forKey key: Key
+    ) throws -> UInt8 { return try _decode(type, forKey: key) }
+
     func decode(
       _ type: UInt16.Type,
-      forKey key: Key) throws -> UInt16 { return try _decode(type, forKey: key) }
+      forKey key: Key
+    ) throws -> UInt16 { return try _decode(type, forKey: key) }
+
     func decode(
       _ type: UInt32.Type,
-      forKey key: Key) throws -> UInt32 { return try _decode(type, forKey: key) }
+      forKey key: Key
+    ) throws -> UInt32 { return try _decode(type, forKey: key) }
+
     func decode(
       _ type: UInt64.Type,
-      forKey key: Key) throws -> UInt64 { return try _decode(type, forKey: key) }
+      forKey key: Key
+    ) throws -> UInt64 { return try _decode(type, forKey: key) }
+
     func decode(
       _ type: Float.Type,
-      forKey key: Key) throws -> Float { return try _decode(type, forKey: key) }
+      forKey key: Key
+    ) throws -> Float { return try _decode(type, forKey: key) }
+
     func decode(
       _ type: Double.Type,
-      forKey key: Key) throws -> Double { return try _decode(type, forKey: key) }
+      forKey key: Key
+    ) throws -> Double { return try _decode(type, forKey: key) }
+
     func decode(
       _ type: String.Type,
-      forKey key: Key) throws -> String { return try _decode(type, forKey: key) }
+      forKey key: Key
+    ) throws -> String { return try _decode(type, forKey: key) }
+
     func decode<T: Decodable>(
       _ type: T.Type,
-      forKey key: Key) throws -> T { return try _decode(type, forKey: key) }
+      forKey key: Key
+    ) throws -> T { return try _decode(type, forKey: key) }
 
     func nestedContainer<NestedKey>(
       keyedBy type: NestedKey.Type,
       forKey key: Key
-    ) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
+    ) throws -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
       decoder.codingPath.append(key)
       defer { decoder.codingPath.removeLast() }
       let value = try find(forKey: key)
       let dictionary = try decoder.unbox(value, as: [String: Any].self)
-      return KeyedDecodingContainer(KeyedContainer<NestedKey>(
-        decoder: decoder,
-        codingPath: [],
-        container: dictionary))
+      return KeyedDecodingContainer(
+        KeyedContainer<NestedKey>(
+          decoder: decoder,
+          codingPath: [],
+          container: dictionary))
     }
 
     func nestedUnkeyedContainer(forKey key: Key) throws -> UnkeyedDecodingContainer {
@@ -514,6 +642,7 @@ extension DictionaryDecoder {
     var isAtEnd: Bool { return currentIndex >= count! }
 
     private(set) var currentIndex: Int
+
     private var currentCodingPath: [CodingKey] {
       return decoder.codingPath + [AnyCodingKey(index: currentIndex)]
     }
@@ -549,6 +678,7 @@ extension DictionaryDecoder {
       try checkIndex(Any?.self)
       return false
     }
+
     func decode(_ type: Bool.Type) throws -> Bool { return try _decode(type) }
     func decode(_ type: Int.Type) throws -> Int { return try _decode(type) }
     func decode(_ type: Int8.Type) throws -> Int8 { return try _decode(type) }
@@ -574,10 +704,11 @@ extension DictionaryDecoder {
       let value = container[currentIndex]
       let dictionary = try castOrThrow([String: Any].self, value)
       currentIndex += 1
-      return KeyedDecodingContainer(KeyedContainer<NestedKey>(
-        decoder: decoder,
-        codingPath: [],
-        container: dictionary))
+      return KeyedDecodingContainer(
+        KeyedContainer<NestedKey>(
+          decoder: decoder,
+          codingPath: [],
+          container: dictionary))
     }
 
     func nestedUnkeyedContainer() throws -> UnkeyedDecodingContainer {
@@ -636,15 +767,19 @@ extension DictionaryDecoder {
 
 final class Storage {
   private(set) var containers: [Any] = []
+
   var count: Int {
     return containers.count
   }
+
   var last: Any? {
     return containers.last
   }
+
   func push(container: Any) {
     containers.append(container)
   }
+
   @discardableResult func popContainer() -> Any {
     precondition(containers.count > 0, "Empty container stack.")
     return containers.popLast()!
@@ -684,7 +819,7 @@ extension Dictionary {
   }
 }
 
-struct AnyCodingKey : CodingKey {
+struct AnyCodingKey: CodingKey {
   public var stringValue: String
   public var intValue: Int?
 
@@ -692,14 +827,17 @@ struct AnyCodingKey : CodingKey {
     self.stringValue = stringValue
     self.intValue = nil
   }
+
   public init?(intValue: Int) {
     self.stringValue = "\(intValue)"
     self.intValue = intValue
   }
+
   init(index: Int) {
     self.stringValue = "Index \(index)"
     self.intValue = index
   }
+
   static let `super` = AnyCodingKey(stringValue: "super")!
 }
 
@@ -724,6 +862,6 @@ func dynamicEncode(value: Any, encoder: Encoder) throws {
 }
 
 fileprivate func isEqual<T: Equatable>(type: T.Type, a: Any, b: Any) -> Bool {
-    guard let a = a as? T, let b = b as? T else { return false }
-    return a == b
+  guard let a = a as? T, let b = b as? T else { return false }
+  return a == b
 }

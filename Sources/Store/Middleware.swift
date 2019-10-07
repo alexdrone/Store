@@ -1,5 +1,5 @@
-import Foundation
 import Combine
+import Foundation
 import os.log
 
 // MARK: - Protocol
@@ -16,10 +16,11 @@ public protocol MiddlewareType: class {
 public final class LoggerMiddleware: MiddlewareType {
   /// Syncronizes the access to the middleware.
   private let lock = Lock()
+
   /// The transactions start time (in µs).
   private var transactionStartNanos: [String: UInt64] = [:]
 
-  public init() { }
+  public init() {}
 
   /// Logs the transaction identifier, the action name and its current state.
   public func onTransactionStateChange(_ transaction: AnyTransaction) {
@@ -34,7 +35,7 @@ public final class LoggerMiddleware: MiddlewareType {
     case .completed:
       guard let prev = transactionStartNanos[transaction.id] else { break }
       let time = nanos() - prev
-      let millis = Float(time)/1000000
+      let millis = Float(time)/1_000_000
       os_log(.info, log: OSLog.primary, "▩ (%s) %s [%fs ms]", id, name, millis)
       transactionStartNanos[transaction.id] = nil
     case .canceled:
@@ -57,8 +58,7 @@ public final class LoggerMiddleware: MiddlewareType {
 // MARK: - Log Subsystems
 
 @available(iOS 13.0, macOS 10.15, *)
-public extension OSLog {
-  static let primary = OSLog(subsystem: "io.store.StoreService", category: "primary")
-  static let diff = OSLog(subsystem: "io.store.StoreService", category: "diff")
+extension OSLog {
+  public static let primary = OSLog(subsystem: "io.store.StoreService", category: "primary")
+  public static let diff = OSLog(subsystem: "io.store.StoreService", category: "diff")
 }
-

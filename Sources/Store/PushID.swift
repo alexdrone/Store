@@ -3,7 +3,7 @@
 
 import Foundation
 
-/** Shorthand to PushID's 'make' function. */
+/// Shorthand to PushID's 'make' function.
 public func makePushID() -> String {
   return PushID.default.make()
 }
@@ -24,6 +24,7 @@ public class PushID {
   // Modeled after base64 web-safe chars, but ordered by ASCII.
   private static let ascChars = Array(
     "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz")
+
   private static let descChars = Array(ascChars.reversed())
 
   public static let `default` = PushID()
@@ -37,7 +38,7 @@ public class PushID {
   // timestamp to prevent collisions with other clients.  We store the last characters we
   // generated because in the event of a collision, we'll use those same characters except
   // "incremented" by one.
-  private var lastRandChars = Array<Int>(repeating: 0, count: 12)
+  private var lastRandChars = [Int](repeating: 0, count: 12)
 
   // For testability purposes.
   private let dateProvider: () -> Date
@@ -53,7 +54,7 @@ public class PushID {
   public func make(ascending: Bool = true) -> String {
     let pushChars = ascending ? PushID.ascChars : PushID.descChars
     precondition(pushChars.count > 0)
-    var timeStampChars = Array<Character>(repeating: pushChars.first!, count: 8)
+    var timeStampChars = [Character](repeating: pushChars.first!, count: 8)
 
     self.lock.lock()
 
