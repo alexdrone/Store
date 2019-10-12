@@ -107,7 +107,7 @@ final class Lock {
   /// Locks a spinlock. Although the lock operation spins, it employs various strategies to back
   /// off if the lock is held.
   func lock() {
-    if #available(iOS 10, *) {
+    if #available(iOS 10.0, macOS 10.12, *) {
       os_unfair_lock_lock(&unfair)
     } else {
       OSSpinLockLock(&spin)
@@ -116,7 +116,7 @@ final class Lock {
 
   /// Unlocks a spinlock.
   func unlock() {
-    if #available(iOS 10, *) {
+    if #available(iOS 10.0, macOS 10.12, *) {
       os_unfair_lock_unlock(&unfair)
     } else {
       OSSpinLockUnlock(&spin)

@@ -148,7 +148,9 @@ public enum FlatEncoding {
         flatten(path: path, node: .array(array), result: &result)
       } else {
         guard let keyPath = KeyPath(path) else {
-          os_log(.error, log: OSLog.primary, "Malformed FlatEncoding keypath: %s.", path)
+            if #available(iOS 12.0, OSX 10.14, *) {
+                os_log(.error, log: OSLog.primary, "Malformed FlatEncoding keypath: %s.", path)
+            }
           return
         }
         result[keyPath] = value as? Codable
