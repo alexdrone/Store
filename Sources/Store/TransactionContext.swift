@@ -3,7 +3,7 @@ import Foundation
 
 // MARK: - Context
 
-@available(iOS 13.0, macOS 10.15, *)
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public struct TransactionContext<S: StoreType, A: ActionType> {
   /// The operation that is currently running.
   /// - note: Invoke `context.operation.finish` to signal task completion.
@@ -45,7 +45,7 @@ public struct TransactionContext<S: StoreType, A: ActionType> {
   }
 }
 
-@available(iOS 13.0, macOS 10.15, *)
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 extension ActionType {
   /// Default identifier implementation.
   public var id: String {

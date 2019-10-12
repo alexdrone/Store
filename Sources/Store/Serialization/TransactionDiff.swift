@@ -2,7 +2,7 @@ import Foundation
 import os.log
 
 /// A collection of changes associated to a transaction.
-@available(iOS 13.0, macOS 10.15, *)
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public struct TransactionDiff {
   /// The set of (`path`, `value`) that has been **added**/**removed**/**changed**.
   ///
@@ -37,7 +37,7 @@ public struct TransactionDiff {
 
 /// Represent a property change.
 /// A change can be an **addition**, a **removal** or a **value change**.
-@available(iOS 13.0, macOS 10.15, *)
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public enum PropertyDiff {
   case added(new: Codable?)
   case changed(old: Codable?, new: Codable?)
@@ -52,7 +52,7 @@ public enum PropertyDiff {
 ///   tokens/0: "foo",
 ///   tokens/1: "bar"
 /// } ```
-@available(iOS 13.0, macOS 10.15, *)
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public func flatten(encodedModel: EncodedDictionary) -> FlatEncoding.Dictionary {
   var result: FlatEncoding.Dictionary = [:]
   FlatEncoding.flatten(path: "", node: .dictionary(encodedModel), result: &result)
@@ -148,7 +148,7 @@ public enum FlatEncoding {
         flatten(path: path, node: .array(array), result: &result)
       } else {
         guard let keyPath = KeyPath(path) else {
-            if #available(iOS 12.0, OSX 10.14, *) {
+            if #available(iOS 12.0, OSX 10.14, watchOS 5.0, tvOS 13.0, *) {
                 os_log(.error, log: OSLog.primary, "Malformed FlatEncoding keypath: %s.", path)
             }
           return
@@ -174,7 +174,7 @@ fileprivate let sharedJSONEncoder = JSONEncoder()
 
 // MARK: - PropertyDiff
 
-@available(iOS 13.0, macOS 10.15, *)
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 extension PropertyDiff: CustomStringConvertible, Encodable {
 
   public var description: String {
@@ -217,7 +217,7 @@ extension PropertyDiff: CustomStringConvertible, Encodable {
 
 // MARK: - Extensions
 
-@available(iOS 13.0, macOS 10.15, *)
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 extension Dictionary where Key == FlatEncoding.KeyPath, Value == PropertyDiff {
   /// Debug description for a change set.
   func storeDebugDecription(short: Bool) -> String {

@@ -1,6 +1,6 @@
 import Foundation
 
-@available(iOS 13.0, macOS 10.15, *)
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public class TransactionOperation<T: AnyTransaction>: AsyncOperation {
   /// The associated transaction.
   public let transaction: T
@@ -37,7 +37,7 @@ public class TransactionOperation<T: AnyTransaction>: AsyncOperation {
 /// Base class for an asynchronous operation.
 /// Subclasses are expected to override the 'execute' function and call
 /// the function 'finish' when they're done with their task.
-@available(iOS 13.0, macOS 10.15, *)
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public class AsyncOperation: Operation {
   /// The completion block type for this operation.
   public typealias CompletionBlock = () -> Void
