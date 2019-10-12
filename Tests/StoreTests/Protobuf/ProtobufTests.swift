@@ -3,7 +3,7 @@ import XCTest
 import SwiftProtobuf
 @testable import Store
 
-@available(iOS 13.0, macOS 10.15, *)
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 struct ProtoAction {
 
   struct SetTitle: ActionType {
@@ -17,7 +17,7 @@ struct ProtoAction {
   }
 }
 
-@available(iOS 13.0, macOS 10.15, *)
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 final class ProtobufTests: XCTestCase {
 
   func testProtobufModelInit() {

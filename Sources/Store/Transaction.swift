@@ -18,7 +18,7 @@ public enum TransactionState {
 }
 
 /// Represents an individual execution of a given action.
-@available(iOS 13.0, macOS 10.15, *)
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public protocol AnyTransaction: class {
   /// Unique action identifier.
   /// An high level description of the action (e.g. `FETCH_USER` or `DELETE_COMMENT`)
@@ -55,7 +55,7 @@ public protocol AnyTransaction: class {
   func run(handler: Dispatcher.TransactionCompletionHandler)
 }
 
-@available(iOS 13.0, macOS 10.15, *)
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 extension AnyTransaction {
   /// This transaction will execute after all of the operations in `transactions` are completed.
   public func depend(on transactions: [AnyTransaction]) {
@@ -65,7 +65,7 @@ extension AnyTransaction {
 
 // MARK: - ActionType
 
-@available(iOS 13.0, macOS 10.15, *)
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public protocol ActionType: Identifiable {
   associatedtype AssociatedStoreType: StoreType
 
@@ -80,7 +80,7 @@ public protocol ActionType: Identifiable {
 
 // MARK: - Implementation
 
-@available(iOS 13.0, macOS 10.15, *)
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public final class Transaction<A: ActionType>: AnyTransaction, Identifiable {
   /// Unique action identifier.
   /// An high level description of the action (e.g. `FETCH_USER` or `DELETE_COMMENT`)
@@ -152,7 +152,7 @@ public final class Transaction<A: ActionType>: AnyTransaction, Identifiable {
   }
 }
 
-@available(iOS 13.0, macOS 10.15, *)
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 extension Array where Element: AnyTransaction {
   /// Execute all of the transactions.
   public func run(handler: Dispatcher.TransactionCompletionHandler = nil) {
