@@ -1,0 +1,13 @@
+os: osx
+language: swift
+osx_image: xcode11
+
+install:
+  - gem install xcpretty
+
+script:
+  - swift package generate-xcodeproj
+  - xcodebuild clean build test -scheme Store -destination 'platform=iOS Simulator,name=iPhone X,OS=13.0' | xcpretty
+  - xcodebuild clean build test -scheme Store -destination 'platform=macOS,arch=x86_64' | xcpretty
+  - xcodebuild clean build test -scheme Store -destination 'platform=tvOS Simulator,name=Apple TV 4K,OS=13.0' | xcpretty
+  - xcodebuild clean build -scheme Store -destination 'platform=watchOS Simulator,name=Apple Watch Series 5 - 44mm,OS=6.0' | xcpretty
