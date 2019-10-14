@@ -1,9 +1,9 @@
-# 𝓢𝓽𝓸𝓻𝓮 [![Swift](https://img.shields.io/badge/swift-5.1-orange.svg?style=flat)](#) [![Build Status](https://travis-ci.org/alexdrone/Store.svg?branch=master)](https://travis-ci.org/alexdrone/Store)
+# 𝘚𝘵𝘰𝘳𝘦 [![Swift](https://img.shields.io/badge/swift-5.1-orange.svg?style=flat)](#) [![Build Status](https://travis-ci.org/alexdrone/Store.svg?branch=master)](https://travis-ci.org/alexdrone/Store)
 <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/dispatch_logo_small.png" width=300 alt="Dispatch" align=right />
 
 Unidirectional, transactional, operation-based Store implementation for Swift and SwiftUI
 
-### 𝐎𝐯𝐞𝐫𝐯𝐢𝐞𝐰
+### 𝙾𝚟𝚎𝚛𝚟𝚒𝚎𝚠
 
 Store eschews MVC in favour of a unidirectional data flow. When a user interacts with a view, the view propagates an action through a central dispatcher, to the various stores that hold the application's data and business logic, which updates all of the views that are affected.
 
@@ -83,7 +83,7 @@ A transaction represent an execution of a given action.
 The dispatcher can run transaction in three different modes: `async`, `sync`, and `mainThread`.
 Additionally the trailing closure of the `run` method can be used to run a completion closure for the actions that have had run.
 
-### 𝐆𝐞𝐭𝐭𝐢𝐧𝐠 𝐬𝐭𝐚𝐫𝐭𝐞𝐝
+### 𝙶𝚎𝚝𝚝𝚒𝚗𝚐 𝚜𝚝𝚊𝚛𝚝𝚎𝚍
 
 TL;DR
 
@@ -158,7 +158,7 @@ And can be registered to a store by calling the `register(middleware:)` method.
 store.register(middleware: MyMiddleware())
 ```
 
-### 𝐒𝐞𝐫𝐢𝐚𝐥𝐢𝐳𝐚𝐭𝐢𝐨𝐧 𝐚𝐧𝐝 𝐃𝐢𝐟𝐟𝐢𝐧𝐠
+### 𝚂𝚎𝚛𝚒𝚊𝚕𝚒𝚣𝚊𝚝𝚒𝚘𝚗 𝚊𝚗𝚍 𝙳𝚒𝚏𝚏𝚒𝚗𝚐
 
 TL;DR
 
@@ -220,7 +220,7 @@ Using a  `SerializableModelType` improves debuggability thanks to the console ou
     · nullableLabel: <removed>
   }
 ```
-### 𝐀𝐝𝐯𝐚𝐧𝐜𝐞𝐝
+### 𝙰𝚍𝚟𝚊𝚗𝚌𝚎𝚍
 
 Dispatch takes advantage of *Operations* and *OperationQueues* and you can define complex dependencies between the operations that are going to be run on your store.
 
