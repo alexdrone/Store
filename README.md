@@ -1,6 +1,7 @@
 # 𝓢𝓽𝓸𝓻𝓮 [![Swift](https://img.shields.io/badge/swift-5.1-orange.svg?style=flat)](#) [![Build Status](https://travis-ci.org/alexdrone/Store.svg?branch=master)](https://travis-ci.org/alexdrone/Store)
 <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/dispatch_logo_small.png" width=300 alt="Dispatch" align=right />
-Unidirectional, transactional, operation-based Store implementation for **Swift** (and **SwiftUI**).
+
+𝒰𝓃𝒾𝒹𝒾𝓇𝑒𝒸𝓉𝒾𝑜𝓃𝒶𝓁, 𝓉𝓇𝒶𝓃𝓈𝒶𝒸𝓉𝒾𝑜𝓃𝒶𝓁, 𝑜𝓅𝑒𝓇𝒶𝓉𝒾𝑜𝓃-𝒷𝒶𝓈𝑒𝒹 𝒮𝓉𝑜𝓇𝑒 𝒾𝓂𝓅𝓁𝑒𝓂𝑒𝓃𝓉𝒶𝓉𝒾𝑜𝓃 𝒻𝑜𝓇 𝒮𝓌𝒾𝒻𝓉 𝒶𝓃𝒹 𝒮𝓌𝒾𝒻𝓉𝒰𝐼
 
 ## Overview
 
