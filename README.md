@@ -3,7 +3,7 @@
 
 Unidirectional, transactional, operation-based Store implementation for Swift and SwiftUI
 
-### 𝙾𝚟𝚎𝚛𝚟𝚒𝚎𝚠
+# 𝙾𝚟𝚎𝚛𝚟𝚒𝚎𝚠
 
 Store eschews MVC in favour of a unidirectional data flow. When a user interacts with a view, the view propagates an action through a central dispatcher, to the various stores that hold the application's data and business logic, which updates all of the views that are affected.
 
@@ -83,7 +83,7 @@ A transaction represent an execution of a given action.
 The dispatcher can run transaction in three different modes: `async`, `sync`, and `mainThread`.
 Additionally the trailing closure of the `run` method can be used to run a completion closure for the actions that have had run.
 
-### 𝙶𝚎𝚝𝚝𝚒𝚗𝚐 𝚜𝚝𝚊𝚛𝚝𝚎𝚍
+# 𝙶𝚎𝚝𝚝𝚒𝚗𝚐 𝚜𝚝𝚊𝚛𝚝𝚎𝚍
 
 TL;DR
 
@@ -158,7 +158,7 @@ And can be registered to a store by calling the `register(middleware:)` method.
 store.register(middleware: MyMiddleware())
 ```
 
-### 𝚂𝚎𝚛𝚒𝚊𝚕𝚒𝚣𝚊𝚝𝚒𝚘𝚗 𝚊𝚗𝚍 𝙳𝚒𝚏𝚏𝚒𝚗𝚐
+# 𝚂𝚎𝚛𝚒𝚊𝚕𝚒𝚣𝚊𝚝𝚒𝚘𝚗 𝚊𝚗𝚍 𝙳𝚒𝚏𝚏𝚒𝚗𝚐
 
 TL;DR
 
@@ -220,7 +220,7 @@ Using a  `SerializableModelType` improves debuggability thanks to the console ou
     · nullableLabel: <removed>
   }
 ```
-### 𝙰𝚍𝚟𝚊𝚗𝚌𝚎𝚍
+# 𝙰𝚍𝚟𝚊𝚗𝚌𝚎𝚍
 
 Dispatch takes advantage of *Operations* and *OperationQueues* and you can define complex dependencies between the operations that are going to be run on your store.
 
