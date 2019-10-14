@@ -1,9 +1,9 @@
-# 𝘚𝘵𝘰𝘳𝘦 [![Swift](https://img.shields.io/badge/swift-5.1-orange.svg?style=flat)](#) [![Build Status](https://travis-ci.org/alexdrone/Store.svg?branch=master)](https://travis-ci.org/alexdrone/Store)
+# 𝙎𝙩𝙤𝙧𝙚 [![Swift](https://img.shields.io/badge/swift-5.1-orange.svg?style=flat)](#) [![Build Status](https://travis-ci.org/alexdrone/Store.svg?branch=master)](https://travis-ci.org/alexdrone/Store)
 <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/dispatch_logo_small.png" width=300 alt="Dispatch" align=right />
 
 Unidirectional, transactional, operation-based Store implementation for Swift and SwiftUI
 
-# 𝙾𝚟𝚎𝚛𝚟𝚒𝚎𝚠
+# Overview
 
 Store eschews MVC in favour of a unidirectional data flow. When a user interacts with a view, the view propagates an action through a central dispatcher, to the various stores that hold the application's data and business logic, which updates all of the views that are affected.
 
@@ -14,7 +14,7 @@ This works especially well with *SwiftUI*'s declarative programming style, which
 - **Transaction**:  A single execution of an action.
 - **Views**: A simple function of your state. This works especially well with *SwiftUI*'s declarative programming style.
 
-### 𝚂𝚝𝚘𝚛𝚎
+### Store
 
 Stores contain the application state and logic. Their role is somewhat similar to a model in a traditional MVC, but they manage the state of many objects — they do not represent a single record of data like ORM models do. More than simply managing a collection of ORM-style objects, stores manage the application state for a particular domain within the application.
 
@@ -28,7 +28,7 @@ struct Counter: ModelType {
 let store = Store<Counter>()
 ```
 
-### 𝙰𝚌𝚝𝚒𝚘𝚗
+### Action
 
 An action represent an operation on the store.
 
@@ -77,13 +77,13 @@ struct IncreaseAction: ActionType {
 }
 ```
 
-### 𝚃𝚛𝚊𝚗𝚜𝚊𝚌𝚝𝚒𝚘𝚗
+### Transaction
 
 A transaction represent an execution of a given action.
 The dispatcher can run transaction in three different modes: `async`, `sync`, and `mainThread`.
 Additionally the trailing closure of the `run` method can be used to run a completion closure for the actions that have had run.
 
-# 𝙶𝚎𝚝𝚝𝚒𝚗𝚐 𝚜𝚝𝚊𝚛𝚝𝚎𝚍
+# Getting started
 
 TL;DR
 
@@ -141,7 +141,7 @@ struct ContentView_Previews : PreviewProvider {
 #endif
 ```
 
-### 𝙼𝚒𝚍𝚍𝚕𝚎𝚠𝚊𝚛𝚎
+### Middleware
 
 Middleware objects must conform to:
 
@@ -220,12 +220,12 @@ Using a  `SerializableModelType` improves debuggability thanks to the console ou
     · nullableLabel: <removed>
   }
 ```
-# 𝙰𝚍𝚟𝚊𝚗𝚌𝚎𝚍
+# Advanced
 
 Dispatch takes advantage of *Operations* and *OperationQueues* and you can define complex dependencies between the operations that are going to be run on your store.
 
 
-### 𝙲𝚑𝚊𝚒𝚗𝚒𝚗𝚐 𝚊𝚌𝚝𝚒𝚘𝚗𝚜
+### Chaining actions
 
 ```swift
 store.run(actions: [
@@ -243,7 +243,7 @@ store.run(action: CounterAction.increase(amount: 1), strategy: .mainThread)
 store.run(action: CounterAction.increase(amount: 1), strategy: .sync)
 ```
 
-### 𝙲𝚘𝚖𝚙𝚕𝚎𝚡 𝙳𝚎𝚙𝚎𝚗𝚍𝚎𝚗𝚌𝚢 𝙶𝚛𝚊𝚙𝚑
+### Complex Dependencies
 
 You can form a dependency graph by manually constructing your transactions and use the `depend(on:)` method.
 
@@ -256,7 +256,7 @@ t3.depend(on: [t2])
 [t1, t2, t3].run()
 ```
 
-### 𝚃𝚛𝚊𝚌𝚔𝚒𝚗𝚐 𝚊 𝚝𝚛𝚊𝚗𝚜𝚊𝚌𝚝𝚒𝚘𝚗 𝚜𝚝𝚊𝚝𝚎
+### Tracking a transaction state
 
 Sometimes it's useful to track the state of a transaction (it might be useful to update the UI state to reflect that).
 
@@ -270,7 +270,7 @@ store.run(action: CounterAction.increase(amount: 1)).$state.sink { state in
 }
 ```
 
-### 𝙳𝚎𝚊𝚕𝚒𝚗𝚐 𝚠𝚒𝚝𝚑 𝚎𝚛𝚛𝚘𝚛𝚜
+### Dealing with errors
 
 ```swift
 struct IncreaseAction: ActionType {
@@ -289,7 +289,7 @@ struct IncreaseAction: ActionType {
 }
 ```
 
-### 𝙲𝚊𝚗𝚌𝚎𝚕𝚕𝚊𝚝𝚒𝚘𝚗
+### Cancellation
 
 ```swift
 store.run(action: CounterAction.increase(amount: 1))
