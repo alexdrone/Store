@@ -57,7 +57,7 @@ public final class LoggerMiddleware: MiddlewareType {
 
 // MARK: - Log Subsystems
 
-@available(iOS 13.0, macOS 10.15, watchOS 3.0, tvOS 13.0, *)
+@available(iOS 12.0, macOS 10.14, watchOS 3.0, tvOS 13.0, *)
 extension OSLog {
   public static let primary = OSLog(subsystem: "io.store.StoreService", category: "primary")
   public static let diff = OSLog(subsystem: "io.store.StoreService", category: "diff")
