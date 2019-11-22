@@ -22,6 +22,7 @@ open class DictionaryEncoder: Encoder {
   }
 
   private func box<T: Encodable>(_ value: T) throws -> Any {
+    /// @note: This results in a EXC_BAD_ACCESS on XCode 11.2 (works again in XCode 11.3).
     try value.encode(to: self)
     return storage.popContainer()
   }
