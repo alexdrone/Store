@@ -270,6 +270,14 @@ store.run(action: CounterAction.increase(amount: 1)).$state.sink { state in
 }
 ```
 
+### Checking the diff state of a specific property after a transaction
+
+```swift
+sink = store.$lastTransactionDiff.sink { diff in
+  diff.query { $0.path.to.my.property }.isChanged() // or .isRemoved(), .isAdded()
+}
+```
+
 ### Dealing with errors
 
 ```swift
