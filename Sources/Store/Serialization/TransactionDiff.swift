@@ -1,6 +1,30 @@
 import Foundation
 import os.log
 
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
+@dynamicMemberLookup public final class Query {
+  private var segments: [String] = []
+  private let transactionDiff: TransactionDiff
+
+  init(transactionDiff: TransactionDiff) {
+    self.transactionDiff = transactionDiff
+  }
+
+  public subscript(dynamicMember member: String) -> Query {
+    segments.append(member)
+    return self
+  }
+  /// Returns a property/property format for a given keypath format.
+  public func toKeyPath() -> FlatEncoding.KeyPath {
+    FlatEncoding.KeyPath(segments: segments)
+  }
+
+  /// Returns `true` if the key path was added in this transaction, `false` otherwsie.
+  public func toPropertyDiff() -> PropertyDiff {
+    transactionDiff.diffs[self.toKeyPath()] ?? .unspecified
+  }
+}
+
 /// A collection of changes associated to a transaction.
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public struct TransactionDiff {
@@ -11,7 +35,15 @@ public struct TransactionDiff {
   ///   user/lastname: <removed>,
   ///   tokens/1:  <changed ⇒ "Bar">,
   /// } ```
-  public let diffs: [FlatEncoding.KeyPath: PropertyDiff]
+  public var allDiffs: [String: PropertyDiff] {
+    var dictionary: [String: PropertyDiff] = [:]
+    for (key, value) in diffs {
+      dictionary[key.path] = value
+    }
+    return dictionary
+  }
+  /// Internal storage.
+  let diffs: [FlatEncoding.KeyPath: PropertyDiff]
 
   /// The identifier of the transaction that caused this change.
   public let transactionId: String
@@ -25,6 +57,11 @@ public struct TransactionDiff {
   /// Returns the `diffs` map encoded as **JSON** data.
   public var json: Data {
     return (try? sharedJSONEncoder.encode(diffs)) ?? Data()
+  }
+
+  /// Queries the diff collection for a keypath change.
+  public func query(_ keyPath: (Query) -> Query) -> PropertyDiff {
+    return keyPath(Query(transactionDiff: self)).toPropertyDiff()
   }
 
   public init(transaction: AnyTransaction, diffs: [FlatEncoding.KeyPath: PropertyDiff]) {
@@ -42,6 +79,49 @@ public enum PropertyDiff {
   case added(new: Codable?)
   case changed(old: Codable?, new: Codable?)
   case removed
+  case unspecified
+
+  /// Returns `true` if the key path was added in this transaction, `false` otherwsie.
+  public func isAdded() -> Bool {
+    switch self {
+    case .added: return true
+    default: return false
+    }
+  }
+
+  /// Returns `true` if the key path was remvoed in this transaction, `false` otherwsie.
+  public func isRemoved() -> Bool {
+    switch self {
+    case .removed: return true
+    default: return false
+    }
+  }
+
+  /// Returns `true` if the key path was chnaged in this transaction, `false` otherwsie.
+  public func isChanged() -> Bool {
+    switch self {
+    case .changed: return true
+    default: return false
+    }
+  }
+
+  /// Returns the new value if the property was just added in this transaction, `nil` otherwise.
+  public func asNewAddedValue<T: Codable>() -> T? {
+    switch self {
+    case .added(let value): return value as? T
+    default: return nil
+    }
+  }
+
+  /// Returns the touple (`old`, `new`) if the value of the property changed in this transaction.
+  public func asNewAddedValue<T: Codable>() -> (T, T)? {
+    switch self {
+    case .changed(let old, let new):
+      guard let newValue = new as? T, let oldValue = old as? T else { return nil }
+      return (oldValue, newValue)
+    default: return nil
+    }
+  }
 }
 
 /// Flatten down the dictionary into a path/value map.
@@ -185,6 +265,8 @@ extension PropertyDiff: CustomStringConvertible, Encodable {
       return "<changed ⇒ (old: \(old ?? "null"), new: \(new ?? "null"))>"
     case .removed:
       return "<removed>"
+    case .unspecified:
+      return "<unspecified>"
     }
   }
 
@@ -195,6 +277,8 @@ extension PropertyDiff: CustomStringConvertible, Encodable {
     case .changed(_, let new):
       return new
     case .removed:
+      return nil
+    case .unspecified:
       return nil
     }
   }
@@ -211,6 +295,8 @@ extension PropertyDiff: CustomStringConvertible, Encodable {
     case .removed:
       var container = encoder.singleValueContainer()
       try container.encodeNil()
+    case .unspecified:
+      return
     }
   }
 }

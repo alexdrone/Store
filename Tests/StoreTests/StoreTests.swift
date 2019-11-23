@@ -52,6 +52,21 @@ final class StoreTests: XCTestCase {
     XCTAssert(store.model.array[1].label == "Foo")
   }
 
+  func testDiffResult() {
+    let transactionExpectation = expectation(description: "Transactions completed.")
+    let store = SerializableStore(model: TestModel(), diffing: .sync)
+    store.register(middleware: LoggerMiddleware())
+    store.run(action: Action.updateLabel(newLabel: "Bar"), mode: .sync)
+    sink = store.$lastTransactionDiff.sink { diff in
+      XCTAssert(diff.query { $0.label }.isChanged() == true)
+      XCTAssert(diff.query { $0.nested.label }.isChanged() == true)
+      XCTAssert(diff.query { $0.nullableLabel }.isRemoved() == true)
+      XCTAssert(diff.query { $0.label }.isRemoved() == false)
+      transactionExpectation.fulfill()
+    }
+    waitForExpectations(timeout: 1)
+  }
+
   func testCancellation() {
     let transactionExpectation = expectation(description: "Transactions canceled.")
     let store = SerializableStore(model: TestModel(), diffing: .sync)
