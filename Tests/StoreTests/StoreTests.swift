@@ -83,6 +83,24 @@ final class StoreTests: XCTestCase {
     Dispatcher.main.cancelAllTransactions()
     waitForExpectations(timeout: 2)
   }
+  
+  func testRunGroupSyntax() {
+    let transactionExpectation = expectation(description: "Transactions canceled.")
+    let store = SerializableStore(model: TestModel(), diffing: .sync)
+    store.register(middleware: LoggerMiddleware())
+    store.runGroup {
+      Transaction(Action.increase(amount: 1), in: store)
+      Concurrent {
+        Transaction(Action.increase(amount: 1), in: store)
+        Transaction(Action.increase(amount: 1), in: store)
+      }
+      Transaction(Action.increase(amount: 1), in: store).with { _ in
+        transactionExpectation.fulfill()
+      }
+      NullTransaction()
+    }
+    waitForExpectations(timeout: 1)
+  }
 
     static var allTests = [
       ("testAsyncOperation", testAsyncOperation),

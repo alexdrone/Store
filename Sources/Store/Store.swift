@@ -129,6 +129,14 @@ open class Store<M>: StoreType, ObservableObject {
     }
     return Transaction<A>(action, in: store).on(mode)
   }
+  
+  /// Shorthand for `transaction(action:mode:)` used in the DSL.
+  public func transaction<A: ActionType, M>(
+    _ action: A,
+    _ mode: Dispatcher.Strategy = .async(nil)
+  ) -> Transaction<A> where A.AssociatedStoreType: Store<M> {
+    transaction(action: action, mode: mode)
+  }
 
   @discardableResult
   public func run<A: ActionType, M>(
@@ -150,5 +158,26 @@ open class Store<M>: StoreType, ObservableObject {
     let transactions = actions.map { transaction(action: $0, mode: mode) }
     transactions.run(handler: handler)
     return transactions
+  }
+  
+  /// Offers a DSL to to run a transaction group.
+  /// The syntax is the following:
+  /// ```
+  /// store.runGroup {
+  ///   Transaction(Action.foo, in: store)
+  ///   Concurrent {
+  ///     Transaction(Action.bar, in: store)
+  ///     Transaction(Action.baz, in: store)
+  ///   }
+  ///   Transaction(Action.foobar, in: store)
+  /// }
+  /// ```
+  /// This group results in the transactions being run in the following order:
+  /// foo -> [ bar + baz] -> foobar
+  public func runGroup(@TransactionSequenceBuilder builder: () -> [AnyTransaction]) {
+    let transactions = builder()
+    for transaction in transactions {
+      transaction.run(handler: nil)
+    }
   }
 }

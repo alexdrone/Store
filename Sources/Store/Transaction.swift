@@ -19,7 +19,7 @@ public enum TransactionState {
 
 /// Represents an individual execution of a given action.
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-public protocol AnyTransaction: class {
+public protocol AnyTransaction: class, TransactionConvertible {
   /// Unique action identifier.
   /// An high level description of the action (e.g. `FETCH_USER` or `DELETE_COMMENT`)
   /// - note: See `ActionType.id`.
@@ -57,6 +57,8 @@ public protocol AnyTransaction: class {
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 extension AnyTransaction {
+  public var transactions: [AnyTransaction] { [self] }
+  
   /// This transaction will execute after all of the operations in `transactions` are completed.
   public func depend(on transactions: [AnyTransaction]) {
     transactions.map { $0.operation }.forEach { operation.addDependency($0) }
@@ -97,6 +99,9 @@ public final class Transaction<A: ActionType>: AnyTransaction, Identifiable {
 
   /// Opaque reference to the transaction store.
   public var opaqueStoreRef: AnyStoreType? { return store }
+  
+  /// Stored handeler.
+  private var handler: Dispatcher.TransactionCompletionHandler = nil
 
   /// Represents the progress of the transaction.
   @Published public var state: TransactionState = .pending {
@@ -145,10 +150,15 @@ public final class Transaction<A: ActionType>: AnyTransaction, Identifiable {
       transaction: self)
     action.reduce(context: context)
   }
+  
+  public func with(handler: Dispatcher.TransactionCompletionHandler) -> Self {
+    self.handler = handler
+    return self
+  }
 
   /// Execute the transaction.
   public func run(handler: Dispatcher.TransactionCompletionHandler = nil) {
-    Dispatcher.main.run(transactions: [self], handler: handler)
+    Dispatcher.main.run(transactions: [self], handler: handler ?? self.handler)
   }
 }
 
