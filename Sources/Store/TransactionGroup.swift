@@ -47,19 +47,4 @@ public struct NullTransaction: TransactionConvertible {
   /// The wrapped transactions.
   public var transactions: [AnyTransaction] = []
 }
-
-infix operator +
-
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-extension TransactionConvertible {
-  // Transaction1 & Transaction2 results in the two transactions being executed concurrently.
-  public static func +(
-    lhs: TransactionConvertible,
-    rhs: TransactionConvertible
-  ) -> TransactionConvertible {
-    var transactions = lhs.transactions
-    transactions.append(contentsOf: rhs.transactions)
-    return Concurrent(transactions: transactions)
-  }
-}
-
+s
