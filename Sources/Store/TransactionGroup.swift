@@ -47,4 +47,4 @@ public struct NullTransaction: TransactionConvertible {
   /// The wrapped transactions.
   public var transactions: [AnyTransaction] = []
 }
-s
+
