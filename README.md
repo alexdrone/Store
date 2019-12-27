@@ -305,10 +305,8 @@ Similiarly using the `runGroup` DSL.
 
 func calledOften() {
   store.runGroup {
-    Transaction<MyAction>(.doFoo, in: store)
+    Transaction(.myAction, in: store)
       .throttle(1)
-    Transaction<MyAction>(.doBar, in: store)
-       .throttle(1)
   }
 }
 
