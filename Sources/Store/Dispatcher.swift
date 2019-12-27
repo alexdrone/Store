@@ -31,9 +31,13 @@ public final class Dispatcher {
   /// The background queue used for the .async mode.
   private let backgroundQueue = OperationQueue()
 
+  /// Action identifier to `Throttler` map.
+  private var throttlersToActionIdMap: [String: Throttler] = [:]
+
   /// User-defined operation queues.
   @Atomic private var queues: [String: OperationQueue] = [:]
 
+  /// Run a set of transaction concurrently.
   public func run(
     transactions: [AnyTransaction],
     handler: TransactionCompletionHandler = nil
@@ -50,8 +54,25 @@ public final class Dispatcher {
     }
     for transaction in transactions {
       transaction.error = dispatchGroupError
-      run(transaction: transaction)
+      if let throttler = throttlersToActionIdMap[transaction.actionId] {
+        throttler.throttle(
+          execution: { [weak self] in self?.run(transaction: transaction) },
+          cancellation: {
+            transaction.operation.completionBlock = nil
+            transaction.operation.finish()
+        })
+      } else {
+        run(transaction: transaction)
+      }
     }
+  }
+
+  /// Throttle an action for a specified delay time.
+  public func throttle(actionId: String, minimumDelay: TimeInterval) {
+    guard throttlersToActionIdMap[actionId] == nil else {
+      return
+    }
+    throttlersToActionIdMap[actionId] = Throttler(minimumDelay: minimumDelay)
   }
 
   private func run(transaction: AnyTransaction) {

@@ -131,8 +131,16 @@ public final class Transaction<A: ActionType>: AnyTransaction, Identifiable {
   }
 
   /// Dispatch strategy modifier.
-  public func on(_ queueWithStrategy: Dispatcher.Strategy) -> Transaction<A> {
+  @discardableResult
+  public func on(_ queueWithStrategy: Dispatcher.Strategy) -> Self {
     self.strategy = queueWithStrategy
+    return self
+  }
+
+  /// Throttle invocation modifier.
+  @discardableResult
+  public func throttle(_ minimumDelay: TimeInterval) -> Self {
+    Dispatcher.main.throttle(actionId: actionId, minimumDelay: minimumDelay)
     return self
   }
 

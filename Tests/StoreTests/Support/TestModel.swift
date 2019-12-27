@@ -19,6 +19,7 @@ struct TestModel: SerializableModelType {
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 enum Action: ActionType {
   case increase(amount: Int)
+  case throttleIncrease(amount: Int)
   case decrease(amount: Int)
   case updateLabel(newLabel: String)
   case setArray(index: Int, value: String)
@@ -26,6 +27,7 @@ enum Action: ActionType {
   var id: String {
     switch self {
     case .increase(_): return "INCREASE"
+    case .throttleIncrease(_): return "THROTTLE_INCREASE"
     case .decrease(_): return "DECREASE"
     case .updateLabel(_): return "UPDATE_LABEL"
     case .setArray(_): return "SET_ARRAY"
@@ -38,6 +40,8 @@ enum Action: ActionType {
     }
     switch self {
     case .increase(let amount):
+      context.reduceModel { $0.count += amount }
+    case .throttleIncrease(let amount):
       context.reduceModel { $0.count += amount }
     case .decrease(let amount):
       context.reduceModel { $0.count -= amount }

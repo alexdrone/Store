@@ -142,10 +142,14 @@ open class Store<M>: StoreType, ObservableObject {
   public func run<A: ActionType, M>(
     action: A,
     mode: Dispatcher.Strategy = .async(nil),
+    throttle: TimeInterval = 0,
     handler: Dispatcher.TransactionCompletionHandler = nil
   ) -> Transaction<A> where A.AssociatedStoreType: Store<M> {
     let tranctionObj = transaction(action: action, mode: mode)
     tranctionObj.run(handler: handler)
+    if throttle > TimeInterval.ulpOfOne {
+      tranctionObj.throttle(throttle)
+    }
     return tranctionObj
   }
 
