@@ -141,6 +141,33 @@ struct ContentView_Previews : PreviewProvider {
 #endif
 ```
 
+### RunGroup DSL 
+
+Actions can be chained using the `Store.runGroup` DSL. 
+
+
+```swift
+store.runGroup {
+  Transaction<MyAction>(.prepareFoo, in: store) // 1
+  Transaction<MyAction>(.prepareBar, in: store) // 2
+  
+  Concurrent {
+    Transaction<SomeAPIAction>(.dowloadFoo, in: store) // 3
+    Transaction<SomeAPIAction>(.downloadBar, in: store) // 4
+  }
+  Transaction<MyAction>(.finalize, in: store) // 5
+}
+
+```
+
+This is equivalent to:
+
+```
+Run 1 -> Run 2 -> Run 3 and 4 concurrently -> Run 5
+
+```
+
+
 ### Middleware
 
 Middleware objects must conform to:
@@ -245,6 +272,9 @@ store.run(action: CounterAction.increase(amount: 1), strategy: .sync)
 
 ### Complex Dependencies
 
+Dependencies can be expressed using the `runGroup` DSL *(see above)*.
+
+
 You can form a dependency graph by manually constructing your transactions and use the `depend(on:)` method.
 
 ```swift
@@ -254,6 +284,32 @@ let t3 = store.transaction(.showOrdern)
 t2.depend(on: [t1])
 t3.depend(on: [t2])
 [t1, t2, t3].run()
+```
+
+### Throttling transactions
+
+Transactions can express a throttle delay.
+
+```swift
+
+func calledOften() {
+  store.run(.myAction, throttle: 0.5) 
+}
+
+```
+
+This causes `.myAction` to be executed at max once every 0.5 seconds.
+Similiarly using the `runGroup` DSL.
+
+```swift
+
+func calledOften() {
+  store.runGroup {
+    Transaction(.myAction, in: store)
+      .throttle(1)
+  }
+}
+
 ```
 
 ### Tracking a transaction state
