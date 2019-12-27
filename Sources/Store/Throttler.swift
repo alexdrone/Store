@@ -24,7 +24,7 @@ public class Throttler {
       self?.previousRun = Date()
       execution()
     }
-    cancellationItem = DispatchWorkItem() { [weak self] in
+    cancellationItem = DispatchWorkItem() {
       cancellation()
     }
     // If the time since the previous run is more than the required minimum delay
