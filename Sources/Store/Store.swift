@@ -61,30 +61,22 @@ open class Store<M>: StoreType, ObservableObject {
   public var middleware: [MiddlewareType] = []
 
   /// Syncronizes the access to the state object.
-  private let stateLock = Lock()
+  private let _stateLock = Lock()
 
   public init(model: M) {
     self.model = model
   }
 
-  private func onMainThread(_ closure: () -> Void) {
-    if Thread.isMainThread {
-      closure()
-    } else {
-      DispatchQueue.main.sync(execute: closure)
-    }
-  }
-
   /// Atomically update the model.
   open func reduceModel(transaction: AnyTransaction? = nil, closure: (inout M) -> (Void)) {
-    self.stateLock.lock()
+    self._stateLock.lock()
     let old = self.model
     let new = assign(model, changes: closure)
-    onMainThread {
+    _onMainThread {
       self.model = new
     }
     didUpdateModel(transaction: transaction, old: old, new: new)
-    self.stateLock.unlock()
+    self._stateLock.unlock()
   }
 
   open func didUpdateModel(transaction: AnyTransaction?, old: M, new: M) {
@@ -94,7 +86,7 @@ open class Store<M>: StoreType, ObservableObject {
   /// Notify the store observers for the change of this store.
   /// - note: Observers are always notified on the main thread.
   open func notifyObservers() {
-    onMainThread {
+    _onMainThread {
       objectWillChange.send()
     }
   }
@@ -168,12 +160,12 @@ open class Store<M>: StoreType, ObservableObject {
   /// The syntax is the following:
   /// ```
   /// store.runGroup {
-  ///   Transaction(Action.foo, in: store)
+  ///   Transaction(Action.foo)
   ///   Concurrent {
-  ///     Transaction(Action.bar, in: store)
-  ///     Transaction(Action.baz, in: store)
+  ///     Transaction(Action.bar)
+  ///     Transaction(Action.baz)
   ///   }
-  ///   Transaction(Action.foobar, in: store)
+  ///   Transaction(Action.foobar)
   /// }
   /// ```
   /// This group results in the transactions being run in the following order:
@@ -181,7 +173,16 @@ open class Store<M>: StoreType, ObservableObject {
   public func runGroup(@TransactionSequenceBuilder builder: () -> [AnyTransaction]) {
     let transactions = builder()
     for transaction in transactions {
+      transaction.opaqueStoreRef = self
       transaction.run(handler: nil)
+    }
+  }
+
+  private func _onMainThread(_ closure: () -> Void) {
+    if Thread.isMainThread {
+      closure()
+    } else {
+      DispatchQueue.main.sync(execute: closure)
     }
   }
 }

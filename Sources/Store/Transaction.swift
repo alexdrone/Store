@@ -36,7 +36,7 @@ public protocol AnyTransaction: class, TransactionConvertible {
   var error: Dispatcher.TransactionGroupError? { get set }
 
   /// Opaque reference to the transaction store.
-  var opaqueStoreRef: AnyStoreType? { get }
+  var opaqueStoreRef: AnyStoreType? { get set }
 
   /// Represents the progress of the transaction.
   /// Trackable `@Published` property.
@@ -50,6 +50,9 @@ public protocol AnyTransaction: class, TransactionConvertible {
 
   /// - note: Performs `ActionType.perform(context:)`.
   func perform(operation: AsyncOperation)
+
+  /// Throttle invocation modifier.
+  func throttle(_ minimumDelay: TimeInterval) -> Self
 
   /// Execute the transaction.
   func run(handler: Dispatcher.TransactionCompletionHandler)
@@ -98,10 +101,16 @@ public final class Transaction<A: ActionType>: AnyTransaction, Identifiable {
   public var error: Dispatcher.TransactionGroupError?
 
   /// Opaque reference to the transaction store.
-  public var opaqueStoreRef: AnyStoreType? { return store }
+  public var opaqueStoreRef: AnyStoreType? {
+    set {
+      guard let newValue = newValue as? A.AssociatedStoreType else { return }
+      store = newValue
+    }
+    get { store }
+  }
   
   /// Stored handeler.
-  private var handler: Dispatcher.TransactionCompletionHandler = nil
+  private var _handler: Dispatcher.TransactionCompletionHandler = nil
 
   /// Represents the progress of the transaction.
   @Published public var state: TransactionState = .pending {
@@ -113,7 +122,7 @@ public final class Transaction<A: ActionType>: AnyTransaction, Identifiable {
   /// Returns the aynchronous operation that is going to be executed with this transaction.
   public lazy var operation: AsyncOperation = {
     let operation = TransactionOperation(transaction: self)
-    operation.finishBlock = { [weak self] in
+    operation._finishBlock = { [weak self] in
       self?.store?.notifyObservers()
     }
     return operation
@@ -125,7 +134,7 @@ public final class Transaction<A: ActionType>: AnyTransaction, Identifiable {
   /// The action associated with this transaction.
   public let action: A
 
-  init(_ action: A, in store: A.AssociatedStoreType?) {
+  init(_ action: A, in store: A.AssociatedStoreType? = nil) {
     self.store = store
     self.action = action
   }
@@ -159,14 +168,14 @@ public final class Transaction<A: ActionType>: AnyTransaction, Identifiable {
     action.reduce(context: context)
   }
   
-  public func with(handler: Dispatcher.TransactionCompletionHandler) -> Self {
-    self.handler = handler
+  public func then(handler: Dispatcher.TransactionCompletionHandler) -> Self {
+    self._handler = handler
     return self
   }
 
   /// Execute the transaction.
   public func run(handler: Dispatcher.TransactionCompletionHandler = nil) {
-    Dispatcher.main.run(transactions: [self], handler: handler ?? self.handler)
+    Dispatcher.main.run(transactions: [self], handler: handler ?? self._handler)
   }
 }
 

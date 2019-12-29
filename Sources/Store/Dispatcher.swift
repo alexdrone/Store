@@ -17,10 +17,10 @@ public final class Dispatcher {
 
   public final class TransactionGroupError {
     /// The last error logged by an operation in the current dispatch group (if applicable).
-    @Atomic var lastError: Error? = nil
+    @Atomic public var lastError: Error? = nil
 
     /// Optional user defined map.
-    @Atomic var userInfo: [String: Any] = [:]
+    @Atomic public var userInfo: [String: Any] = [:]
   }
 
   public typealias TransactionCompletionHandler = ((TransactionGroupError) -> Void)?
@@ -29,13 +29,13 @@ public final class Dispatcher {
   public static let main = Dispatcher()
 
   /// The background queue used for the .async mode.
-  private let backgroundQueue = OperationQueue()
+  private let _backgroundQueue = OperationQueue()
 
   /// Action identifier to `Throttler` map.
-  private var throttlersToActionIdMap: [String: Throttler] = [:]
+  private var _throttlersToActionIdMap: [String: Throttler] = [:]
 
   /// User-defined operation queues.
-  @Atomic private var queues: [String: OperationQueue] = [:]
+  @Atomic private var _queues: [String: OperationQueue] = [:]
 
   /// Run a set of transaction concurrently.
   public func run(
@@ -54,28 +54,53 @@ public final class Dispatcher {
     }
     for transaction in transactions {
       transaction.error = dispatchGroupError
-      if let throttler = throttlersToActionIdMap[transaction.actionId] {
+      if let throttler = _throttlersToActionIdMap[transaction.actionId] {
         throttler.throttle(
-          execution: { [weak self] in self?.run(transaction: transaction) },
+          execution: { [weak self] in self?._run(transaction: transaction) },
           cancellation: {
             transaction.operation.completionBlock = nil
             transaction.operation.finish()
         })
       } else {
-        run(transaction: transaction)
+        _run(transaction: transaction)
       }
     }
   }
 
   /// Throttle an action for a specified delay time.
   public func throttle(actionId: String, minimumDelay: TimeInterval) {
-    guard throttlersToActionIdMap[actionId] == nil else {
+    guard _throttlersToActionIdMap[actionId] == nil else {
       return
     }
-    throttlersToActionIdMap[actionId] = Throttler(minimumDelay: minimumDelay)
+    _throttlersToActionIdMap[actionId] = Throttler(minimumDelay: minimumDelay)
   }
 
-  private func run(transaction: AnyTransaction) {
+  /// Returns the queue registered with the given identifier
+  /// - note: If no identifier is passed as argument, the global background queue is returned.
+  public func operationQueue(id: String? = nil) -> OperationQueue? {
+    guard let id = id else {
+      return _backgroundQueue
+    }
+    let queue = _queues[id]
+    if queue == nil {
+      os_log(.error, log: OSLog.primary, " No queue registered with identifier: %s.", id)
+    }
+    return queue
+  }
+
+  /// Registers a new operation queue.
+  public func registerOperationQueue(id: String, queue: OperationQueue) {
+    __queues.mutate { $0[id] = queue }
+  }
+
+  /// Cancel all of the operations of the given queue.
+  /// - note: if no identifier is passed as argument, all of the operations on the global queue
+  /// will be canceled.
+  public func cancelAllTransactions(queueId: String? = nil) {
+    operationQueue(id: queueId)?.cancelAllOperations()
+  }
+
+  private func _run(transaction: AnyTransaction) {
     let operation = transaction.operation
     switch transaction.strategy {
     case .mainThread:
@@ -90,57 +115,32 @@ public final class Dispatcher {
       operation.start()
       operation.waitUntilFinished()
     case .async(let id):
-      let queue = operationQueue(id: id) ?? backgroundQueue
+      let queue = operationQueue(id: id) ?? _backgroundQueue
       queue.addOperation(operation)
     }
-  }
-
-  /// Returns the queue registered with the given identifier
-  /// - note: If no identifier is passed as argument, the global background queue is returned.
-  public func operationQueue(id: String? = nil) -> OperationQueue? {
-    guard let id = id else {
-      return backgroundQueue
-    }
-    let queue = queues[id]
-    if queue == nil {
-      os_log(.error, log: OSLog.primary, " No queue registered with identifier: %s.", id)
-    }
-    return queue
-  }
-
-  /// Registers a new operation queue.
-  public func registerOperationQueue(id: String, queue: OperationQueue) {
-    _queues.mutate { $0[id] = queue }
-  }
-
-  /// Cancel all of the operations of the given queue.
-  /// - note: if no identifier is passed as argument, all of the operations on the global queue
-  /// will be canceled.
-  public func cancelAllTransactions(queueId: String? = nil) {
-    operationQueue(id: queueId)?.cancelAllOperations()
   }
 }
 
 @available(iOS 2.0, OSX 10.0, tvOS 9.0, watchOS 2.0, *)
 @propertyWrapper
 public struct Atomic<T> {
-  let queue = DispatchQueue(label: "Atomic write access queue", attributes: .concurrent)
-  var storage: T
+  private let _queue = DispatchQueue(label: "Atomic write access queue", attributes: .concurrent)
+  private var _storage: T
 
   public init(wrappedValue value: T) {
-    self.storage = value
+    self._storage = value
   }
 
   public var wrappedValue: T {
-    get { return queue.sync { storage } }
-    set { queue.sync(flags: .barrier) { storage = newValue } }
+    get { return _queue.sync { _storage } }
+    set { _queue.sync(flags: .barrier) { _storage = newValue } }
   }
 
   /// Atomically mutate the variable (read-modify-write).
   /// - parameter action: A closure executed with atomic in-out access to the wrapped property.
   public mutating func mutate(_ mutation: (inout T) throws -> Void) rethrows {
-    return try queue.sync(flags: .barrier) {
-      try mutation(&storage)
+    return try _queue.sync(flags: .barrier) {
+      try mutation(&_storage)
     }
   }
 }

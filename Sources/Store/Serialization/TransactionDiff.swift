@@ -135,7 +135,7 @@ public enum PropertyDiff {
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public func flatten(encodedModel: EncodedDictionary) -> FlatEncoding.Dictionary {
   var result: FlatEncoding.Dictionary = [:]
-  FlatEncoding.flatten(path: "", node: .dictionary(encodedModel), result: &result)
+  FlatEncoding._flatten(path: "", node: .dictionary(encodedModel), result: &result)
   return result
 }
 public enum FlatEncoding {
@@ -219,13 +219,13 @@ public enum FlatEncoding {
 
   /// Private recursive flatten method.
   /// - note: See `flatten(encodedModel:)`.
-  fileprivate static func flatten(path: String, node: Node, result: inout Dictionary) {
+  fileprivate static func _flatten(path: String, node: Node, result: inout Dictionary) {
     let formattedPath = path.isEmpty ? "" : "\(path)\(KeyPath.separator)"
     func process(path: String, value: Any) {
       if let dictionary = value as? [String: Any] {
-        flatten(path: path, node: .dictionary(dictionary), result: &result)
+        _flatten(path: path, node: .dictionary(dictionary), result: &result)
       } else if let array = value as? [Any] {
-        flatten(path: path, node: .array(array), result: &result)
+        _flatten(path: path, node: .array(array), result: &result)
       } else {
         guard let keyPath = KeyPath(path) else {
             if #available(iOS 12.0, OSX 10.14, watchOS 5.0, tvOS 13.0, *) {

@@ -37,6 +37,11 @@ public final class SignpostTransaction: AnyTransaction {
     return self
   }
 
+  public func throttle(_ minimumDelay: TimeInterval) -> Self {
+    // No op.
+    return self
+  }
+
   init(singpost: String) {
     self.actionId = singpost
   }

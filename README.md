@@ -148,12 +148,12 @@ Actions can be chained using the `Store.runGroup` DSL.
 
 ```swift
 store.runGroup {
-  Transaction<MyAction>(.prepareFoo, in: store) // 1
-  Transaction<MyAction>(.prepareBar, in: store) // 2
+  Transaction<MyAction>(.prepareFoo) // 1
+  Transaction<MyAction>(.prepareBar) // 2
   
   Concurrent {
-    Transaction<SomeAPIAction>(.dowloadFoo, in: store) // 3
-    Transaction<SomeAPIAction>(.downloadBar, in: store) // 4
+    Transaction<SomeAPIAction>(.dowloadFoo) // 3
+    Transaction<SomeAPIAction>(.downloadBar) // 4
   }
   Transaction<MyAction>(.finalize, in: store) // 5
 }
@@ -305,8 +305,11 @@ Similiarly using the `runGroup` DSL.
 
 func calledOften() {
   store.runGroup {
-    Transaction(.myAction, in: store)
-      .throttle(1)
+    Throttle(0.5) {
+      Transaction(.myAction(amount: 1))
+      Transaction(.myAction(amount: 1))
+    }
+    Transaction(.someOtherAction).throttle(1)
   }
 }
 

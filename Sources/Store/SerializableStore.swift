@@ -27,18 +27,18 @@ open class SerializableStore<M: SerializableModelType>: Store<M> {
   public let transactionDiffStrategy: TransactionDiffStrategy
 
   /// Serial queue used to run the diffing routine.
-  private let queue = DispatchQueue(label: "io.store.serializable")
+  private let _queue = DispatchQueue(label: "io.store.serializable")
 
   /// Set of `transaction.id` for all of the transaction that have run of this store.
-  private var transactionIdsHistory = Set<String>()
+  private var _transactionIdsHistory = Set<String>()
 
   /// Last serialized snapshot for the model.
-  private var lastModelSnapshot: [FlatEncoding.KeyPath: Codable?] = [:]
+  private var _lastModelSnapshot: [FlatEncoding.KeyPath: Codable?] = [:]
 
   public init(model: M, diffing: TransactionDiffStrategy = .async) {
     self.transactionDiffStrategy = diffing
     super.init(model: model)
-    self.lastModelSnapshot = model.encodeFlatDictionary()
+    self._lastModelSnapshot = model.encodeFlatDictionary()
   }
 
   override open func reduceModel(transaction: AnyTransaction?, closure: (inout M) -> (Void)) {
@@ -53,34 +53,34 @@ open class SerializableStore<M: SerializableModelType>: Store<M> {
     func dispatch(option: TransactionDiffStrategy, execute: @escaping () -> Void) {
       switch option {
       case .sync:
-        queue.sync(execute: execute)
+        _queue.sync(execute: execute)
       case .async:
-        queue.async(execute: execute)
+        _queue.async(execute: execute)
       case .none:
         return
       }
     }
     dispatch(option: transactionDiffStrategy) {
-      self.transactionIdsHistory.insert(transaction.id)
+      self._transactionIdsHistory.insert(transaction.id)
       /// The resulting dictionary won't be nested and all of the keys will be paths.
       let encodedModel: FlatEncoding.Dictionary = new.encodeFlatDictionary()
       var diffs: [FlatEncoding.KeyPath: PropertyDiff] = [:]
       for (key, value) in encodedModel {
-        // The (`keyPath`, `value`) pair was not in the previous lastModelSnapshot.
-        if self.lastModelSnapshot[key] == nil {
+        // The (`keyPath`, `value`) pair was not in the previous _lastModelSnapshot.
+        if self._lastModelSnapshot[key] == nil {
           diffs[key] = .added(new: value)
           // The (`keyPath`, `value`) pair has changed value.
-        } else if let old = self.lastModelSnapshot[key], !dynamicEqual(lhs: old, rhs: value) {
+        } else if let old = self._lastModelSnapshot[key], !dynamicEqual(lhs: old, rhs: value) {
           diffs[key] = .changed(old: old, new: value)
         }
       }
-      // The (`keyPath`, `value`) was removed from the lastModelSnapshot.
-      for (key, _) in self.lastModelSnapshot where encodedModel[key] == nil {
+      // The (`keyPath`, `value`) was removed from the _lastModelSnapshot.
+      for (key, _) in self._lastModelSnapshot where encodedModel[key] == nil {
         diffs[key] = .removed
       }
       // Updates the publisher.
       self.lastTransactionDiff = TransactionDiff(transaction: transaction, diffs: diffs)
-      self.lastModelSnapshot = encodedModel
+      self._lastModelSnapshot = encodedModel
 
       os_log(
         .debug, log: OSLog.diff, "▩ 𝘿𝙄𝙁𝙁 (%s) %s %s",
@@ -101,7 +101,7 @@ public protocol SerializableModelType: Codable {
 extension SerializableModelType {
   /// Encodes the model into a dictionary.
   public func encode() -> EncodedDictionary {
-    let result = serialize(model: self)
+    let result = _serialize(model: self)
     return result
   }
 
@@ -115,13 +115,13 @@ extension SerializableModelType {
   ///   tokens/1: "bar"
   /// } ```
   public func encodeFlatDictionary() -> FlatEncoding.Dictionary {
-    let result = serialize(model: self)
+    let result = _serialize(model: self)
     return flatten(encodedModel: result)
   }
 
   /// Decodes the model from a dictionary.
   public static func decode(dictionary: EncodedDictionary) -> Self {
-    return deserialize(dictionary: dictionary)
+    return _deserialize(dictionary: dictionary)
   }
 }
 
@@ -129,7 +129,7 @@ extension SerializableModelType {
 
 /// Serialize the model passed as argument.
 /// - note: If the serialization fails, an empty dictionary is returned instead.
-private func serialize<S: SerializableModelType>(model: S) -> EncodedDictionary {
+private func _serialize<S: SerializableModelType>(model: S) -> EncodedDictionary {
   do {
     let dictionary: [String: Any] = try DictionaryEncoder().encode(model)
     return dictionary
@@ -140,7 +140,7 @@ private func serialize<S: SerializableModelType>(model: S) -> EncodedDictionary 
 
 /// Deserialize the dictionary and returns a store of type `S`.
 /// - note: If the deserialization fails, an empty model is returned instead.
-private func deserialize<S: SerializableModelType>(dictionary: EncodedDictionary) -> S {
+private func _deserialize<S: SerializableModelType>(dictionary: EncodedDictionary) -> S {
   do {
     let model = try DictionaryDecoder().decode(S.self, from: dictionary)
     return model

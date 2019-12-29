@@ -43,6 +43,38 @@ public struct Concurrent: TransactionConvertible {
 }
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
+public struct Throttle: TransactionConvertible {
+  /// The wrapped transactions.
+  public let transactions: [AnyTransaction]
+  /// The throttle dalay.
+  public let  minimumDelay: TimeInterval
+
+  public init(
+    _ minimumDelay: TimeInterval,
+    @TransactionSequenceBuilder builder: () -> [AnyTransaction]
+  ) {
+    self.minimumDelay = minimumDelay
+    self.transactions = builder()
+    _throttle()
+  }
+
+  public init(
+     _ minimumDelay: TimeInterval,
+     transactions: [AnyTransaction]
+  ) {
+    self.minimumDelay = minimumDelay
+    self.transactions = transactions
+    _throttle()
+  }
+
+  private func _throttle() {
+    for transaction in transactions {
+      let _ = transaction.throttle(minimumDelay)
+    }
+  }
+}
+
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public struct NullTransaction: TransactionConvertible {
   /// The wrapped transactions.
   public var transactions: [AnyTransaction] = []

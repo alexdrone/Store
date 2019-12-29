@@ -89,12 +89,12 @@ final class StoreTests: XCTestCase {
     let store = SerializableStore(model: TestModel(), diffing: .sync)
     store.register(middleware: LoggerMiddleware())
     store.runGroup {
-      Transaction<Action>(.increase(amount: 1), in: store)
+      Transaction<Action>(.increase(amount: 1))
       Concurrent {
-        Transaction<Action>(.increase(amount: 1), in: store)
-        Transaction<Action>(.increase(amount: 1), in: store)
+        Transaction<Action>(.increase(amount: 1))
+        Transaction<Action>(.increase(amount: 1))
       }
-      Transaction<Action>(.increase(amount: 1), in: store).with { _ in
+      Transaction<Action>(.increase(amount: 1)).then { _ in
         transactionExpectation.fulfill()
       }
     }
@@ -104,16 +104,14 @@ final class StoreTests: XCTestCase {
   func testThrottle() {
     let transactionExpectation = expectation(description: "Transactions group finished.")
     let store = SerializableStore(model: TestModel(), diffing: .sync)
-    let throttle: TimeInterval = 1
     store.register(middleware: LoggerMiddleware())
     store.runGroup {
-      Transaction<Action>(.throttleIncrease(amount: 1), in: store)
-        .throttle(throttle)
-      Transaction<Action>(.throttleIncrease(amount: 1), in: store)
-        .throttle(throttle)
-      Transaction<Action>(.throttleIncrease(amount: 1), in: store)
-        .throttle(throttle)
-      Transaction<Action>(.updateLabel(newLabel: "Test"), in: store).with { _ in
+      Throttle(1.0) {
+        Transaction<Action>(.throttleIncrease(amount: 1))
+        Transaction<Action>(.throttleIncrease(amount: 1))
+        Transaction<Action>(.throttleIncrease(amount: 1))
+      }
+      Transaction<Action>(.updateLabel(newLabel: "Test"), in: store).then { _ in
         // Just one of the two throttleIncrease is invoked.
         XCTAssert(store.model.count == 1)
         transactionExpectation.fulfill()

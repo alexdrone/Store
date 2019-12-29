@@ -7,7 +7,7 @@ public class TransactionOperation<T: AnyTransaction>: AsyncOperation {
 
   /// The completion block type for this operation.
   /// - note: Internal only.
-  var finishBlock: CompletionBlock = {}
+  internal var _finishBlock: CompletionBlock = {}
 
   /// Constructs a new action operation.
   /// - parameter transaction: The transaction for this operation.
@@ -29,7 +29,7 @@ public class TransactionOperation<T: AnyTransaction>: AsyncOperation {
   /// This function should be called inside ‘execute’ when the task for this operation is completed.
   override public func finish() {
     transaction.state = isCancelled ? .canceled : .completed
-    finishBlock()
+    _finishBlock()
     super.finish()
   }
 }
