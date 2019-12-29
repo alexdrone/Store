@@ -1,4 +1,4 @@
-# 𝕊𝕥𝕠𝕣𝕖 [![Swift](https://img.shields.io/badge/swift-5.1-orange.svg?style=flat)](#) [![Build Status](https://travis-ci.org/alexdrone/Store.svg?branch=master)](https://travis-ci.org/alexdrone/Store) [![Cov](https://img.shields.io/badge/coverage-53.9%25-blue.svg?style=flat)](#) 
+# ＳＴＯＲＥ /stɔː/ [![Swift](https://img.shields.io/badge/swift-5.1-orange.svg?style=flat)](#) [![Build Status](https://travis-ci.org/alexdrone/Store.svg?branch=master)](https://travis-ci.org/alexdrone/Store) [![Cov](https://img.shields.io/badge/coverage-53.9%25-blue.svg?style=flat)](#) 
 <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/dispatch_logo_small.png" width=300 alt="Dispatch" align=right />
 
 Unidirectional, transactional, operation-based Store implementation for Swift and SwiftUI
