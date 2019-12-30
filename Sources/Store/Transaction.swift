@@ -36,7 +36,7 @@ public protocol TransactionProtocol: class, TransactionConvertible {
   var error: Dispatcher.TransactionGroupError? { get set }
 
   /// Opaque reference to the transaction store.
-  var opaqueStoreRef: AnyStoreType? { get set }
+  var opaqueStoreRef: AnyStoreProtocol? { get set }
 
   /// Represents the progress of the transaction.
   /// Trackable `@Published` property.
@@ -72,7 +72,7 @@ extension TransactionProtocol {
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public protocol ActionType: Identifiable {
-  associatedtype AssociatedStoreType: StoreType
+  associatedtype AssociatedStoreType: StoreProtocol
 
   /// Unique action identifier.
   /// An high level description of the action (e.g. `FETCH_USER` or `DELETE_COMMENT`)
@@ -101,7 +101,7 @@ public final class Transaction<A: ActionType>: TransactionProtocol, Identifiable
   public var error: Dispatcher.TransactionGroupError?
 
   /// Opaque reference to the transaction store.
-  public var opaqueStoreRef: AnyStoreType? {
+  public var opaqueStoreRef: AnyStoreProtocol? {
     set {
       guard let newValue = newValue as? A.AssociatedStoreType else { return }
       store = newValue

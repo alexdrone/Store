@@ -2,9 +2,9 @@ import Combine
 import Foundation
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-public protocol AnyStoreType: class {
+public protocol AnyStoreProtocol: class {
   /// Opaque reference to the model wrapped by this store.
-  var modelRef: Any { get }
+  var opaqueModelRef: Any { get }
 
   /// All of the registered middleware.
   var middleware: [MiddlewareType] { get }
@@ -25,7 +25,7 @@ public protocol AnyStoreType: class {
 }
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-public protocol StoreType: AnyStoreType {
+public protocol StoreProtocol: AnyStoreProtocol {
   associatedtype ModelType
 
   /// The current state of this store.
@@ -36,12 +36,12 @@ public protocol StoreType: AnyStoreType {
 }
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-open class Store<M>: StoreType, ObservableObject {
+open class Store<M>: StoreProtocol, ObservableObject {
   /// The current state of this store.
   @Published public private(set) var model: M
 
   /// Opaque reference to the model wrapped by this store.
-  public var modelRef: Any { return model }
+  public var opaqueModelRef: Any { return model }
 
   /// All of the registered middleware.
   public var middleware: [MiddlewareType] = []

@@ -27,7 +27,7 @@ public final class SignpostTransaction: TransactionProtocol {
   }
 
   /// No associated store ref.
-  public var opaqueStoreRef: AnyStoreType? = nil
+  public var opaqueStoreRef: AnyStoreProtocol? = nil
 
   /// Represents the progress of the transaction.
   public var state: TransactionState = .pending
