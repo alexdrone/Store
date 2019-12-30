@@ -7,7 +7,7 @@ import os.log
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public protocol MiddlewareType: class {
   /// A transaction has changed its state.
-  func onTransactionStateChange(_ transaction: AnyTransaction)
+  func onTransactionStateChange(_ transaction: TransactionProtocol)
 }
 
 // MARK: - Logger
@@ -15,7 +15,7 @@ public protocol MiddlewareType: class {
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public final class LoggerMiddleware: MiddlewareType {
   /// Syncronizes the access to the middleware.
-  private let _lock = Lock()
+  private var _lock = SpinLock()
 
   /// The transactions start time (in µs).
   private var _transactionStartNanos: [String: UInt64] = [:]
@@ -23,7 +23,7 @@ public final class LoggerMiddleware: MiddlewareType {
   public init() {}
 
   /// Logs the transaction identifier, the action name and its current state.
-  public func onTransactionStateChange(_ transaction: AnyTransaction) {
+  public func onTransactionStateChange(_ transaction: TransactionProtocol) {
     _lock.lock()
     let id = transaction.id
     let name = transaction.actionId

@@ -1,7 +1,7 @@
 import Foundation
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-public class TransactionOperation<T: AnyTransaction>: AsyncOperation {
+public class TransactionOperation<T: TransactionProtocol>: AsyncOperation {
   /// The associated transaction.
   public let transaction: T
 

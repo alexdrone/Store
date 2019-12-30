@@ -1,20 +1,6 @@
 import Combine
 import Foundation
 
-/// This function is used to copy the values of all enumerable own properties from one or more
-/// source struct to a target struct.
-/// - returns: The target struct.
-/// - note: This is analogous to Object.assign in Javascript and should be used to update
-/// immutabel model types.
-public func assign<T>(_ value: T, changes: (inout T) -> Void) -> T {
-  guard Mirror(reflecting: value).displayStyle == .struct else {
-    fatalError("'value' must be a struct.")
-  }
-  var copy = value
-  changes(&copy)
-  return copy
-}
-
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public protocol AnyStoreType: class {
   /// Opaque reference to the model wrapped by this store.
@@ -35,7 +21,7 @@ public protocol AnyStoreType: class {
 
   /// Notify all of the registered middleware services.
   /// - note: See `MiddlewareType.onTransactionStateChange`.
-  func notifyMiddleware(transaction: AnyTransaction)
+  func notifyMiddleware(transaction: TransactionProtocol)
 }
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
@@ -46,7 +32,7 @@ public protocol StoreType: AnyStoreType {
   var model: ModelType { get }
 
   /// Atomically update the model.
-  func reduceModel(transaction: AnyTransaction?, closure: (inout ModelType) -> (Void))
+  func reduceModel(transaction: TransactionProtocol?, closure: (inout ModelType) -> (Void))
 }
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
@@ -61,14 +47,14 @@ open class Store<M>: StoreType, ObservableObject {
   public var middleware: [MiddlewareType] = []
 
   /// Syncronizes the access to the state object.
-  private let _stateLock = Lock()
+  private var _stateLock = SpinLock()
 
   public init(model: M) {
     self.model = model
   }
 
   /// Atomically update the model.
-  open func reduceModel(transaction: AnyTransaction? = nil, closure: (inout M) -> (Void)) {
+  open func reduceModel(transaction: TransactionProtocol? = nil, closure: (inout M) -> (Void)) {
     self._stateLock.lock()
     let old = self.model
     let new = assign(model, changes: closure)
@@ -79,7 +65,7 @@ open class Store<M>: StoreType, ObservableObject {
     self._stateLock.unlock()
   }
 
-  open func didUpdateModel(transaction: AnyTransaction?, old: M, new: M) {
+  open func didUpdateModel(transaction: TransactionProtocol?, old: M, new: M) {
     // Subclasses to override this.
   }
 
@@ -93,7 +79,7 @@ open class Store<M>: StoreType, ObservableObject {
 
   /// Notify all of the registered middleware services.
   /// - note: See `MiddlewareType.onTransactionStateChange`.
-  public func notifyMiddleware(transaction: AnyTransaction) {
+  public func notifyMiddleware(transaction: TransactionProtocol) {
     for mid in middleware {
       mid.onTransactionStateChange(transaction)
     }
@@ -123,6 +109,7 @@ open class Store<M>: StoreType, ObservableObject {
   }
   
   /// Shorthand for `transaction(action:mode:)` used in the DSL.
+  @discardableResult @inlinable @inline(__always)
   public func transaction<A: ActionType, M>(
     _ action: A,
     _ mode: Dispatcher.Strategy = .async(nil)
@@ -130,7 +117,7 @@ open class Store<M>: StoreType, ObservableObject {
     transaction(action: action, mode: mode)
   }
 
-  @discardableResult
+  @discardableResult @inlinable @inline(__always)
   public func run<A: ActionType, M>(
     action: A,
     mode: Dispatcher.Strategy = .async(nil),
@@ -145,7 +132,7 @@ open class Store<M>: StoreType, ObservableObject {
     return tranctionObj
   }
 
-  @discardableResult
+  @discardableResult @inlinable @inline(__always)
   public func run<A: ActionType, M>(
     actions: [A],
     mode: Dispatcher.Strategy = .async(nil),
@@ -170,7 +157,8 @@ open class Store<M>: StoreType, ObservableObject {
   /// ```
   /// This group results in the transactions being run in the following order:
   /// foo -> [ bar + baz] -> foobar
-  public func runGroup(@TransactionSequenceBuilder builder: () -> [AnyTransaction]) {
+  @inlinable @inline(__always)
+  public func runGroup(@TransactionSequenceBuilder builder: () -> [TransactionProtocol]) {
     let transactions = builder()
     for transaction in transactions {
       transaction.opaqueStoreRef = self
@@ -178,6 +166,7 @@ open class Store<M>: StoreType, ObservableObject {
     }
   }
 
+  @inline(__always)
   private func _onMainThread(_ closure: () -> Void) {
     if Thread.isMainThread {
       closure()

@@ -39,7 +39,7 @@ public final class Dispatcher {
 
   /// Run a set of transaction concurrently.
   public func run(
-    transactions: [AnyTransaction],
+    transactions: [TransactionProtocol],
     handler: TransactionCompletionHandler = nil
   ) {
     let dispatchGroupError = TransactionGroupError()
@@ -100,7 +100,7 @@ public final class Dispatcher {
     operationQueue(id: queueId)?.cancelAllOperations()
   }
 
-  private func _run(transaction: AnyTransaction) {
+  private func _run(transaction: TransactionProtocol) {
     let operation = transaction.operation
     switch transaction.strategy {
     case .mainThread:
@@ -121,26 +121,3 @@ public final class Dispatcher {
   }
 }
 
-@available(iOS 2.0, OSX 10.0, tvOS 9.0, watchOS 2.0, *)
-@propertyWrapper
-public struct Atomic<T> {
-  private let _queue = DispatchQueue(label: "Atomic write access queue", attributes: .concurrent)
-  private var _storage: T
-
-  public init(wrappedValue value: T) {
-    self._storage = value
-  }
-
-  public var wrappedValue: T {
-    get { return _queue.sync { _storage } }
-    set { _queue.sync(flags: .barrier) { _storage = newValue } }
-  }
-
-  /// Atomically mutate the variable (read-modify-write).
-  /// - parameter action: A closure executed with atomic in-out access to the wrapped property.
-  public mutating func mutate(_ mutation: (inout T) throws -> Void) rethrows {
-    return try _queue.sync(flags: .barrier) {
-      try mutation(&_storage)
-    }
-  }
-}

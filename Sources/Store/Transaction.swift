@@ -19,7 +19,7 @@ public enum TransactionState {
 
 /// Represents an individual execution of a given action.
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-public protocol AnyTransaction: class, TransactionConvertible {
+public protocol TransactionProtocol: class, TransactionConvertible {
   /// Unique action identifier.
   /// An high level description of the action (e.g. `FETCH_USER` or `DELETE_COMMENT`)
   /// - note: See `ActionType.id`.
@@ -59,11 +59,11 @@ public protocol AnyTransaction: class, TransactionConvertible {
 }
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-extension AnyTransaction {
-  public var transactions: [AnyTransaction] { [self] }
+extension TransactionProtocol {
+  public var transactions: [TransactionProtocol] { [self] }
   
   /// This transaction will execute after all of the operations in `transactions` are completed.
-  public func depend(on transactions: [AnyTransaction]) {
+  public func depend(on transactions: [TransactionProtocol]) {
     transactions.map { $0.operation }.forEach { operation.addDependency($0) }
   }
 }
@@ -86,7 +86,7 @@ public protocol ActionType: Identifiable {
 // MARK: - Implementation
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-public final class Transaction<A: ActionType>: AnyTransaction, Identifiable {
+public final class Transaction<A: ActionType>: TransactionProtocol, Identifiable {
   /// Unique action identifier.
   /// An high level description of the action (e.g. `FETCH_USER` or `DELETE_COMMENT`)
   public var actionId: String { action.id }
@@ -140,14 +140,14 @@ public final class Transaction<A: ActionType>: AnyTransaction, Identifiable {
   }
 
   /// Dispatch strategy modifier.
-  @discardableResult
+  @discardableResult @inlinable @inline(__always)
   public func on(_ queueWithStrategy: Dispatcher.Strategy) -> Self {
     self.strategy = queueWithStrategy
     return self
   }
 
   /// Throttle invocation modifier.
-  @discardableResult
+  @discardableResult @inlinable @inline(__always)
   public func throttle(_ minimumDelay: TimeInterval) -> Self {
     Dispatcher.main.throttle(actionId: actionId, minimumDelay: minimumDelay)
     return self
@@ -167,7 +167,7 @@ public final class Transaction<A: ActionType>: AnyTransaction, Identifiable {
       transaction: self)
     action.reduce(context: context)
   }
-  
+
   public func then(handler: Dispatcher.TransactionCompletionHandler) -> Self {
     self._handler = handler
     return self
@@ -180,7 +180,7 @@ public final class Transaction<A: ActionType>: AnyTransaction, Identifiable {
 }
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-extension Array where Element: AnyTransaction {
+extension Array where Element: TransactionProtocol {
   /// Execute all of the transactions.
   public func run(handler: Dispatcher.TransactionCompletionHandler = nil) {
     Dispatcher.main.run(transactions: self, handler: handler)

@@ -27,6 +27,7 @@ import os.log
 
 /// A collection of changes associated to a transaction.
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
+@frozen
 public struct TransactionDiff {
   /// The set of (`path`, `value`) that has been **added**/**removed**/**changed**.
   ///
@@ -52,7 +53,7 @@ public struct TransactionDiff {
   public let actionId: String
 
   /// Reference to the transaction that cause this change.
-  public private(set) weak var transaction: AnyTransaction?
+  public private(set) weak var transaction: TransactionProtocol?
 
   /// Returns the `diffs` map encoded as **JSON** data.
   public var json: Data {
@@ -64,7 +65,7 @@ public struct TransactionDiff {
     return keyPath(Query(transactionDiff: self)).toPropertyDiff()
   }
 
-  public init(transaction: AnyTransaction, diffs: [FlatEncoding.KeyPath: PropertyDiff]) {
+  public init(transaction: TransactionProtocol, diffs: [FlatEncoding.KeyPath: PropertyDiff]) {
     self.transaction = transaction
     self.diffs = diffs
     self.transactionId = transaction.id
@@ -82,6 +83,7 @@ public enum PropertyDiff {
   case unspecified
 
   /// Returns `true` if the key path was added in this transaction, `false` otherwsie.
+  @inlinable @inline(__always)
   public func isAdded() -> Bool {
     switch self {
     case .added: return true
@@ -90,6 +92,7 @@ public enum PropertyDiff {
   }
 
   /// Returns `true` if the key path was remvoed in this transaction, `false` otherwsie.
+  @inlinable @inline(__always)
   public func isRemoved() -> Bool {
     switch self {
     case .removed: return true
@@ -98,6 +101,7 @@ public enum PropertyDiff {
   }
 
   /// Returns `true` if the key path was chnaged in this transaction, `false` otherwsie.
+  @inlinable @inline(__always)
   public func isChanged() -> Bool {
     switch self {
     case .changed: return true
@@ -106,6 +110,7 @@ public enum PropertyDiff {
   }
 
   /// Returns the new value if the property was just added in this transaction, `nil` otherwise.
+  @inlinable @inline(__always)
   public func asNewAddedValue<T: Codable>() -> T? {
     switch self {
     case .added(let value): return value as? T
@@ -114,6 +119,7 @@ public enum PropertyDiff {
   }
 
   /// Returns the touple (`old`, `new`) if the value of the property changed in this transaction.
+  @inlinable @inline(__always)
   public func asNewAddedValue<T: Codable>() -> (T, T)? {
     switch self {
     case .changed(let old, let new):
@@ -133,11 +139,13 @@ public enum PropertyDiff {
 ///   tokens/1: "bar"
 /// } ```
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
+@inline(__always)
 public func flatten(encodedModel: EncodedDictionary) -> FlatEncoding.Dictionary {
   var result: FlatEncoding.Dictionary = [:]
   FlatEncoding._flatten(path: "", node: .dictionary(encodedModel), result: &result)
   return result
 }
+
 public enum FlatEncoding {
   /// A flat non-nested dictionary.
   /// This representation is very efficient for object diffing.
@@ -219,6 +227,7 @@ public enum FlatEncoding {
 
   /// Private recursive flatten method.
   /// - note: See `flatten(encodedModel:)`.
+  @inline(__always)
   fileprivate static func _flatten(path: String, node: Node, result: inout Dictionary) {
     let formattedPath = path.isEmpty ? "" : "\(path)\(KeyPath.separator)"
     func process(path: String, value: Any) {

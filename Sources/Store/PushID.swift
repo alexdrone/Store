@@ -44,7 +44,7 @@ public class PushID {
   private let _dateProvider: () -> Date
 
   // Ensure the generator synchronization.
-  private let _lock = Lock()
+  private var _lock = SpinLock()
 
   public init(dateProvider: @escaping () -> Date = { Date() }) {
     self._dateProvider = dateProvider
@@ -98,28 +98,3 @@ public class PushID {
   }
 }
 
-// MARK: Spinlock implementation
-
-final class Lock {
-  private var _spin = OS_SPINLOCK_INIT
-  private var _unfair = os_unfair_lock_s()
-
-  /// Locks a spinlock. Although the lock operation spins, it employs various strategies to back
-  /// off if the lock is held.
-  func lock() {
-    if #available(iOS 10.0, macOS 10.12, watchOS 3.0, tvOS 10.0, *) {
-      os_unfair_lock_lock(&_unfair)
-    } else {
-      OSSpinLockLock(&_spin)
-    }
-  }
-
-  /// Unlocks a spinlock.
-  func unlock() {
-    if #available(iOS 10.0, macOS 10.12, watchOS 3.0, tvOS 10.0, *) {
-      os_unfair_lock_unlock(&_unfair)
-    } else {
-      OSSpinLockUnlock(&_spin)
-    }
-  }
-}

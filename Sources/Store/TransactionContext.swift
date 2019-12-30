@@ -4,6 +4,7 @@ import Foundation
 // MARK: - Context
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
+@frozen
 public struct TransactionContext<S: StoreType, A: ActionType> {
   /// The operation that is currently running.
   /// - note: Invoke `context.operation.finish` to signal task completion.
@@ -19,12 +20,14 @@ public struct TransactionContext<S: StoreType, A: ActionType> {
   public let transaction: Transaction<A>
 
   /// Atomically update the store's model.
+  @inlinable @inline(__always)
   public func reduceModel(closure: (inout S.ModelType) -> (Void)) {
     store.reduceModel(transaction: transaction, closure: closure)
   }
 
   /// Terminates the operation if there was an error raised by a previous action in the following
   /// transaction group.
+  @inlinable @inline(__always)
   public func rejectOnGroupError() -> Bool {
     guard error.lastError != nil else {
       return false
@@ -34,12 +37,14 @@ public struct TransactionContext<S: StoreType, A: ActionType> {
   }
 
   /// Terminates this operation with an error.
+  @inlinable @inline(__always)
   public func reject(error: Error) {
     self.error.lastError = error
     operation.finish()
   }
 
   /// Terminates the operation.
+  @inlinable @inline(__always)
   public func fulfill() {
     operation.finish()
   }

@@ -3,11 +3,12 @@ import Foundation
 import os.log
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
+@frozen
 @_functionBuilder
 public struct TransactionSequenceBuilder {
   public static func buildBlock(_ transactions: TransactionConvertible...
-  ) -> [AnyTransaction] {
-    var result: [AnyTransaction] = []
+  ) -> [TransactionProtocol] {
+    var result: [TransactionProtocol] = []
     var dependencies: TransactionConvertible = NullTransaction()
     for tis in transactions {
       for transaction in tis.transactions {
@@ -25,33 +26,35 @@ public struct TransactionSequenceBuilder {
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public protocol TransactionConvertible {
   /// The wrapped transactions.
-  var transactions: [AnyTransaction] { get }
+  var transactions: [TransactionProtocol] { get }
 }
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
+@frozen
 public struct Concurrent: TransactionConvertible {
   /// The wrapped transactions.
-  public let transactions: [AnyTransaction]
+  public let transactions: [TransactionProtocol]
 
-  public init(@TransactionSequenceBuilder builder: () -> [AnyTransaction]) {
+  public init(@TransactionSequenceBuilder builder: () -> [TransactionProtocol]) {
     self.transactions = builder()
   }
   
-  public init(transactions: [AnyTransaction]) {
+  public init(transactions: [TransactionProtocol]) {
     self.transactions = transactions
   }
 }
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
+@frozen
 public struct Throttle: TransactionConvertible {
   /// The wrapped transactions.
-  public let transactions: [AnyTransaction]
+  public let transactions: [TransactionProtocol]
   /// The throttle dalay.
   public let  minimumDelay: TimeInterval
 
   public init(
     _ minimumDelay: TimeInterval,
-    @TransactionSequenceBuilder builder: () -> [AnyTransaction]
+    @TransactionSequenceBuilder builder: () -> [TransactionProtocol]
   ) {
     self.minimumDelay = minimumDelay
     self.transactions = builder()
@@ -60,13 +63,14 @@ public struct Throttle: TransactionConvertible {
 
   public init(
      _ minimumDelay: TimeInterval,
-     transactions: [AnyTransaction]
+     transactions: [TransactionProtocol]
   ) {
     self.minimumDelay = minimumDelay
     self.transactions = transactions
     _throttle()
   }
 
+  @inline(__always)
   private func _throttle() {
     for transaction in transactions {
       let _ = transaction.throttle(minimumDelay)
@@ -75,8 +79,9 @@ public struct Throttle: TransactionConvertible {
 }
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
+@frozen
 public struct NullTransaction: TransactionConvertible {
   /// The wrapped transactions.
-  public var transactions: [AnyTransaction] = []
+  public var transactions: [TransactionProtocol] = []
 }
 

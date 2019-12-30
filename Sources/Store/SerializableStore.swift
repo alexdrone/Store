@@ -41,12 +41,12 @@ open class SerializableStore<M: SerializableModelType>: Store<M> {
     self._lastModelSnapshot = model.encodeFlatDictionary()
   }
 
-  override open func reduceModel(transaction: AnyTransaction?, closure: (inout M) -> (Void)) {
+  override open func reduceModel(transaction: TransactionProtocol?, closure: (inout M) -> (Void)) {
     let transaction = transaction ?? SignpostTransaction(singpost: Signpost.modelUpdate)
     super.reduceModel(transaction: transaction, closure: closure)
   }
 
-  override open func didUpdateModel(transaction: AnyTransaction?, old: M, new: M) {
+  override open func didUpdateModel(transaction: TransactionProtocol?, old: M, new: M) {
     guard let transaction = transaction else {
       return
     }
@@ -129,6 +129,7 @@ extension SerializableModelType {
 
 /// Serialize the model passed as argument.
 /// - note: If the serialization fails, an empty dictionary is returned instead.
+@inline(__always)
 private func _serialize<S: SerializableModelType>(model: S) -> EncodedDictionary {
   do {
     let dictionary: [String: Any] = try DictionaryEncoder().encode(model)
@@ -140,6 +141,7 @@ private func _serialize<S: SerializableModelType>(model: S) -> EncodedDictionary
 
 /// Deserialize the dictionary and returns a store of type `S`.
 /// - note: If the deserialization fails, an empty model is returned instead.
+@inline(__always)
 private func _deserialize<S: SerializableModelType>(dictionary: EncodedDictionary) -> S {
   do {
     let model = try DictionaryDecoder().decode(S.self, from: dictionary)
