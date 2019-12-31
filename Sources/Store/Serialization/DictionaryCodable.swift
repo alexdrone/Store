@@ -1,5 +1,7 @@
 import Foundation
 
+public typealias EncodedDictionary = [String: Any]
+
 // MARK: - DictionaryEncoder
 
 open class DictionaryEncoder: Encoder {

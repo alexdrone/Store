@@ -2,7 +2,7 @@ import Foundation
 @testable import Store
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-struct TestModel: SerializableModelType {
+struct TestModel: SerializableModelProtocol {
   struct Action { }
 
   var count = 0
@@ -17,7 +17,7 @@ struct TestModel: SerializableModelType {
 }
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-enum Action: ActionType {
+enum Action: ActionProtocol {
   case increase(amount: Int)
   case throttleIncrease(amount: Int)
   case decrease(amount: Int)

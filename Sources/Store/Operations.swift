@@ -1,7 +1,7 @@
 import Foundation
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-public class TransactionOperation<T: TransactionProtocol>: AsyncOperation {
+public final class TransactionOperation<T: TransactionProtocol>: AsyncOperation {
   /// The associated transaction.
   public let transaction: T
 
@@ -38,7 +38,7 @@ public class TransactionOperation<T: TransactionProtocol>: AsyncOperation {
 /// Subclasses are expected to override the 'execute' function and call
 /// the function 'finish' when they're done with their task.
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-public class AsyncOperation: Operation {
+open class AsyncOperation: Operation {
   /// The completion block type for this operation.
   public typealias CompletionBlock = () -> Void
 
@@ -62,20 +62,20 @@ public class AsyncOperation: Operation {
   }
 
   /// Begins the execution of the operation.
-  @objc dynamic public override func start() {
+  @objc dynamic open override func start() {
     __executing = true
     execute()
   }
 
   /// Subclasses are expected to override the 'execute' function and call
   /// the function 'finish' when they're done with their task.
-  @objc public func execute() {
+  @objc open func execute() {
     fatalError("Your subclass must override this")
   }
 
   /// This function should be called inside 'execute' when the task for this
   /// operation is completed.
-  @objc dynamic public func finish() {
+  @objc dynamic open func finish() {
     __executing = false
     __finished = true
   }

@@ -21,7 +21,7 @@ Stores contain the application state and logic. Their role is somewhat similar t
 This allows an action to result in an update to the state of the store. After the stores are updated, they notify the observers that their state has changed, so the views may query the new state and update themselves.
 
 ```swift
-struct Counter: ModelType {
+struct Counter {
   var count = 0
 }
 
@@ -35,7 +35,7 @@ An action represent an operation on the store.
 It can be represented using an enum:
 
 ```swift
-enum CounterAction: ActionType {
+enum CounterAction: ActionProtocol {
   case increase
   case decrease
 
@@ -64,7 +64,7 @@ enum CounterAction: ActionType {
 Or a struct:
 
 ```swift
-struct IncreaseAction: ActionType {
+struct IncreaseAction: ActionProtocol {
   let count: Int
   
   func reduce(context: TransactionContext<Store<Counter>, Self>) {
@@ -91,11 +91,11 @@ TL;DR
 import SwiftUI
 import Store
 
-struct Counter: ModelType {
+struct Counter {
   var count = 0
 }
 
-enum CounterAction: ActionType {
+enum CounterAction: ActionProtocol {
   case increase(amount: Int)
   case decrease(amount: Int)
 
@@ -173,7 +173,7 @@ Run 1 -> Run 2 -> Run 3 and 4 concurrently -> Run 5
 Middleware objects must conform to:
 
 ```swift
-public protocol MiddlewareType: class {
+public protocol Middleware: class {
   /// A transaction has changed its state.
   func onTransactionStateChange(_ transaction: AnyTransaction)
 }
@@ -190,7 +190,7 @@ store.register(middleware: MyMiddleware())
 TL;DR
 
 ```swift
-struct MySerializableModel: SerializableModelType {
+struct MySerializableModel: SerializableModelProtocol {
 var count = 0
 var label = "Foo"
 var nullableLabel: String? = "Bar"
@@ -340,7 +340,7 @@ sink = store.$lastTransactionDiff.sink { diff in
 ### Dealing with errors
 
 ```swift
-struct IncreaseAction: ActionType {
+struct IncreaseAction: ActionProtocol {
   let count: Int
   
   func reduce(context: TransactionContext<Store<Counter>, Self>) {

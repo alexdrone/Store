@@ -17,7 +17,7 @@ public func makePushID() -> String {
 /// 4. They're monotonically increasing. Even if you generate more than one in the same timestamp,
 /// the latter ones will sort after the former ones.  We do this by using the previous random bits
 /// but "incrementing" them by 1 (only in the case of a timestamp collision).
-public class PushID {
+public final class PushID {
 
   // MARK: Static constants
 

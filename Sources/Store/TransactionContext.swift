@@ -5,7 +5,7 @@ import Foundation
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 @frozen
-public struct TransactionContext<S: StoreProtocol, A: ActionType> {
+public struct TransactionContext<S: StoreProtocol, A: ActionProtocol> {
   /// The operation that is currently running.
   /// - note: Invoke `context.operation.finish` to signal task completion.
   public let operation: AsyncOperation
@@ -51,7 +51,7 @@ public struct TransactionContext<S: StoreProtocol, A: ActionType> {
 }
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-extension ActionType {
+extension ActionProtocol {
   /// Default identifier implementation.
   public var id: String {
     return String(describing: type(of: self))

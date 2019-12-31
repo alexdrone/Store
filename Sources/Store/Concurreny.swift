@@ -42,7 +42,7 @@ public struct Atomic<T> {
   }
 }
 
-// MARK: Spinlock implementation
+// MARK: Spinlock Implementation
 
 @frozen
 @usableFromInline

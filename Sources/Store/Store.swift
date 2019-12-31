@@ -7,13 +7,13 @@ public protocol AnyStoreProtocol: class {
   var opaqueModelRef: Any { get }
 
   /// All of the registered middleware.
-  var middleware: [MiddlewareType] { get }
+  var middleware: [Middleware] { get }
 
   /// Register a new middleware service.
-  func register(middleware: MiddlewareType)
+  func register(middleware: Middleware)
 
   /// Unregister a middleware service.
-  func unregister(middleware: MiddlewareType)
+  func unregister(middleware: Middleware)
 
   /// Notify the store observers for the change of this store.
   /// - note: Observers are always notified on the main thread.
@@ -44,7 +44,7 @@ open class Store<M>: StoreProtocol, ObservableObject {
   public var opaqueModelRef: Any { return model }
 
   /// All of the registered middleware.
-  public var middleware: [MiddlewareType] = []
+  public var middleware: [Middleware] = []
 
   /// Syncronizes the access to the state object.
   private var _stateLock = SpinLock()
@@ -86,7 +86,7 @@ open class Store<M>: StoreProtocol, ObservableObject {
   }
 
   /// Register a new middleware service.
-  public func register(middleware: MiddlewareType) {
+  public func register(middleware: Middleware) {
     guard self.middleware.filter({ $0 === middleware }).isEmpty else {
       return
     }
@@ -94,11 +94,11 @@ open class Store<M>: StoreProtocol, ObservableObject {
   }
 
   /// Unregister a middleware service.
-  public func unregister(middleware: MiddlewareType) {
+  public func unregister(middleware: Middleware) {
     self.middleware.removeAll { $0 === middleware }
   }
 
-  public func transaction<A: ActionType, M>(
+  public func transaction<A: ActionProtocol, M>(
     action: A,
     mode: Dispatcher.Strategy = .async(nil)
   ) -> Transaction<A> where A.AssociatedStoreType: Store<M> {
@@ -110,7 +110,7 @@ open class Store<M>: StoreProtocol, ObservableObject {
   
   /// Shorthand for `transaction(action:mode:)` used in the DSL.
   @discardableResult @inlinable @inline(__always)
-  public func transaction<A: ActionType, M>(
+  public func transaction<A: ActionProtocol, M>(
     _ action: A,
     _ mode: Dispatcher.Strategy = .async(nil)
   ) -> Transaction<A> where A.AssociatedStoreType: Store<M> {
@@ -118,7 +118,7 @@ open class Store<M>: StoreProtocol, ObservableObject {
   }
 
   @discardableResult @inlinable @inline(__always)
-  public func run<A: ActionType, M>(
+  public func run<A: ActionProtocol, M>(
     action: A,
     mode: Dispatcher.Strategy = .async(nil),
     throttle: TimeInterval = 0,
@@ -133,7 +133,7 @@ open class Store<M>: StoreProtocol, ObservableObject {
   }
 
   @discardableResult @inlinable @inline(__always)
-  public func run<A: ActionType, M>(
+  public func run<A: ActionProtocol, M>(
     actions: [A],
     mode: Dispatcher.Strategy = .async(nil),
     handler: Dispatcher.TransactionCompletionHandler = nil

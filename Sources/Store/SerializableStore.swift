@@ -5,7 +5,7 @@ import os.log
 // MARK: - SerializableStore
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-open class SerializableStore<M: SerializableModelType>: Store<M> {
+open class SerializableStore<M: SerializableModelProtocol>: Store<M> {
   /// Transaction diffing options.
   public enum TransactionDiffStrategy {
     /// Does not compute any diff.
@@ -27,7 +27,7 @@ open class SerializableStore<M: SerializableModelType>: Store<M> {
   public let transactionDiffStrategy: TransactionDiffStrategy
 
   /// Serial queue used to run the diffing routine.
-  private let _queue = DispatchQueue(label: "io.store.serializable")
+  private let _queue = DispatchQueue(label: "io.store.diff")
 
   /// Set of `transaction.id` for all of the transaction that have run of this store.
   private var _transactionIdsHistory = Set<String>()
@@ -91,14 +91,12 @@ open class SerializableStore<M: SerializableModelType>: Store<M> {
 
 // MARK: - SerializableModelType
 
-public typealias EncodedDictionary = [String: Any]
-
-public protocol SerializableModelType: Codable {
+public protocol SerializableModelProtocol: Codable {
   init()
 }
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-extension SerializableModelType {
+extension SerializableModelProtocol {
   /// Encodes the model into a dictionary.
   public func encode() -> EncodedDictionary {
     let result = _serialize(model: self)
@@ -130,7 +128,7 @@ extension SerializableModelType {
 /// Serialize the model passed as argument.
 /// - note: If the serialization fails, an empty dictionary is returned instead.
 @inline(__always)
-private func _serialize<S: SerializableModelType>(model: S) -> EncodedDictionary {
+private func _serialize<S: SerializableModelProtocol>(model: S) -> EncodedDictionary {
   do {
     let dictionary: [String: Any] = try DictionaryEncoder().encode(model)
     return dictionary
@@ -142,7 +140,7 @@ private func _serialize<S: SerializableModelType>(model: S) -> EncodedDictionary
 /// Deserialize the dictionary and returns a store of type `S`.
 /// - note: If the deserialization fails, an empty model is returned instead.
 @inline(__always)
-private func _deserialize<S: SerializableModelType>(dictionary: EncodedDictionary) -> S {
+private func _deserialize<S: SerializableModelProtocol>(dictionary: EncodedDictionary) -> S {
   do {
     let model = try DictionaryDecoder().decode(S.self, from: dictionary)
     return model

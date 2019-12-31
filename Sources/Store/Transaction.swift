@@ -68,25 +68,10 @@ extension TransactionProtocol {
   }
 }
 
-// MARK: - ActionType
-
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-public protocol ActionType: Identifiable {
-  associatedtype AssociatedStoreType: StoreProtocol
-
-  /// Unique action identifier.
-  /// An high level description of the action (e.g. `FETCH_USER` or `DELETE_COMMENT`)
-  var id: String { get }
-
-  /// The execution body for this action.
-  /// - note: Invoke `context.operation.finish` to signal task completion.
-  func reduce(context: TransactionContext<AssociatedStoreType, Self>)
-}
-
 // MARK: - Implementation
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-public final class Transaction<A: ActionType>: TransactionProtocol, Identifiable {
+public final class Transaction<A: ActionProtocol>: TransactionProtocol, Identifiable {
   /// Unique action identifier.
   /// An high level description of the action (e.g. `FETCH_USER` or `DELETE_COMMENT`)
   public var actionId: String { action.id }
@@ -156,7 +141,7 @@ public final class Transaction<A: ActionType>: TransactionProtocol, Identifiable
   /// - note: Performs `ActionType.perform(context:)`.
   public func perform(operation: AsyncOperation) {
     guard let store = store, let error = error else {
-      os_log(.error, log: OSLog.primary, "context is nil - the operation won't be executed.")
+      os_log(.error, log: OSLog.primary, "context/store is nil - the operation won't be executed.")
       return
     }
 
@@ -175,6 +160,10 @@ public final class Transaction<A: ActionType>: TransactionProtocol, Identifiable
 
   /// Execute the transaction.
   public func run(handler: Dispatcher.TransactionCompletionHandler = nil) {
+    guard store != nil else {
+      os_log(.error, log: OSLog.primary, "store is nil - the operation won't be executed.")
+      return
+    }
     Dispatcher.main.run(transactions: [self], handler: handler ?? self._handler)
   }
 }

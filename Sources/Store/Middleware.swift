@@ -5,7 +5,7 @@ import os.log
 // MARK: - Protocol
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-public protocol MiddlewareType: class {
+public protocol Middleware: class {
   /// A transaction has changed its state.
   func onTransactionStateChange(_ transaction: TransactionProtocol)
 }
@@ -13,7 +13,7 @@ public protocol MiddlewareType: class {
 // MARK: - Logger
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-public final class LoggerMiddleware: MiddlewareType {
+public final class LoggerMiddleware: Middleware {
   /// Syncronizes the access to the middleware.
   private var _lock = SpinLock()
 
