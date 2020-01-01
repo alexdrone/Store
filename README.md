@@ -155,7 +155,7 @@ store.runGroup {
     Transaction<SomeAPIAction>(.dowloadFoo) // 3
     Transaction<SomeAPIAction>(.downloadBar) // 4
   }
-  Transaction<MyAction>(.finalize, in: store) // 5
+  Transaction<MyAction>(.finalize) // 5
 }
 
 ```
@@ -309,7 +309,7 @@ func calledOften() {
       Transaction(.myAction(amount: 1))
       Transaction(.myAction(amount: 1))
     }
-    Transaction(.someOtherAction).throttle(1)
+    Transaction(.someOtherAction)
   }
 }
 
