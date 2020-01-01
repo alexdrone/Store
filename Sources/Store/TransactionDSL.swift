@@ -24,6 +24,14 @@ public struct TransactionSequenceBuilder {
   }
 }
 
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
+public func RunGroup(@TransactionSequenceBuilder builder: () -> [TransactionProtocol]) {
+  let transactions = builder()
+  for transaction in transactions {
+    transaction.run(handler: nil)
+  }
+}
+
 // MARK: - TransactionCollectionConvertible
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)

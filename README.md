@@ -372,3 +372,20 @@ Dispatcher.main.cancelAllTransactions(id: queueId)
 ```
 ▩ 𝙄𝙉𝙁𝙊 (-Lo4riSWZ3m5v1AvhgOb) INCREASE [✖ canceled]
 ```
+
+### Multi-Store RunGroup
+
+```swift
+RunGroup {
+  Transaction<MyStore1Action>(.prepareFoo, in: store1)
+  Transaction<MyStore1Action>(.prepareBar, in: store1)
+  Concurrent {
+    Transaction<MyStore2Action>(.dooSomethingOnStore2, in: store2)
+    Transaction<MyStore2Action>(.dooSomethingElseOnStore2, in: store2)
+  }
+  Transaction<MyStore1Action>(.backToStore1, in: store1)
+  Throttle(1) {
+    Transaction<UIUpdateAction>(.updateMainUI, in: uiStore)
+  }
+}
+```
