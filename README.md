@@ -155,7 +155,7 @@ store.runGroup {
     Transaction<SomeAPIAction>(.dowloadFoo) // 3
     Transaction<SomeAPIAction>(.downloadBar) // 4
   }
-  Transaction<MyAction>(.finalize, in: store) // 5
+  Transaction<MyAction>(.finalize) // 5
 }
 
 ```
