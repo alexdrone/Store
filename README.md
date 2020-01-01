@@ -309,7 +309,7 @@ func calledOften() {
       Transaction(.myAction(amount: 1))
       Transaction(.myAction(amount: 1))
     }
-    Transaction(.someOtherAction).throttle(1)
+    Transaction(.someOtherAction)
   }
 }
 
