@@ -3,7 +3,6 @@ import Foundation
 
 // MARK: - Context
 
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 @frozen
 public struct TransactionContext<S: StoreProtocol, A: ActionProtocol> {
   /// The operation that is currently running.
@@ -50,7 +49,6 @@ public struct TransactionContext<S: StoreProtocol, A: ActionProtocol> {
   }
 }
 
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 extension ActionProtocol {
   /// Default identifier implementation.
   public var id: String {

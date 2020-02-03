@@ -17,9 +17,7 @@ public func assign<T>(_ value: T, changes: (inout T) -> Void) -> T {
 
 // MARK: @Atomic
 
-@available(iOS 2.0, OSX 10.0, tvOS 9.0, watchOS 2.0, *)
-@frozen
-@propertyWrapper
+@frozen @propertyWrapper
 public struct Atomic<T> {
   private let _queue = DispatchQueue(label: "Atomic write access queue", attributes: .concurrent)
   private var _storage: T
@@ -44,8 +42,7 @@ public struct Atomic<T> {
 
 // MARK: Spinlock Implementation
 
-@frozen
-@usableFromInline
+@frozen @usableFromInline
 struct SpinLock {
   private var _spin = OS_SPINLOCK_INIT
   private var _unfair = os_unfair_lock_s()

@@ -4,7 +4,6 @@ import os.log
 
 // MARK: - Function Builder
 
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 @frozen
 @_functionBuilder
 public struct TransactionSequenceBuilder {
@@ -24,7 +23,6 @@ public struct TransactionSequenceBuilder {
   }
 }
 
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public func RunGroup(@TransactionSequenceBuilder builder: () -> [TransactionProtocol]) {
   let transactions = builder()
   for transaction in transactions {
@@ -34,7 +32,6 @@ public func RunGroup(@TransactionSequenceBuilder builder: () -> [TransactionProt
 
 // MARK: - TransactionCollectionConvertible
 
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public protocol TransactionConvertible {
   /// The wrapped transactions.
   var transactions: [TransactionProtocol] { get }
@@ -42,7 +39,6 @@ public protocol TransactionConvertible {
 
 // MARK: - DSL / Concurrent
 
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 @frozen
 public struct Concurrent: TransactionConvertible {
   /// The wrapped transactions.
@@ -59,7 +55,6 @@ public struct Concurrent: TransactionConvertible {
 
 // MARK: - DSL / Throttle
 
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 @frozen
 public struct Throttle: TransactionConvertible {
   /// The wrapped transactions.
@@ -92,7 +87,6 @@ public struct Throttle: TransactionConvertible {
 
 // MARK: - DSL / Null
 
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 @frozen
 public struct NullTransaction: TransactionConvertible {
   /// The wrapped transactions.

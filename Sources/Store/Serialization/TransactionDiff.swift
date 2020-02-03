@@ -1,8 +1,8 @@
 import Foundation
 import os.log
 
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-@dynamicMemberLookup public final class Query {
+@dynamicMemberLookup
+public final class Query {
   private var segments: [String] = []
   private let transactionDiff: TransactionDiff
 
@@ -26,7 +26,6 @@ import os.log
 }
 
 /// A collection of changes associated to a transaction.
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 @frozen
 public struct TransactionDiff {
   /// The set of (`path`, `value`) that has been **added**/**removed**/**changed**.
@@ -75,7 +74,6 @@ public struct TransactionDiff {
 
 /// Represent a property change.
 /// A change can be an **addition**, a **removal** or a **value change**.
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public enum PropertyDiff {
   case added(new: Codable?)
   case changed(old: Codable?, new: Codable?)
@@ -138,7 +136,6 @@ public enum PropertyDiff {
 ///   tokens/0: "foo",
 ///   tokens/1: "bar"
 /// } ```
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 @inline(__always)
 public func flatten(encodedModel: EncodedDictionary) -> FlatEncoding.Dictionary {
   var result: FlatEncoding.Dictionary = [:]
@@ -263,7 +260,6 @@ fileprivate let sharedJSONEncoder = JSONEncoder()
 
 // MARK: - PropertyDiff
 
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 extension PropertyDiff: CustomStringConvertible, Encodable {
 
   public var description: String {
@@ -312,7 +308,6 @@ extension PropertyDiff: CustomStringConvertible, Encodable {
 
 // MARK: - Extensions
 
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 extension Dictionary where Key == FlatEncoding.KeyPath, Value == PropertyDiff {
   /// Debug description for a change set.
   func storeDebugDecription(short: Bool) -> String {

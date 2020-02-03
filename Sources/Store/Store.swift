@@ -1,7 +1,6 @@
 import Combine
 import Foundation
 
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public protocol AnyStoreProtocol: class {
   /// Opaque reference to the model wrapped by this store.
   var opaqueModelRef: Any { get }
@@ -24,7 +23,6 @@ public protocol AnyStoreProtocol: class {
   func notifyMiddleware(transaction: TransactionProtocol)
 }
 
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public protocol StoreProtocol: AnyStoreProtocol {
   associatedtype ModelType
 
@@ -35,7 +33,6 @@ public protocol StoreProtocol: AnyStoreProtocol {
   func reduceModel(transaction: TransactionProtocol?, closure: (inout ModelType) -> (Void))
 }
 
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 open class Store<M>: StoreProtocol, ObservableObject {
   /// The current state of this store.
   @Published public private(set) var model: M

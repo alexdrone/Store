@@ -4,7 +4,6 @@ import os.log
 
 // MARK: - SerializableStore
 
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 open class SerializableStore<M: SerializableModelProtocol>: Store<M> {
   /// Transaction diffing options.
   public enum TransactionDiffStrategy {
@@ -95,7 +94,6 @@ public protocol SerializableModelProtocol: Codable {
   init()
 }
 
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 extension SerializableModelProtocol {
   /// Encodes the model into a dictionary.
   public func encode() -> EncodedDictionary {

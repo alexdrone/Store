@@ -4,7 +4,6 @@ import os.log
 
 // MARK: - Protocol
 
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public protocol Middleware: class {
   /// A transaction has changed its state.
   func onTransactionStateChange(_ transaction: TransactionProtocol)
@@ -12,7 +11,6 @@ public protocol Middleware: class {
 
 // MARK: - Logger
 
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public final class LoggerMiddleware: Middleware {
   /// Syncronizes the access to the middleware.
   private var _lock = SpinLock()
@@ -57,7 +55,6 @@ public final class LoggerMiddleware: Middleware {
 
 // MARK: - Log Subsystems
 
-@available(iOS 12.0, macOS 10.14, watchOS 3.0, tvOS 13.0, *)
 extension OSLog {
   public static let primary = OSLog(subsystem: "io.store.StoreService", category: "primary")
   public static let diff = OSLog(subsystem: "io.store.StoreService", category: "diff")

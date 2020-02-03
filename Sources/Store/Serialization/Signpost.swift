@@ -9,7 +9,6 @@ public enum Signpost {
 
 // MARK: - SigPostTransaction
 
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public final class SignpostTransaction: TransactionProtocol {
   /// See `SignpostAction`.
   public let actionId: String

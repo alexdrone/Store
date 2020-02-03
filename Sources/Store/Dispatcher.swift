@@ -1,7 +1,6 @@
 import Foundation
 import os.log
 
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public final class Dispatcher {
   /// The threading strategy that should be used for a given action.
   public enum Strategy {

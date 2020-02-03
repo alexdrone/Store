@@ -2,7 +2,6 @@ import Combine
 import Foundation
 import os.log
 
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 public protocol ActionProtocol: Identifiable {
   associatedtype AssociatedStoreType: StoreProtocol
 
