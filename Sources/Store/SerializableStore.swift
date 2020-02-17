@@ -10,16 +10,16 @@ open class SerializableStore<M: SerializableModelProtocol>: Store<M> {
     /// Does not compute any diff.
     case none
 
-    /// Computes the diff synchrously right after the transaction has completed.
+    /// Computes the diff synchronously right after the transaction has completed.
     case sync
 
-    /// Computes the diff asynchrously (in a serial queue) when transaction is completed.
+    /// Computes the diff asynchronously (in a serial queue) when transaction is completed.
     case async
   }
 
   /// Publishes a stream with the model changes caused by the last transaction.
   @Published public var lastTransactionDiff: TransactionDiff = TransactionDiff(
-    transaction: SignpostTransaction(singpost: Signpost.prior),
+    transaction: SignpostTransaction(signpost: Signpost.prior),
     diffs: [:])
 
   /// Where the diffing routine should be dispatched.
@@ -40,8 +40,8 @@ open class SerializableStore<M: SerializableModelProtocol>: Store<M> {
     self._lastModelSnapshot = model.encodeFlatDictionary()
   }
 
-  override open func reduceModel(transaction: TransactionProtocol?, closure: (inout M) -> (Void)) {
-    let transaction = transaction ?? SignpostTransaction(singpost: Signpost.modelUpdate)
+  override open func reduceModel(transaction: TransactionProtocol?, closure: (inout M) -> Void) {
+    let transaction = transaction ?? SignpostTransaction(signpost: Signpost.modelUpdate)
     super.reduceModel(transaction: transaction, closure: closure)
   }
 
@@ -83,7 +83,7 @@ open class SerializableStore<M: SerializableModelProtocol>: Store<M> {
 
       os_log(
         .debug, log: OSLog.diff, "▩ 𝘿𝙄𝙁𝙁 (%s) %s %s",
-        transaction.id, transaction.actionId, diffs.storeDebugDecription(short: true))
+        transaction.id, transaction.actionId, diffs.storeDebugDescription(short: true))
     }
   }
 }
@@ -117,7 +117,7 @@ extension SerializableModelProtocol {
 
   /// Decodes the model from a dictionary.
   public static func decode(dictionary: EncodedDictionary) -> Self {
-    return _deserialize(dictionary: dictionary)
+    _deserialize(dictionary: dictionary)
   }
 }
 

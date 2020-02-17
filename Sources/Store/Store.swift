@@ -30,7 +30,7 @@ public protocol StoreProtocol: AnyStoreProtocol {
   var model: ModelType { get }
 
   /// Atomically update the model.
-  func reduceModel(transaction: TransactionProtocol?, closure: (inout ModelType) -> (Void))
+  func reduceModel(transaction: TransactionProtocol?, closure: (inout ModelType) -> Void)
 }
 
 open class Store<M>: StoreProtocol, ObservableObject {
@@ -38,12 +38,12 @@ open class Store<M>: StoreProtocol, ObservableObject {
   @Published public private(set) var model: M
 
   /// Opaque reference to the model wrapped by this store.
-  public var opaqueModelRef: Any { return model }
+  public var opaqueModelRef: Any { model }
 
   /// All of the registered middleware.
   public var middleware: [Middleware] = []
 
-  /// Syncronizes the access to the state object.
+  /// Synchronizes the access to the state object.
   private var _stateLock = SpinLock()
 
   public init(model: M) {
@@ -51,7 +51,7 @@ open class Store<M>: StoreProtocol, ObservableObject {
   }
 
   /// Atomically update the model.
-  open func reduceModel(transaction: TransactionProtocol? = nil, closure: (inout M) -> (Void)) {
+  open func reduceModel(transaction: TransactionProtocol? = nil, closure: (inout M) -> Void) {
     self._stateLock.lock()
     let old = self.model
     let new = assign(model, changes: closure)
@@ -121,12 +121,12 @@ open class Store<M>: StoreProtocol, ObservableObject {
     throttle: TimeInterval = 0,
     handler: Dispatcher.TransactionCompletionHandler = nil
   ) -> Transaction<A> where A.AssociatedStoreType: Store<M> {
-    let tranctionObj = transaction(action: action, mode: mode)
-    tranctionObj.run(handler: handler)
+    let transactionObj = transaction(action: action, mode: mode)
+    transactionObj.run(handler: handler)
     if throttle > TimeInterval.ulpOfOne {
-      tranctionObj.throttle(throttle)
+      transactionObj.throttle(throttle)
     }
-    return tranctionObj
+    return transactionObj
   }
 
   @discardableResult @inlinable @inline(__always)

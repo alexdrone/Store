@@ -41,8 +41,8 @@ public final class SignpostTransaction: TransactionProtocol {
     return self
   }
 
-  init(singpost: String) {
-    self.actionId = singpost
+  init(signpost: String) {
+    self.actionId = signpost
   }
 
   public func perform(operation: AsyncOperation) {

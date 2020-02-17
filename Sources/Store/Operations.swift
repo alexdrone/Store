@@ -41,11 +41,11 @@ open class AsyncOperation: Operation {
   public typealias CompletionBlock = () -> Void
 
   // Internal properties override.
-  @objc dynamic override public var isAsynchronous: Bool { return true }
+  @objc dynamic override public var isAsynchronous: Bool { true }
 
-  @objc dynamic override public var isConcurrent: Bool { return true }
-  @objc dynamic override public var isExecuting: Bool { return __executing }
-  @objc dynamic override public var isFinished: Bool { return __finished }
+  @objc dynamic override public var isConcurrent: Bool { true }
+  @objc dynamic override public var isExecuting: Bool { __executing }
+  @objc dynamic override public var isFinished: Bool { __finished }
 
   // __ to avoid name clashes with the superclass.
   @objc dynamic private var __executing = false {
