@@ -122,10 +122,10 @@ open class Store<M>: StoreProtocol, ObservableObject {
     handler: Dispatcher.TransactionCompletionHandler = nil
   ) -> Transaction<A> where A.AssociatedStoreType: Store<M> {
     let transactionObj = transaction(action: action, mode: mode)
-    transactionObj.run(handler: handler)
     if throttle > TimeInterval.ulpOfOne {
       transactionObj.throttle(throttle)
     }
+    transactionObj.run(handler: handler)
     return transactionObj
   }
 
