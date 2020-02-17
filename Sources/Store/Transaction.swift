@@ -41,7 +41,7 @@ public protocol TransactionProtocol: class, TransactionConvertible {
   /// Trackable `@Published` property.
   var state: TransactionState { get set }
 
-  /// Returns the aynchronous operation that is going to be executed with this transaction.
+  /// Returns the asynchronous operation that is going to be executed with this transaction.
   var operation: AsyncOperation { get }
 
   /// Dispatch strategy modifier.
@@ -91,7 +91,7 @@ public final class Transaction<A: ActionProtocol>: TransactionProtocol, Identifi
     get { store }
   }
   
-  /// Stored handeler.
+  /// Stored handler.
   private var _handler: Dispatcher.TransactionCompletionHandler = nil
 
   /// Represents the progress of the transaction.
@@ -101,7 +101,7 @@ public final class Transaction<A: ActionProtocol>: TransactionProtocol, Identifi
     }
   }
 
-  /// Returns the aynchronous operation that is going to be executed with this transaction.
+  /// Returns the asynchronous operation that is going to be executed with this transaction.
   public lazy var operation: AsyncOperation = {
     let operation = TransactionOperation(transaction: self)
     operation._finishBlock = { [weak self] in

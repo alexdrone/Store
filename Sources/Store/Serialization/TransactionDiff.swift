@@ -19,7 +19,7 @@ public final class Query {
     FlatEncoding.KeyPath(segments: segments)
   }
 
-  /// Returns `true` if the key path was added in this transaction, `false` otherwsie.
+  /// Returns `true` if the key path was added in this transaction, `false` otherwise.
   public func toPropertyDiff() -> PropertyDiff {
     transactionDiff.diffs[self.toKeyPath()] ?? .unspecified
   }
@@ -56,12 +56,12 @@ public struct TransactionDiff {
 
   /// Returns the `diffs` map encoded as **JSON** data.
   public var json: Data {
-    return (try? sharedJSONEncoder.encode(diffs)) ?? Data()
+    (try? sharedJSONEncoder.encode(diffs)) ?? Data()
   }
 
   /// Queries the diff collection for a keypath change.
   public func query(_ keyPath: (Query) -> Query) -> PropertyDiff {
-    return keyPath(Query(transactionDiff: self)).toPropertyDiff()
+    keyPath(Query(transactionDiff: self)).toPropertyDiff()
   }
 
   public init(transaction: TransactionProtocol, diffs: [FlatEncoding.KeyPath: PropertyDiff]) {
@@ -80,7 +80,7 @@ public enum PropertyDiff {
   case removed
   case unspecified
 
-  /// Returns `true` if the key path was added in this transaction, `false` otherwsie.
+  /// Returns `true` if the key path was added in this transaction, `false` otherwise.
   @inlinable @inline(__always)
   public func isAdded() -> Bool {
     switch self {
@@ -89,7 +89,7 @@ public enum PropertyDiff {
     }
   }
 
-  /// Returns `true` if the key path was remvoed in this transaction, `false` otherwsie.
+  /// Returns `true` if the key path was removed in this transaction, `false` otherwise.
   @inlinable @inline(__always)
   public func isRemoved() -> Bool {
     switch self {
@@ -98,7 +98,7 @@ public enum PropertyDiff {
     }
   }
 
-  /// Returns `true` if the key path was chnaged in this transaction, `false` otherwsie.
+  /// Returns `true` if the key path was changed in this transaction, `false` otherwise.
   @inlinable @inline(__always)
   public func isChanged() -> Bool {
     switch self {
@@ -116,7 +116,7 @@ public enum PropertyDiff {
     }
   }
 
-  /// Returns the touple (`old`, `new`) if the value of the property changed in this transaction.
+  /// Returns the tuple (`old`, `new`) if the value of the property changed in this transaction.
   @inlinable @inline(__always)
   public func asNewAddedValue<T: Codable>() -> (T, T)? {
     switch self {
@@ -166,7 +166,7 @@ public enum FlatEncoding {
 
     /// Whether this is an empty KeyPath or not.
     public var isEmpty: Bool {
-      return segments.isEmpty
+      segments.isEmpty
     }
 
     /// The raw string for this KeyPath.
@@ -210,13 +210,13 @@ public enum FlatEncoding {
 
     /// The raw string for this KeyPath.
     public var description: String {
-      return path
+      path
     }
   }
 
   // MARK: - Private
 
-  /// Intermediate dictionary represntation for `EncodedDictionary` ⇒ `FlatEncoding.Dictionary`
+  /// Intermediate dictionary representation for `EncodedDictionary` ⇒ `FlatEncoding.Dictionary`
   fileprivate enum Node {
     case dictionary(_ dictionary: EncodedDictionary)
     case array(_ array: [Any])
@@ -310,7 +310,7 @@ extension PropertyDiff: CustomStringConvertible, Encodable {
 
 extension Dictionary where Key == FlatEncoding.KeyPath, Value == PropertyDiff {
   /// Debug description for a change set.
-  func storeDebugDecription(short: Bool) -> String {
+  func storeDebugDescription(short: Bool) -> String {
     let keys = self.keys.map { $0.path }.sorted()
     let threshold = 8
     let noChangesLeft = keys.count - threshold
