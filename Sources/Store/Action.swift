@@ -13,3 +13,5 @@ public protocol ActionProtocol: Identifiable {
   /// - note: Invoke `context.operation.finish` to signal task completion.
   func reduce(context: TransactionContext<AssociatedStoreType, Self>)
 }
+
+public final class UnspecifiedStore: Store<Void> { }

@@ -4,15 +4,19 @@ import SwiftProtobuf
 @testable import Store
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-struct ProtoAction {
+extension Action_BookInfoSetTitle: ActionProtocol {
+  typealias AssociatedStoreType = Store<BookInfo>
 
-  struct SetTitle: ActionProtocol {
-    typealias AssociatedStoreType = Store<BookInfo>
-    let title: String
+  func reduce(context: TransactionContext<Store<BookInfo>, Self>) -> Void {
+    defer { context.fulfill() }
+    context.reduceModel { book in book.title = self.title }
+  }
+}
 
-    func reduce(context: TransactionContext<Store<BookInfo>, Self>) -> Void {
-      defer { context.fulfill() }
-      context.reduceModel { book in book.title = self.title }
+extension BookInfo {
+  static func setTitle(_ title: String) -> Action_BookInfoSetTitle {
+    Action_BookInfoSetTitle.with {
+      $0.title = title
     }
   }
 }
@@ -22,7 +26,7 @@ final class ProtobufTests: XCTestCase {
 
   func testProtobufModelInit() {
     let store = Store(model: BookInfo())
-    store.run(action: ProtoAction.SetTitle(title: "Foo"), mode: .sync)
+    store.run(actions: [BookInfo.setTitle("Foo")], mode: .sync)
     XCTAssert(store.model.title == "Foo")
   }
 

@@ -1,7 +1,15 @@
 syntax = "proto3";
 
 message BookInfo {
-   int64 id = 1;
-   string title = 2;
-   string author = 3;
+  int64 id = 1;
+  string title = 2;
+  string author = 3;
+}
+
+message Action_BookInfoSetTitle {
+  string title = 1;
+}
+
+message Action_BookInfoSetAuthor {
+  string author = 1;
 }
