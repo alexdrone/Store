@@ -10,6 +10,7 @@ struct TestModel: SerializableModelProtocol {
   var nullableLabel: String? = "Something"
   var nested = Nested()
   var array: [Nested] = [Nested(), Nested()]
+  var stateDemo: FetchedProperty<String, NoEtag> = .uninitalized
 
   struct Nested: Codable {
     var label = "Nested struct"
@@ -56,5 +57,21 @@ enum Action: ActionProtocol {
         $0.array[index].label = value
       }
     }
+  }
+}
+
+enum TestError: Error {
+  case unknown
+}
+
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
+struct CancellableAction: ActionProtocol {
+
+  func reduce(context: TransactionContext<Store<TestModel>, Self>) {
+    context.reduceModel { $0.stateDemo = .success(value: "Loaded", etag: noEtag) }
+  }
+
+  func cancel(context: TransactionContext<Store<TestModel>, Self>) {
+    context.reduceModel { $0.stateDemo = .error(TestError.unknown) }
   }
 }

@@ -52,4 +52,16 @@ public final class SignpostTransaction: TransactionProtocol {
   public func run(handler: Dispatcher.TransactionCompletionHandler) {
     // No op.
   }
+
+  public func cancel() {
+    // No op.
+  }
+
+  public func pause() {
+    // No op.
+  }
+
+  public func resume() {
+    // No op.
+  }
 }

@@ -67,7 +67,7 @@ final class StoreTests: XCTestCase {
     waitForExpectations(timeout: 1)
   }
 
-  func testCancellation() {
+  func testCancellationPreventOperationsExecution() {
     let transactionExpectation = expectation(description: "Transactions canceled.")
     let store = SerializableStore(model: TestModel(), diffing: .sync)
     store.register(middleware: LoggerMiddleware())

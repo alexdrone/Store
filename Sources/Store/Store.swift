@@ -50,6 +50,8 @@ open class Store<M>: StoreProtocol, ObservableObject {
     self.model = model
   }
 
+  // MARK: Model updates
+
   /// Atomically update the model.
   open func reduceModel(transaction: TransactionProtocol? = nil, closure: (inout M) -> Void) {
     self._stateLock.lock()
@@ -74,6 +76,8 @@ open class Store<M>: StoreProtocol, ObservableObject {
     }
   }
 
+  // MARK: Middleware
+
   /// Notify all of the registered middleware services.
   /// - note: See `MiddlewareType.onTransactionStateChange`.
   public func notifyMiddleware(transaction: TransactionProtocol) {
@@ -95,6 +99,8 @@ open class Store<M>: StoreProtocol, ObservableObject {
     self.middleware.removeAll { $0 === middleware }
   }
 
+  // MARK: Executing transactions
+
   public func transaction<A: ActionProtocol, M>(
     action: A,
     mode: Dispatcher.Strategy = .async(nil)
@@ -106,7 +112,7 @@ open class Store<M>: StoreProtocol, ObservableObject {
   }
   
   /// Shorthand for `transaction(action:mode:)` used in the DSL.
-  @discardableResult @inlinable @inline(__always)
+  @discardableResult
   public func transaction<A: ActionProtocol, M>(
     _ action: A,
     _ mode: Dispatcher.Strategy = .async(nil)
@@ -114,7 +120,7 @@ open class Store<M>: StoreProtocol, ObservableObject {
     transaction(action: action, mode: mode)
   }
 
-  @discardableResult @inlinable @inline(__always)
+  @discardableResult
   public func run<A: ActionProtocol, M>(
     action: A,
     mode: Dispatcher.Strategy = .async(nil),
@@ -129,7 +135,7 @@ open class Store<M>: StoreProtocol, ObservableObject {
     return transactionObj
   }
 
-  @discardableResult @inlinable @inline(__always)
+  @discardableResult
   public func run<A: ActionProtocol, M>(
     actions: [A],
     mode: Dispatcher.Strategy = .async(nil),
@@ -154,13 +160,17 @@ open class Store<M>: StoreProtocol, ObservableObject {
   /// ```
   /// This group results in the transactions being run in the following order:
   /// foo -> [ bar + baz] -> foobar
-  @inlinable @inline(__always)
-  public func runGroup(@TransactionSequenceBuilder builder: () -> [TransactionProtocol]) {
+  @discardableResult
+  public func runGroup(@TransactionSequenceBuilder builder: () -> [TransactionProtocol]
+  ) -> [TransactionProtocol] {
     let transactions = builder()
     for transaction in transactions {
-      transaction.opaqueStoreRef = self
+      if transaction.opaqueStoreRef == nil {
+        transaction.opaqueStoreRef = self
+      }
       transaction.run(handler: nil)
     }
+    return transactions
   }
 
   @inline(__always)

@@ -14,4 +14,10 @@ public protocol ActionProtocol: Identifiable {
   func reduce(context: TransactionContext<AssociatedStoreType, Self>)
 }
 
+public extension ActionProtocol {
+  /// *Optional* Used to implement custom cancellation logic for this action.
+  /// E.g. Stop network transfer.
+  func cancel(context: TransactionContext<AssociatedStoreType, Self>) { }
+}
+
 public final class UnspecifiedStore: Store<Void> { }

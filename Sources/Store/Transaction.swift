@@ -55,6 +55,10 @@ public protocol TransactionProtocol: class, TransactionConvertible {
 
   /// Execute the transaction.
   func run(handler: Dispatcher.TransactionCompletionHandler)
+
+  /// *Optional* Used to implement custom cancellation logic for this action.
+  /// E.g. Stop network transfer.
+  func cancel()
 }
 
 extension TransactionProtocol {
@@ -163,11 +167,32 @@ public final class Transaction<A: ActionProtocol>: TransactionProtocol, Identifi
     }
     Dispatcher.main.run(transactions: [self], handler: handler ?? self._handler)
   }
+
+  public func cancel() {
+    guard let store = store, let error = error else {
+      os_log(.error, log: OSLog.primary, "context/store is nil - the operation won't be cancelled.")
+      return
+    }
+    state = .canceled
+    let context = TransactionContext(
+      operation: operation,
+      store: store,
+      error: error,
+      transaction: self)
+    action.cancel(context: context)
+  }
 }
 
 extension Array where Element: TransactionProtocol {
   /// Execute all of the transactions.
   public func run(handler: Dispatcher.TransactionCompletionHandler = nil) {
     Dispatcher.main.run(transactions: self, handler: handler)
+  }
+
+  /// Cancels all of the transactions.
+  public func cancel() {
+    for transaction in self {
+      transaction.cancel()
+    }
   }
 }
