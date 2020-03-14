@@ -120,7 +120,7 @@ public final class Transaction<A: ActionProtocol>: TransactionProtocol, Identifi
   /// The action associated with this transaction.
   public let action: A
 
-  init(_ action: A, in store: A.AssociatedStoreType? = nil) {
+  public init(_ action: A, in store: A.AssociatedStoreType? = nil) {
     self.store = store
     self.action = action
   }
