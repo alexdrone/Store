@@ -4,6 +4,9 @@ import Foundation
 public protocol AnyStoreProtocol: class {
   /// Opaque reference to the model wrapped by this store.
   var opaqueModelRef: Any { get }
+  
+  /// Whenever this store changes the parent will notify its observers as well.
+  var parent: AnyStoreProtocol? { get }
 
   /// All of the registered middleware.
   var middleware: [Middleware] { get }
@@ -21,9 +24,6 @@ public protocol AnyStoreProtocol: class {
   /// Notify all of the registered middleware services.
   /// - note: See `MiddlewareType.onTransactionStateChange`.
   func notifyMiddleware(transaction: TransactionProtocol)
-  
-  /// Whenever this store changes the parent will notify its observers as well.
-  func withParent(store: AnyStoreProtocol) -> Self
 }
 
 public protocol StoreProtocol: AnyStoreProtocol {
@@ -45,12 +45,15 @@ open class Store<M>: StoreProtocol, ObservableObject {
 
   /// All of the registered middleware.
   public var middleware: [Middleware] = []
+  
+  /// The parent store.
+  public var parent: AnyStoreProtocol?
 
   /// Synchronizes the access to the state object.
   private var _stateLock = SpinLock()
   
-  /// The parent store.
-  private var parent: AnyStoreProtocol?
+  /// All of the children observers.
+  private var _childrenBag = Array<Cancellable>()
 
   public init(model: M) {
     self.model = model
@@ -83,12 +86,6 @@ open class Store<M>: StoreProtocol, ObservableObject {
     }
   }
   
-  /// Whenever this store changes the parent will notify its observers as well.
-  public func withParent(store: AnyStoreProtocol) -> Self {
-    parent = store
-    return self
-  }
-
   // MARK: Middleware
 
   /// Notify all of the registered middleware services.
@@ -110,6 +107,23 @@ open class Store<M>: StoreProtocol, ObservableObject {
   /// Unregister a middleware service.
   public func unregister(middleware: Middleware) {
     self.middleware.removeAll { $0 === middleware }
+  }
+  
+  // MARK: Children stores
+
+  /// Creates a store for a subtree of the wrapped model.
+  /// Similar to Redux `combineStores`.
+  public func makeChildStore<M_1>(
+    keyPath: WritableKeyPath<M, M_1>,
+    create: (M_1) -> Store<M_1> = { Store<M_1>(model: $0) }
+  ) -> Store<M_1> {
+    let childStore = create(model[keyPath: keyPath]);
+    childStore.parent = self
+    let cancellable = childStore.objectWillChange.sink {
+      self.reduceModel { $0[keyPath: keyPath] = childStore.model }
+    }
+    _childrenBag.append(cancellable)
+    return childStore
   }
 
   // MARK: Executing transactions

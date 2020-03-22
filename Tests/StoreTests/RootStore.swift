@@ -3,29 +3,23 @@ import Combine
 @testable import Store
 
 struct Root {
-  class Todo {
+  struct Todo {
     var name: String = "Untitled"
     var description: String = "N/A"
     var done: Bool = false
-    init() { }
   }
-  class Note {
+  struct Note {
     var author: String = "Nobody"
     var text: String = ""
     var upvotes: Int = 0
-    init() { }
   }
   var todo: Todo = Todo()
   var note: Note = Note()
 }
 
 class RootStore: Store<Root> {
-  lazy var todoStore: Store<Root.Todo> = {
-    Store(model: self.model.todo).withParent(store: self)
-  }()
-  lazy var noteStore: Store<Root.Note> = {
-    Store(model: self.model.note).withParent(store: self)
-  }()
+  lazy var todoStore = makeChildStore(keyPath: \.todo)
+  lazy var noteStore = makeChildStore(keyPath: \.note)
 }
 
 extension Root.Todo {
