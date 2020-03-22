@@ -25,7 +25,7 @@ class RootStore: Store<Root> {
 extension Root.Todo {
   struct Action_MarkAsDone: ActionProtocol {
     func reduce(context: TransactionContext<Store<Root.Todo>, Self>) {
-      defer {  context.fulfill() }
+      defer { context.fulfill() }
       context.reduceModel { $0.done = true }
     }
   }
@@ -34,7 +34,7 @@ extension Root.Todo {
 extension Root.Note {
   struct Action_IncreaseUpvotes: ActionProtocol {
     func reduce(context: TransactionContext<Store<Root.Note>, Self>) {
-      defer {  context.fulfill() }
+      defer { context.fulfill() }
       context.reduceModel { $0.upvotes += 1 }
     }
   }
