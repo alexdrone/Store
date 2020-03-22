@@ -106,7 +106,7 @@ enum CounterAction: ActionProtocol {
     }
   }
 
-  func perform(context: TransactionContext<Store<Counter>, Self>) {
+  func reduce(context: TransactionContext<Store<Counter>, Self>) {
     defer {
       context.fulfill()
     }
