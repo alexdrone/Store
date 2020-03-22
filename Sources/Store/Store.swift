@@ -21,6 +21,9 @@ public protocol AnyStoreProtocol: class {
   /// Notify all of the registered middleware services.
   /// - note: See `MiddlewareType.onTransactionStateChange`.
   func notifyMiddleware(transaction: TransactionProtocol)
+  
+  /// Whenever this store changes the parent will notify its observers as well.
+  func withParent(store: AnyStoreProtocol) -> Self
 }
 
 public protocol StoreProtocol: AnyStoreProtocol {
@@ -45,6 +48,9 @@ open class Store<M>: StoreProtocol, ObservableObject {
 
   /// Synchronizes the access to the state object.
   private var _stateLock = SpinLock()
+  
+  /// The parent store.
+  private var parent: AnyStoreProtocol?
 
   public init(model: M) {
     self.model = model
@@ -73,7 +79,14 @@ open class Store<M>: StoreProtocol, ObservableObject {
   open func notifyObservers() {
     _onMainThread {
       objectWillChange.send()
+      parent?.notifyObservers()
     }
+  }
+  
+  /// Whenever this store changes the parent will notify its observers as well.
+  public func withParent(store: AnyStoreProtocol) -> Self {
+    parent = store
+    return self
   }
 
   // MARK: Middleware
