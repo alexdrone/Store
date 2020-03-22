@@ -82,7 +82,6 @@ open class Store<M>: StoreProtocol, ObservableObject {
   open func notifyObservers() {
     _onMainThread {
       objectWillChange.send()
-      parent?.notifyObservers()
     }
   }
   
