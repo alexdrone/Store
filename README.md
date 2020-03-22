@@ -1,4 +1,4 @@
-# ＳＴＯＲＥ [![Swift](https://img.shields.io/badge/swift-5.1-orange.svg?style=flat)](#) [![Build Status](https://travis-ci.org/alexdrone/Store.svg?branch=master)](https://travis-ci.org/alexdrone/Store) [![Cov](https://img.shields.io/badge/coverage-53.9%25-blue.svg?style=flat)](#) 
+# ＳＴＯＲＥ [![Swift](https://img.shields.io/badge/swift-5.1-orange.svg?style=flat)](#) [![Build Status](https://travis-ci.org/alexdrone/Store.svg?branch=master)](https://travis-ci.org/alexdrone/Store) [![Cov](https://img.shields.io/badge/coverage-53.9%25-blue.svg?style=flat)](#)
 <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/dispatch_logo_small.png" width=300 alt="Dispatch" align=right />
 
 Unidirectional, transactional, operation-based Store implementation for Swift and SwiftUI
@@ -25,7 +25,7 @@ struct Counter {
   var count = 0
 }
 
-let store = Store<Counter>()
+let store = Store<Counter>(model: Counter())
 ```
 
 ### Action
@@ -36,10 +36,11 @@ It can be represented using an enum:
 
 ```swift
 enum CounterAction: ActionProtocol {
+
   case increase
   case decrease
 
-  var identifier: String {
+  var id: String {
     switch self {
     case .increase: return "INCREASE"
     case .decrease: return "DECREASE"
@@ -47,18 +48,18 @@ enum CounterAction: ActionProtocol {
   }
 
   func reduce(context: TransactionContext<Store<Counter>, Self>) {
-    defer { 
+    defer {
       // Remember to always call `fulfill` to signal the completion of this operation.
       context.fulfill()
     }
     switch self {
-    case .increase: context.reduceModel { $0.count += 1 }
-    case .decrease: context.reduceModel { $0.count -= 1 }
-
+    case .increase(let amount):
+      context.reduceModel { $0.count += 1 }
+    case .decrease(let amount):
+      context.reduceModel { $0.count -= 1 }
     }
   }
 }
-
 ```
 
 Or a struct:
@@ -66,9 +67,11 @@ Or a struct:
 ```swift
 struct IncreaseAction: ActionProtocol {
   let count: Int
-  
+
+  var id: String = "INCREASE"
+
   func reduce(context: TransactionContext<Store<Counter>, Self>) {
-    defer { 
+    defer {
       // Remember to always call `fulfill` to signal the completion of this operation.
       context.fulfill()
     }
@@ -96,10 +99,11 @@ struct Counter {
 }
 
 enum CounterAction: ActionProtocol {
+
   case increase(amount: Int)
   case decrease(amount: Int)
 
-  var identifier: String {
+  var id: String {
     switch self {
     case .increase(_): return "INCREASE"
     case .decrease(_): return "DECREASE"
@@ -135,22 +139,22 @@ struct ContentView : View {
 #if DEBUG
 struct ContentView_Previews : PreviewProvider {
     static var previews: some View {
-        ContentView().environmentObject(Store<Counter>())
+        ContentView().environmentObject(Store<Counter>(model: Counter()))
     }
 }
 #endif
 ```
 
-### RunGroup DSL 
+### RunGroup DSL
 
-Actions can be chained using the `Store.runGroup` DSL. 
+Actions can be chained using the `Store.runGroup` DSL.
 
 
 ```swift
 store.runGroup {
   Transaction<MyAction>(.prepareFoo) // 1
   Transaction<MyAction>(.prepareBar) // 2
-  
+
   Concurrent {
     Transaction<SomeAPIAction>(.dowloadFoo) // 3
     Transaction<SomeAPIAction>(.downloadBar) // 4
@@ -225,7 +229,7 @@ public struct TransactionDiff {
   /// Reference to the transaction that cause this change.
   public var transaction: AnyTransaction
   /// Returns the `diffs` map encoded as **JSON** data.
-  public var json: Data 
+  public var json: Data
 }
 
 /// Represent a property change.
@@ -237,13 +241,13 @@ public enum PropertyDiff {
 }
 ```
 
-Using a  `SerializableModelType` improves debuggability thanks to the console output for every transaction. e.g. 
+Using a  `SerializableModelType` improves debuggability thanks to the console output for every transaction. e.g.
 
 ```
 ▩ INFO (-LnpwxkPuE3t1YNCPjjD) UPDATE_LABEL [0.045134 ms]
 ▩ DIFF (-LnpwxkPuE3t1YNCPjjD) UPDATE_LABEL {
-    · label: <changed ⇒ (old: Foo, new: Bar)>, 
-    · nested/label: <changed ⇒ (old: Nested struct, new: Bar)>, 
+    · label: <changed ⇒ (old: Foo, new: Bar)>,
+    · nested/label: <changed ⇒ (old: Nested struct, new: Bar)>,
     · nullableLabel: <removed>
   }
 ```
@@ -293,7 +297,7 @@ Transactions can express a throttle delay.
 ```swift
 
 func calledOften() {
-  store.run(.myAction, throttle: 0.5) 
+  store.run(.myAction, throttle: 0.5)
 }
 
 ```
@@ -342,7 +346,7 @@ sink = store.$lastTransactionDiff.sink { diff in
 ```swift
 struct IncreaseAction: ActionProtocol {
   let count: Int
-  
+
   func reduce(context: TransactionContext<Store<Counter>, Self>) {
     // Remember to always call `fulfill` to signal the completion of this operation.
     defer { context.fulfill() }
