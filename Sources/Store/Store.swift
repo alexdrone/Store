@@ -37,8 +37,11 @@ public protocol StoreProtocol: AnyStoreProtocol {
 }
 
 open class Store<M>: StoreProtocol, ObservableObject {
+  /// A publisher that emits before the object has changed.
+  public let objectWillChange = ObservableObjectPublisher()
+
   /// The current state of this store.
-  @Published public private(set) var model: M
+  public private(set) var model: M
 
   /// Opaque reference to the model wrapped by this store.
   public var opaqueModelRef: Any { model }
@@ -49,11 +52,9 @@ open class Store<M>: StoreProtocol, ObservableObject {
   /// The parent store.
   public var parent: AnyStoreProtocol?
 
-  /// Synchronizes the access to the state object.
   private var _stateLock = SpinLock()
-  
-  /// All of the children observers.
   private var _childrenBag = Array<Cancellable>()
+  private var _reduceParent: ((M) -> Void)?
 
   public init(model: M) {
     self.model = model
@@ -69,12 +70,15 @@ open class Store<M>: StoreProtocol, ObservableObject {
     _onMainThread {
       self.model = new
     }
-    didUpdateModel(transaction: transaction, old: old, new: new)
     self._stateLock.unlock()
+    didUpdateModel(transaction: transaction, old: old, new: new)
   }
 
+  /// Emits the `objectWillChange` event and propage the changes to its parent.
+  /// - note: Call `super` implementation if you override this function.
   open func didUpdateModel(transaction: TransactionProtocol?, old: M, new: M) {
-    // Subclasses to override this.
+    _reduceParent?(new)
+    notifyObservers()
   }
 
   /// Notify the store observers for the change of this store.
@@ -118,10 +122,11 @@ open class Store<M>: StoreProtocol, ObservableObject {
   ) -> Store<M_1> {
     let childStore = create(model[keyPath: keyPath]);
     childStore.parent = self
-    let cancellable = childStore.objectWillChange.sink {
-      self.reduceModel { $0[keyPath: keyPath] = childStore.model }
+    childStore._reduceParent = { child in
+      self.reduceModel { parent in
+        parent[keyPath: keyPath] = child
+      }
     }
-    _childrenBag.append(cancellable)
     return childStore
   }
 

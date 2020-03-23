@@ -39,3 +39,32 @@ extension Root.Note {
     }
   }
 }
+
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
+final class CombinedStoreTests: XCTestCase {
+  
+  var sink: AnyCancellable?
+
+  func testChildStoreChangesRootStoreValue() {
+    let rootStore = RootStore(model: Root())
+    XCTAssertFalse(rootStore.model.todo.done)
+    XCTAssertFalse(rootStore.todoStore.model.done)
+    rootStore.todoStore.run(action: Root.Todo.Action_MarkAsDone(), mode: .sync)
+    XCTAssertTrue(rootStore.todoStore.model.done)
+    XCTAssertTrue(rootStore.model.todo.done)
+  }
+  
+  func testChildStoreChangesTriggersRootObserver() {
+    let observerExpectation = expectation(description: "Observer called.")
+    let rootStore = RootStore(model: Root())
+    sink = rootStore.objectWillChange.sink {
+      XCTAssertTrue(rootStore.model.todo.done)
+      XCTAssertTrue(rootStore.todoStore.model.done)
+      observerExpectation.fulfill()      
+    }
+    rootStore.todoStore.run(action: Root.Todo.Action_MarkAsDone(), mode: .sync)
+    XCTAssertTrue(rootStore.todoStore.model.done)
+    XCTAssertTrue(rootStore.model.todo.done)
+    waitForExpectations(timeout: 1)
+  }
+}
