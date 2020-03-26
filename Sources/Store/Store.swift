@@ -213,3 +213,13 @@ open class Store<M>: StoreProtocol, ObservableObject {
     }
   }
 }
+
+public extension AnyStoreProtocol {
+  /// Typically used to cast the store parent to the right type.
+  func cast<T>(_ type: T) -> Store<T>? {
+    guard let store = self as? Store<T> else {
+      return nil
+    }
+    return store
+  }
+}
