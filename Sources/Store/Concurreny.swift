@@ -7,9 +7,6 @@ import Foundation
 /// immutabel model types.
 @inlinable @inline(__always)
 public func assign<T>(_ value: T, changes: (inout T) -> Void) -> T {
-  guard Mirror(reflecting: value).displayStyle == .struct else {
-    fatalError("'value' must be a struct.")
-  }
   var copy = value
   changes(&copy)
   return copy
