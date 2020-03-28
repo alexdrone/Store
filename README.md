@@ -258,8 +258,7 @@ Using a  `SerializableModelType` improves debuggability thanks to the console ou
 As your app logic grows could be convient to split store into smaller one, still using the same root model.
 This can be achieved by using the `makeChildStore(keyPath:)` API.
 
-```
-
+```swift
 struct App {
   struct Todo {
     var name: String = "Untitled"
@@ -298,7 +297,6 @@ todoListStore.run(action: TodoListActionCreateNew(name: "New", decription: "New"
 
 let todoStore = rootStore.makeChildStore(keyPath: \.[0])
 todoStore.run(action: TodoActionMarkAsDone(), mode: .sync)
-
 ```
 
 This is a good strategy to prevent passing down the whole application store as a dependency when not needed _(e.g. maybe your datasource just need the TodoList store and your cell the single-value Todo store)._ 
