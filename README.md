@@ -145,7 +145,7 @@ struct ContentView_Previews : PreviewProvider {
 #endif
 ```
 
-### RunGroup DSL
+### DSL
 
 Actions can be chained using the `Store.runGroup` DSL.
 
@@ -251,6 +251,56 @@ Using a  `SerializableModelType` improves debuggability thanks to the console ou
     · nullableLabel: <removed>
   }
 ```
+
+
+# Combining Stores
+
+As your app logic grows could be convient to split store into smaller one, still using the same root model.
+This can be achieved by using the `makeChildStore(keyPath:)` API.
+
+```swift
+struct App {
+  struct Todo {
+    var name: String = "Untitled"
+    var description: String = "N/A"
+    var done: Bool = false
+  }
+  var todos: [Todo] = []
+}
+
+// This action targets a Store<Todo>...
+struct TodoActionMarkAsDone: ActionProtocol {
+  func reduce(context: TransactionContext<Store<App.Todo>, Self>) {
+    defer { context.fulfill() }
+    context.reduceModel { $0.done = true }
+  }
+}
+
+// ..While this one the whole collection Store<[Todo]>
+struct TodoListActionCreateNew: ActionProtocol {
+  let name: String
+  let description: String
+  func reduce(context: TransactionContext<Store<Array<App.Todo>>, Self>) {
+    defer { context.fulfill() }
+    let new = Root.Todo(name: name, description: description)
+    context.reduceModel {
+      $0.append(new)
+    }
+  }
+}
+
+let appModel = App()
+let rootStore = Store(model: appModel)
+
+let todoListStore = rootStore.makeChildStore(keyPath: \.todos)
+todoListStore.run(action: TodoListActionCreateNew(name: "New", decription: "New"), mode: .sync)
+
+let todoStore = rootStore.makeChildStore(keyPath: \.[0])
+todoStore.run(action: TodoActionMarkAsDone(), mode: .sync)
+```
+
+This is a good strategy to prevent passing down the whole application store as a dependency when not needed _(e.g. maybe your datasource just need the TodoList store and your cell the single-value Todo store)._ 
+
 # Advanced
 
 Dispatch takes advantage of *Operations* and *OperationQueues* and you can define complex dependencies between the operations that are going to be run on your store.
