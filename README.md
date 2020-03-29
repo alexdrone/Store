@@ -194,7 +194,7 @@ store.register(middleware: MyMiddleware())
 TL;DR
 
 ```swift
-struct MySerializableModel: SerializableModelProtocol {
+struct MySerializableModel: Codable {
 var count = 0
 var label = "Foo"
 var nullableLabel: String? = "Bar"

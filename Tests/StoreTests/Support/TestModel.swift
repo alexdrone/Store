@@ -2,7 +2,7 @@ import Foundation
 @testable import Store
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-struct TestModel: SerializableModelProtocol {
+struct TestModel: Codable {
   struct Action { }
 
   var count = 0
