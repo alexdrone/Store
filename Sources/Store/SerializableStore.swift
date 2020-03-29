@@ -46,6 +46,7 @@ open class SerializableStore<M: Codable>: Store<M> {
   }
 
   override open func didUpdateModel(transaction: TransactionProtocol?, old: M, new: M) {
+    super.didUpdateModel(transaction: transaction, old: old, new: new)
     guard let transaction = transaction else {
       return
     }
@@ -85,6 +86,15 @@ open class SerializableStore<M: Codable>: Store<M> {
         .debug, log: OSLog.diff, "▩ 𝘿𝙄𝙁𝙁 (%s) %s %s",
         transaction.id, transaction.actionId, diffs.storeDebugDescription(short: true))
     }
+  }
+  
+  /// Creates a store for a subtree of the wrapped model.
+  /// Similar to Redux `combineStores`.
+  public func makeChildSerializableStore<M_1>(
+    keyPath: WritableKeyPath<M, M_1>,
+    create: (M_1) -> SerializableStore<M_1> = { SerializableStore<M_1>(model: $0) }
+  ) -> SerializableStore<M_1> {
+    super.makeChildStore(keyPath: keyPath, create: create) as! SerializableStore<M_1>
   }
   
   // MARK: - Model Encode/Decode

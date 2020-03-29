@@ -2,13 +2,13 @@ import XCTest
 import Combine
 @testable import Store
 
-struct Root {
-  struct Todo {
+struct Root: Codable {
+  struct Todo: Codable {
     var name: String = "Untitled"
     var description: String = "N/A"
     var done: Bool = false
   }
-  struct Note {
+  struct Note: Codable {
     var author: String = "Nobody"
     var text: String = ""
     var upvotes: Int = 0
@@ -19,19 +19,20 @@ struct Root {
   var list: [Todo] = []
 }
 
-class RootStore: Store<Root> {
+class RootStore: SerializableStore<Root> {
   // Children test.
-  lazy var todoStore = makeChildStore(keyPath: \.todo)
-  lazy var noteStore = makeChildStore(keyPath: \.note)
+  lazy var todoStore = makeChildSerializableStore(keyPath: \.todo)
+  lazy var noteStore = makeChildSerializableStore(keyPath: \.note)
 
   // List and transient store tests.
-  lazy var listStore = makeChildStore(keyPath: \.list)
+  lazy var listStore = makeChildSerializableStore(keyPath: \.list)
 }
 
 // MARK: Combined Stores
 
 extension Root.Todo {
   struct Action_MarkAsDone: ActionProtocol {
+    let id = "mark_as_done"
     func reduce(context: TransactionContext<Store<Root.Todo>, Self>) {
       defer { context.fulfill() }
       context.reduceModel { $0.done = true }
@@ -41,6 +42,7 @@ extension Root.Todo {
 
 extension Root.Note {
   struct Action_IncreaseUpvotes: ActionProtocol {
+    let id = "increase_upvotes"
     func reduce(context: TransactionContext<Store<Root.Note>, Self>) {
       defer { context.fulfill() }
       context.reduceModel { $0.upvotes += 1 }
@@ -52,6 +54,7 @@ extension Root.Note {
 
 extension Root.Todo {
   struct Action_ListCreateNew: ActionProtocol {
+    let id = "list_create_new"
     let name: String
     let description: String
     func reduce(context: TransactionContext<Store<Array<Root.Todo>>, Self>) {
@@ -73,6 +76,11 @@ final class CombinedStoreTests: XCTestCase {
   
   func testChildStoreChangesRootStoreValue() {
     let rootStore = RootStore(model: Root())
+    rootStore.register(middleware: LoggerMiddleware())
+    rootStore.todoStore.register(middleware: LoggerMiddleware())
+    rootStore.noteStore.register(middleware: LoggerMiddleware())
+    rootStore.listStore.register(middleware: LoggerMiddleware())
+
     XCTAssertFalse(rootStore.model.todo.done)
     XCTAssertFalse(rootStore.todoStore.model.done)
     rootStore.todoStore.run(action: Root.Todo.Action_MarkAsDone(), mode: .sync)
@@ -83,6 +91,11 @@ final class CombinedStoreTests: XCTestCase {
   func testChildStoreChangesTriggersRootObserver() {
     let observerExpectation = expectation(description: "Observer called.")
     let rootStore = RootStore(model: Root())
+    rootStore.register(middleware: LoggerMiddleware())
+    rootStore.todoStore.register(middleware: LoggerMiddleware())
+    rootStore.noteStore.register(middleware: LoggerMiddleware())
+    rootStore.listStore.register(middleware: LoggerMiddleware())
+    
     sink = rootStore.objectWillChange.sink {
       XCTAssertTrue(rootStore.model.todo.done)
       XCTAssertTrue(rootStore.todoStore.model.done)
@@ -99,6 +112,9 @@ final class CombinedStoreTests: XCTestCase {
     rootStore.listStore.run(
       action: Root.Todo.Action_ListCreateNew(name: "New", description: "New"),
       mode: .sync)
+    rootStore.register(middleware: LoggerMiddleware())
+    rootStore.listStore.register(middleware: LoggerMiddleware())
+    
     XCTAssertTrue(rootStore.listStore.model.count == 1)
     XCTAssertTrue(rootStore.listStore.model[0].name == "New")
     XCTAssertTrue(rootStore.listStore.model[0].description == "New")
@@ -108,7 +124,9 @@ final class CombinedStoreTests: XCTestCase {
     XCTAssertTrue(rootStore.model.list[0].description == "New")
     XCTAssertTrue(rootStore.model.list[0].done == false)
     
-    let todoStore: Store<Root.Todo> = rootStore.listStore.makeChildStore(keyPath: \.[0])
+    let todoStore: Store<Root.Todo> = rootStore.listStore.makeChildSerializableStore(keyPath: \.[0])
+    todoStore.register(middleware: LoggerMiddleware())
+
     todoStore.run(action: Root.Todo.Action_MarkAsDone(), mode: .sync)
     XCTAssertTrue(todoStore.model.name == "New")
     XCTAssertTrue(todoStore.model.description == "New")

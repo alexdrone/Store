@@ -27,11 +27,11 @@ enum Action: ActionProtocol {
 
   var id: String {
     switch self {
-    case .increase(_): return "INCREASE"
-    case .throttleIncrease(_): return "THROTTLE_INCREASE"
-    case .decrease(_): return "DECREASE"
-    case .updateLabel(_): return "UPDATE_LABEL"
-    case .setArray(_): return "SET_ARRAY"
+    case .increase(_): return "increase"
+    case .throttleIncrease(_): return "throttle_increase"
+    case .decrease(_): return "decrease"
+    case .updateLabel(_): return "update_label"
+    case .setArray(_): return "set_array"
     }
   }
 
