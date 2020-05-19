@@ -9,6 +9,11 @@ public struct TemplateAction {
   public struct AssignKeyPath<M, V>: ActionProtocol {
     public let keyPath: KeyPathField<M, V>
     public let value: V?
+    
+    public init(_ keyPath: KeyPathField<M, V>, _ value: V) {
+      self.keyPath = keyPath
+      self.isIncluded = isIncluded
+    }
 
     public init(_ keyPath: WritableKeyPath<M, V>, _ value: V) {
       self.keyPath = .value(keyPath: keyPath)
@@ -32,6 +37,11 @@ public struct TemplateAction {
     public let keyPath: KeyPathField<M, V>
     public let isIncluded: (T) -> Bool
     
+    public init(_ keyPath: KeyPathField<M, V>, _ isIncluded: @escaping (T) -> Bool) {
+      self.keyPath = keyPath
+      self.isIncluded = isIncluded
+    }
+    
     public init(_ keyPath: WritableKeyPath<M, V>, _ isIncluded: @escaping (T) -> Bool) {
       self.keyPath = .value(keyPath: keyPath)
       self.isIncluded = isIncluded
@@ -54,6 +64,11 @@ public struct TemplateAction {
     public let keyPath: KeyPathField<M, V>
     public let index: Int
     
+    public init(_ keyPath: KeyPathField<M, V>, index: Int) {
+      self.keyPath = keyPath
+      self.isIncluded = isIncluded
+    }
+    
     public init(_ keyPath: WritableKeyPath<M, V>, index: Int) {
       self.keyPath = .value(keyPath: keyPath)
       self.index = index
@@ -75,6 +90,11 @@ public struct TemplateAction {
   public struct Push<M, V: Collection, T>: ActionProtocol where V.Element == T {
     public let keyPath: KeyPathField<M, V>
     public let object: T
+    
+    public init(_ keyPath: KeyPathField<M, V>, object: T) {
+      self.keyPath = keyPath
+      self.object = object
+    }
     
     public init(_ keyPath: WritableKeyPath<M, V>, object: T) {
       self.keyPath = .value(keyPath: keyPath)
