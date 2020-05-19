@@ -24,6 +24,9 @@ public protocol AnyStoreProtocol: class {
   /// Notify all of the registered middleware services.
   /// - note: See `MiddlewareType.onTransactionStateChange`.
   func notifyMiddleware(transaction: TransactionProtocol)
+  
+  /// Recursively traverse the parents until it founds one that matches the specified model type.
+  func parent<T>(type: T.Type) -> Store<T>?
 }
 
 public protocol StoreProtocol: AnyStoreProtocol {
@@ -115,7 +118,9 @@ open class Store<M>: StoreProtocol, ObservableObject {
   // MARK: Children stores
 
   /// Creates a store for a subtree of the wrapped model.
-  /// Similar to Redux `combineStores`.
+  /// As logic grows could be convient to split store into smaller one, still using the same
+  /// root model.
+  /// - note: Similar to Redux `combineStores`.
   public func makeChildStore<M_1>(
     keyPath: WritableKeyPath<M, M_1>,
     create: (M_1) -> Store<M_1> = { Store<M_1>(model: $0) }
@@ -128,6 +133,14 @@ open class Store<M>: StoreProtocol, ObservableObject {
       }
     }
     return childStore
+  }
+  
+  /// Recursively traverse the parents until it founds one that matches the specified model type.
+  public func parent<T>(type: T.Type) -> Store<T>? {
+    if let parent = parent as? Store<T> {
+      return parent
+    }
+    return parent?.parent(type: type)
   }
 
   // MARK: Executing transactions
