@@ -12,7 +12,7 @@ public struct TemplateAction {
     
     public init(_ keyPath: KeyPathField<M, V>, _ value: V) {
       self.keyPath = keyPath
-      self.isIncluded = isIncluded
+      self.value = value
     }
 
     public init(_ keyPath: WritableKeyPath<M, V>, _ value: V) {
@@ -66,7 +66,7 @@ public struct TemplateAction {
     
     public init(_ keyPath: KeyPathField<M, V>, index: Int) {
       self.keyPath = keyPath
-      self.isIncluded = isIncluded
+      self.index = index
     }
     
     public init(_ keyPath: WritableKeyPath<M, V>, index: Int) {
