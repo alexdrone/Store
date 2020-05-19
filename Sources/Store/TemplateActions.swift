@@ -7,7 +7,7 @@ import os.log
 public struct TemplateAction {
 
   public struct AssignKeyPath<M, V>: ActionProtocol {
-    public let keyPath: KeyPath<M, V>
+    public let keyPath: KeyPathField<M, V>
     public let value: V?
 
     public init(_ keyPath: WritableKeyPath<M, V>, _ value: V) {
@@ -29,7 +29,7 @@ public struct TemplateAction {
   }
   
   public struct Filter<M, V: Collection, T>: ActionProtocol where V.Element == T {
-    public let keyPath: KeyPath<M, V>
+    public let keyPath: KeyPathField<M, V>
     public let isIncluded: (T) -> Bool
     
     public init(_ keyPath: WritableKeyPath<M, V>, _ isIncluded: @escaping (T) -> Bool) {
@@ -51,7 +51,7 @@ public struct TemplateAction {
   }
   
   public struct RemoveAtIndex<M, V: Collection, T>: ActionProtocol where V.Element == T {
-    public let keyPath: KeyPath<M, V>
+    public let keyPath: KeyPathField<M, V>
     public let index: Int
     
     public init(_ keyPath: WritableKeyPath<M, V>, index: Int) {
@@ -73,7 +73,7 @@ public struct TemplateAction {
   }
   
   public struct Push<M, V: Collection, T>: ActionProtocol where V.Element == T {
-    public let keyPath: KeyPath<M, V>
+    public let keyPath: KeyPathField<M, V>
     public let object: T
     
     public init(_ keyPath: WritableKeyPath<M, V>, object: T) {
@@ -95,7 +95,7 @@ public struct TemplateAction {
   }
 }
 
-public enum KeyPath<M, V> {
+public enum KeyPathField<M, V> {
   /// A non-optional writeable keyPath.
   case value(keyPath: WritableKeyPath<M, V>)
   /// A optional writeable keyPath.
@@ -104,7 +104,7 @@ public enum KeyPath<M, V> {
 
 private func _mutateArray<M, V: Collection, T>(
   object: inout M,
-  keyPath: KeyPath<M, V>,
+  keyPath: KeyPathField<M, V>,
   mutate: (inout [T]) -> Void
 ) where V.Element == T  {
   var value: V
@@ -127,7 +127,7 @@ private func _mutateArray<M, V: Collection, T>(
   }
 }
 
-private func _assignKeyPath<M, V>(object: inout M, keyPath: KeyPath<M, V>, value: V?) {
+private func _assignKeyPath<M, V>(object: inout M, keyPath: KeyPathField<M, V>, value: V?) {
   switch keyPath {
   case .value(let keyPath):
     guard let value = value else { return }
