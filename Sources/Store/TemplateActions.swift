@@ -3,13 +3,6 @@ import os.log
 
 // MARK: - Template Actions
 
-public enum KeyPath<M, V> {
-  /// A non-optional writeable keyPath.
-  case value(keyPath: WritableKeyPath<M, V>)
-  /// A optional writeable keyPath.
-  case optional(keyPath: WritableKeyPath<M, V?>)
-}
-
 /// General-purpose actions that can be applied to any store.
 public struct TemplateAction {
 
@@ -17,6 +10,16 @@ public struct TemplateAction {
     public let keyPath: KeyPath<M, V>
     public let value: V?
 
+    public init(_ keyPath: WritableKeyPath<M, V>, _ value: V) {
+      self.keyPath = .value(keyPath: keyPath)
+      self.value = value
+    }
+    
+    public init(_ keyPath: WritableKeyPath<M, V?>, _ value: V?) {
+      self.keyPath = .optional(keyPath: keyPath)
+      self.value = value
+    }
+    
     public func reduce(context: TransactionContext<Store<M>, Self>) {
       defer { context.fulfill() }
       context.reduceModel { model in
@@ -28,6 +31,16 @@ public struct TemplateAction {
   public struct Filter<M, V: Collection, T>: ActionProtocol where V.Element == T {
     public let keyPath: KeyPath<M, V>
     public let isIncluded: (T) -> Bool
+    
+    public init(_ keyPath: WritableKeyPath<M, V>, _ isIncluded: @escaping (T) -> Bool) {
+      self.keyPath = .value(keyPath: keyPath)
+      self.isIncluded = isIncluded
+    }
+    
+    public init(_ keyPath: WritableKeyPath<M, V?>, _ isIncluded: @escaping (T) -> Bool) {
+      self.keyPath = .optional(keyPath: keyPath)
+      self.isIncluded = isIncluded
+    }
     
     public func reduce(context: TransactionContext<Store<M>, Self>) {
       defer { context.fulfill() }
@@ -41,6 +54,16 @@ public struct TemplateAction {
     public let keyPath: KeyPath<M, V>
     public let index: Int
     
+    public init(_ keyPath: WritableKeyPath<M, V>, index: Int) {
+      self.keyPath = .value(keyPath: keyPath)
+      self.index = index
+    }
+    
+    public init(_ keyPath: WritableKeyPath<M, V?>, index: Int) {
+      self.keyPath = .optional(keyPath: keyPath)
+      self.index = index
+    }
+    
     public func reduce(context: TransactionContext<Store<M>, Self>) {
       defer { context.fulfill() }
       context.reduceModel { model in
@@ -52,6 +75,16 @@ public struct TemplateAction {
   public struct Push<M, V: Collection, T>: ActionProtocol where V.Element == T {
     public let keyPath: KeyPath<M, V>
     public let object: T
+    
+    public init(_ keyPath: WritableKeyPath<M, V>, object: T) {
+      self.keyPath = .value(keyPath: keyPath)
+      self.object = object
+    }
+    
+    public init(_ keyPath: WritableKeyPath<M, V?>, object: T) {
+      self.keyPath = .optional(keyPath: keyPath)
+      self.object = object
+    }
 
     public func reduce(context: TransactionContext<Store<M>, Self>) {
       defer { context.fulfill() }
@@ -60,6 +93,13 @@ public struct TemplateAction {
       }
     }
   }
+}
+
+public enum KeyPath<M, V> {
+  /// A non-optional writeable keyPath.
+  case value(keyPath: WritableKeyPath<M, V>)
+  /// A optional writeable keyPath.
+  case optional(keyPath: WritableKeyPath<M, V?>)
 }
 
 private func _mutateArray<M, V: Collection, T>(
