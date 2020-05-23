@@ -113,6 +113,33 @@ public struct TemplateAction {
       }
     }
   }
+  
+  public struct PushFirst<M, V: Collection, T>: ActionProtocol where V.Element == T {
+    public let keyPath: KeyPathField<M, V>
+    public let object: T
+    
+    public init(_ keyPath: KeyPathField<M, V>, object: T) {
+      self.keyPath = keyPath
+      self.object = object
+    }
+    
+    public init(_ keyPath: WritableKeyPath<M, V>, object: T) {
+      self.keyPath = .value(keyPath: keyPath)
+      self.object = object
+    }
+    
+    public init(_ keyPath: WritableKeyPath<M, V?>, object: T) {
+      self.keyPath = .optional(keyPath: keyPath)
+      self.object = object
+    }
+
+    public func reduce(context: TransactionContext<Store<M>, Self>) {
+      defer { context.fulfill() }
+      context.reduceModel { model in
+        _mutateArray(object: &model, keyPath: keyPath) { $0.insert(object, at: 0) }
+      }
+    }
+  }
 }
 
 public enum KeyPathField<M, V> {
