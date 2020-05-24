@@ -2,6 +2,8 @@ import Combine
 import Foundation
 import os.log
 
+public typealias TransactionOf = Transaction
+
 /// Transaction state.
 public enum TransactionState {
   /// The transaction is pending execution.
