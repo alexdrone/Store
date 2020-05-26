@@ -8,17 +8,23 @@ public struct TemplateAction {
   
   public struct Reduce<M>: ActionProtocol {
     public let reduce: (inout M) -> Void
-    public var id: String { "__tmpl_mutate" }
+    public var id: String = "__tmpl_mutate"
     public func reduce(context: TransactionContext<Store<M>, Self>) {
       defer { context.fulfill() }
       context.reduceModel(closure: reduce)
+    }
+    
+    /// Override the action identifier for increase debuggability.
+    public func withID(_ id: String) -> Self {
+      self.id = id
+      return self
     }
   }
 
   public struct AssignKeyPath<M, V>: ActionProtocol {
     public let keyPath: KeyPathField<M, V>
     public let value: V?
-    public var id: String { "__tmpl_assign_keypath" }
+    public var id: String = "__tmpl_assign_keypath"
     
     public init(_ keyPath: KeyPathField<M, V>, _ value: V) {
       self.keyPath = keyPath
@@ -41,12 +47,18 @@ public struct TemplateAction {
         _assignKeyPath(object: &model, keyPath: keyPath, value: value)
       }
     }
+    
+    /// Override the action identifier for increase debuggability.
+    public func withID(_ id: String) -> Self {
+      self.id = id
+      return self
+    }
   }
   
   public struct Filter<M, V: Collection, T>: ActionProtocol where V.Element == T {
     public let keyPath: KeyPathField<M, V>
     public let isIncluded: (T) -> Bool
-    public var id: String { "__tmpl_filter" }
+    public var id: String = "__tmpl_filter"
 
     
     public init(_ keyPath: KeyPathField<M, V>, _ isIncluded: @escaping (T) -> Bool) {
@@ -70,12 +82,18 @@ public struct TemplateAction {
         _mutateArray(object: &model, keyPath: keyPath) { $0 = $0.filter(isIncluded) }
       }
     }
+    
+    /// Override the action identifier for increase debuggability.
+    public func withID(_ id: String) -> Self {
+      self.id = id
+      return self
+    }
   }
   
   public struct RemoveAtIndex<M, V: Collection, T>: ActionProtocol where V.Element == T {
     public let keyPath: KeyPathField<M, V>
     public let index: Int
-    public var id: String { "__tmpl_remove_at_index" }
+    public var id: String = "__tmpl_remove_at_index"
 
     public init(_ keyPath: KeyPathField<M, V>, index: Int) {
       self.keyPath = keyPath
@@ -98,12 +116,18 @@ public struct TemplateAction {
         _mutateArray(object: &model, keyPath: keyPath) { $0.remove(at: index) }
       }
     }
+    
+    /// Override the action identifier for increase debuggability.
+    public func withID(_ id: String) -> Self {
+      self.id = id
+      return self
+    }
   }
   
   public struct Push<M, V: Collection, T>: ActionProtocol where V.Element == T {
     public let keyPath: KeyPathField<M, V>
     public let object: T
-    public var id: String { "__tmpl_push" }
+    public var id: String = "__tmpl_push"
 
     public init(_ keyPath: KeyPathField<M, V>, object: T) {
       self.keyPath = keyPath
@@ -126,12 +150,18 @@ public struct TemplateAction {
         _mutateArray(object: &model, keyPath: keyPath) { $0.append(object) }
       }
     }
+    
+    /// Override the action identifier for increase debuggability.
+    public func withID(_ id: String) -> Self {
+      self.id = id
+      return self
+    }
   }
   
   public struct PushFirst<M, V: Collection, T>: ActionProtocol where V.Element == T {
     public let keyPath: KeyPathField<M, V>
     public let object: T
-    public var id: String { "__tmpl_push_first" }
+    public var id: String = "__tmpl_push_first"
 
     public init(_ keyPath: KeyPathField<M, V>, object: T) {
       self.keyPath = keyPath
@@ -153,6 +183,12 @@ public struct TemplateAction {
       context.reduceModel { model in
         _mutateArray(object: &model, keyPath: keyPath) { $0.insert(object, at: 0) }
       }
+    }
+    
+    /// Override the action identifier for increase debuggability.
+    public func withID(_ id: String) -> Self {
+      self.id = id
+      return self
     }
   }
 }
