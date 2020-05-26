@@ -61,6 +61,7 @@ open class Store<M>: StoreProtocol, ObservableObject {
 
   public init(model: M) {
     self.model = model
+    register(middleware: LoggerMiddleware())
   }
 
   // MARK: Model updates
