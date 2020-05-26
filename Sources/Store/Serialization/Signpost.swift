@@ -2,9 +2,9 @@ import Combine
 import Foundation
 
 public enum Signpost {
-  public static let prior = "signpost_prior"
-  public static let modelUpdate = "signpost_model_update"
-  public static let undoRedo = "signpost_undo_redo"
+  public static let prior = "__signpost_prior"
+  public static let modelUpdate = "__signpost_model_update"
+  public static let undoRedo = "__signpost_undo_redo"
 }
 
 // MARK: - SigPostTransaction

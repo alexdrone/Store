@@ -1,14 +1,24 @@
 import Foundation
 import os.log
 
-// MARK: - Template Actions
+// MARK: - StdAction
 
 /// General-purpose actions that can be applied to any store.
 public struct TemplateAction {
+  
+  public struct Reduce<M>: ActionProtocol {
+    public let reduce: (inout M) -> Void
+    public var id: String { "__tmpl_mutate" }
+    public func reduce(context: TransactionContext<Store<M>, Self>) {
+      defer { context.fulfill() }
+      context.reduceModel(closure: reduce)
+    }
+  }
 
   public struct AssignKeyPath<M, V>: ActionProtocol {
     public let keyPath: KeyPathField<M, V>
     public let value: V?
+    public var id: String { "__tmpl_assign_keypath" }
     
     public init(_ keyPath: KeyPathField<M, V>, _ value: V) {
       self.keyPath = keyPath
@@ -36,6 +46,8 @@ public struct TemplateAction {
   public struct Filter<M, V: Collection, T>: ActionProtocol where V.Element == T {
     public let keyPath: KeyPathField<M, V>
     public let isIncluded: (T) -> Bool
+    public var id: String { "__tmpl_filter" }
+
     
     public init(_ keyPath: KeyPathField<M, V>, _ isIncluded: @escaping (T) -> Bool) {
       self.keyPath = keyPath
@@ -63,7 +75,8 @@ public struct TemplateAction {
   public struct RemoveAtIndex<M, V: Collection, T>: ActionProtocol where V.Element == T {
     public let keyPath: KeyPathField<M, V>
     public let index: Int
-    
+    public var id: String { "__tmpl_remove_at_index" }
+
     public init(_ keyPath: KeyPathField<M, V>, index: Int) {
       self.keyPath = keyPath
       self.index = index
@@ -90,7 +103,8 @@ public struct TemplateAction {
   public struct Push<M, V: Collection, T>: ActionProtocol where V.Element == T {
     public let keyPath: KeyPathField<M, V>
     public let object: T
-    
+    public var id: String { "__tmpl_push" }
+
     public init(_ keyPath: KeyPathField<M, V>, object: T) {
       self.keyPath = keyPath
       self.object = object
@@ -117,7 +131,8 @@ public struct TemplateAction {
   public struct PushFirst<M, V: Collection, T>: ActionProtocol where V.Element == T {
     public let keyPath: KeyPathField<M, V>
     public let object: T
-    
+    public var id: String { "__tmpl_push_first" }
+
     public init(_ keyPath: KeyPathField<M, V>, object: T) {
       self.keyPath = keyPath
       self.object = object
