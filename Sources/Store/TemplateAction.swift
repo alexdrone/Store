@@ -15,7 +15,7 @@ public struct TemplateAction {
     }
     
     /// Override the action identifier for increase debuggability.
-    public func withID(_ id: String) -> Self {
+    public mutating func withID(_ id: String) -> Self {
       self.id = id
       return self
     }
@@ -49,7 +49,7 @@ public struct TemplateAction {
     }
     
     /// Override the action identifier for increase debuggability.
-    public func withID(_ id: String) -> Self {
+    public mutating func withID(_ id: String) -> Self {
       self.id = id
       return self
     }
@@ -84,7 +84,7 @@ public struct TemplateAction {
     }
     
     /// Override the action identifier for increase debuggability.
-    public func withID(_ id: String) -> Self {
+    public mutating func withID(_ id: String) -> Self {
       self.id = id
       return self
     }
@@ -118,7 +118,7 @@ public struct TemplateAction {
     }
     
     /// Override the action identifier for increase debuggability.
-    public func withID(_ id: String) -> Self {
+    public mutating func withID(_ id: String) -> Self {
       self.id = id
       return self
     }
@@ -152,7 +152,7 @@ public struct TemplateAction {
     }
     
     /// Override the action identifier for increase debuggability.
-    public func withID(_ id: String) -> Self {
+    public mutating func withID(_ id: String) -> Self {
       self.id = id
       return self
     }
@@ -186,7 +186,7 @@ public struct TemplateAction {
     }
     
     /// Override the action identifier for increase debuggability.
-    public func withID(_ id: String) -> Self {
+    public mutating func withID(_ id: String) -> Self {
       self.id = id
       return self
     }
