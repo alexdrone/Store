@@ -1,210 +1,247 @@
 import Foundation
 import os.log
 
-// MARK: - StdAction
-
 /// General-purpose actions that can be applied to any store.
 public struct TemplateAction {
   
+  // MARK: - Reduce
+
+  /// Reduce the model by using the closure passed as argument.
   public struct Reduce<M>: ActionProtocol {
+    public let id: String
     public let reduce: (inout M) -> Void
-    public var id: String = "__tmpl_mutate"
+
+    public init(id: String = _Id.reduce, reduce: @escaping (inout M) -> Void) {
+      self.id = id
+      self.reduce = reduce
+    }
+    
     public func reduce(context: TransactionContext<Store<M>, Self>) {
-      defer { context.fulfill() }
+      defer {
+        context.fulfill()
+      }
       context.reduceModel(closure: reduce)
     }
-    
-    /// Override the action identifier for increase debuggability.
-    public mutating func withID(_ id: String) -> Self {
-      self.id = id
-      return self
-    }
   }
+  
+  // MARK: - Assign
 
-  public struct AssignKeyPath<M, V>: ActionProtocol {
-    public let keyPath: KeyPathField<M, V>
+  /// Assigns the value passed as argument to the model's keyPath.
+  public struct Assign<M, V>: ActionProtocol {
+    public let id: String
+    public let keyPath: KeyPathArg<M, V>
     public let value: V?
-    public var id: String = "__tmpl_assign_keypath"
     
-    public init(_ keyPath: KeyPathField<M, V>, _ value: V) {
+    public init(id: String = _Id.assign, _ keyPath: KeyPathArg<M, V>, _ value: V) {
+      self.id = id
       self.keyPath = keyPath
       self.value = value
     }
 
-    public init(_ keyPath: WritableKeyPath<M, V>, _ value: V) {
+    public init(id: String = _Id.assign, _ keyPath: WritableKeyPath<M, V>, _ value: V) {
+      self.id = id
       self.keyPath = .value(keyPath: keyPath)
       self.value = value
     }
     
-    public init(_ keyPath: WritableKeyPath<M, V?>, _ value: V?) {
+    public init(id: String = _Id.assign,_ keyPath: WritableKeyPath<M, V?>, _ value: V?) {
+      self.id = id
       self.keyPath = .optional(keyPath: keyPath)
       self.value = value
     }
     
     public func reduce(context: TransactionContext<Store<M>, Self>) {
-      defer { context.fulfill() }
+      defer {
+        context.fulfill()
+      }
       context.reduceModel { model in
         _assignKeyPath(object: &model, keyPath: keyPath, value: value)
       }
     }
-    
-    /// Override the action identifier for increase debuggability.
-    public mutating func withID(_ id: String) -> Self {
-      self.id = id
-      return self
-    }
   }
   
-  public struct Filter<M, V: Collection, T>: ActionProtocol where V.Element == T {
-    public let keyPath: KeyPathField<M, V>
-    public let isIncluded: (T) -> Bool
-    public var id: String = "__tmpl_filter"
+  // MARK: - Filter
+  
+  // Filter the array the keyPath points at by using the given predicate.
+  public struct Filter<M, V: Collection>: ActionProtocol {
+    public let id: String
+    public let keyPath: KeyPathArg<M, V>
+    public let isIncluded: (V.Element) -> Bool
 
-    
-    public init(_ keyPath: KeyPathField<M, V>, _ isIncluded: @escaping (T) -> Bool) {
+    public init(
+      id: String = _Id.filter,
+      _ keyPath: KeyPathArg<M, V>,
+      _ isIncluded: @escaping (V.Element) -> Bool
+    ) {
+      self.id = id
       self.keyPath = keyPath
       self.isIncluded = isIncluded
     }
     
-    public init(_ keyPath: WritableKeyPath<M, V>, _ isIncluded: @escaping (T) -> Bool) {
+    public init(
+      id: String = _Id.filter,
+      _ keyPath: WritableKeyPath<M, V>,
+      _ isIncluded: @escaping (V.Element) -> Bool
+    ) {
+      self.id = id
       self.keyPath = .value(keyPath: keyPath)
       self.isIncluded = isIncluded
     }
     
-    public init(_ keyPath: WritableKeyPath<M, V?>, _ isIncluded: @escaping (T) -> Bool) {
+    public init(
+      id: String = _Id.filter,
+      _ keyPath: WritableKeyPath<M, V?>,
+      _ isIncluded: @escaping (V.Element) -> Bool
+    ) {
+      self.id = id
       self.keyPath = .optional(keyPath: keyPath)
       self.isIncluded = isIncluded
     }
     
     public func reduce(context: TransactionContext<Store<M>, Self>) {
-      defer { context.fulfill() }
+      defer {
+        context.fulfill()
+      }
       context.reduceModel { model in
         _mutateArray(object: &model, keyPath: keyPath) { $0 = $0.filter(isIncluded) }
       }
     }
-    
-    /// Override the action identifier for increase debuggability.
-    public mutating func withID(_ id: String) -> Self {
-      self.id = id
-      return self
-    }
   }
   
-  public struct RemoveAtIndex<M, V: Collection, T>: ActionProtocol where V.Element == T {
-    public let keyPath: KeyPathField<M, V>
+  // MARK: - Remove
+  
+  // Remove an element from the array the keyPath points at.
+  public struct Remove<M, V: Collection>: ActionProtocol {
+    public let id: String
+    public let keyPath: KeyPathArg<M, V>
     public let index: Int
-    public var id: String = "__tmpl_remove_at_index"
 
-    public init(_ keyPath: KeyPathField<M, V>, index: Int) {
+    public init(id: String = _Id.remove, _ keyPath: KeyPathArg<M, V>, index: Int) {
+      self.id = id
       self.keyPath = keyPath
       self.index = index
     }
     
-    public init(_ keyPath: WritableKeyPath<M, V>, index: Int) {
+    public init(id: String = _Id.remove, _ keyPath: WritableKeyPath<M, V>, index: Int) {
+      self.id = id
       self.keyPath = .value(keyPath: keyPath)
       self.index = index
     }
     
-    public init(_ keyPath: WritableKeyPath<M, V?>, index: Int) {
+    public init(id: String = _Id.remove, _ keyPath: WritableKeyPath<M, V?>, index: Int) {
+      self.id = id
       self.keyPath = .optional(keyPath: keyPath)
       self.index = index
     }
     
     public func reduce(context: TransactionContext<Store<M>, Self>) {
-      defer { context.fulfill() }
+      defer {
+        context.fulfill()
+      }
       context.reduceModel { model in
         _mutateArray(object: &model, keyPath: keyPath) { $0.remove(at: index) }
       }
     }
-    
-    /// Override the action identifier for increase debuggability.
-    public mutating func withID(_ id: String) -> Self {
-      self.id = id
-      return self
-    }
   }
   
-  public struct Push<M, V: Collection, T>: ActionProtocol where V.Element == T {
-    public let keyPath: KeyPathField<M, V>
-    public let object: T
-    public var id: String = "__tmpl_push"
+  // MARK: - Append
+  
+  // Append an element in the array the keyPath points at.
+  public struct Append<M, V: Collection>: ActionProtocol {
+    public let id: String
+    public let keyPath: KeyPathArg<M, V>
+    public let object: V.Element
 
-    public init(_ keyPath: KeyPathField<M, V>, object: T) {
+    public init(id: String = _Id.append, _ keyPath: KeyPathArg<M, V>, object: V.Element) {
+      self.id = id
       self.keyPath = keyPath
       self.object = object
     }
     
-    public init(_ keyPath: WritableKeyPath<M, V>, object: T) {
+    public init(id: String = _Id.append, _ keyPath: WritableKeyPath<M, V>, object: V.Element) {
+      self.id = id
       self.keyPath = .value(keyPath: keyPath)
       self.object = object
     }
     
-    public init(_ keyPath: WritableKeyPath<M, V?>, object: T) {
+    public init(id: String = _Id.append, _ keyPath: WritableKeyPath<M, V?>, object: V.Element) {
+      self.id = id
       self.keyPath = .optional(keyPath: keyPath)
       self.object = object
     }
 
     public func reduce(context: TransactionContext<Store<M>, Self>) {
-      defer { context.fulfill() }
+      defer {
+        context.fulfill()
+      }
       context.reduceModel { model in
         _mutateArray(object: &model, keyPath: keyPath) { $0.append(object) }
       }
     }
-    
-    /// Override the action identifier for increase debuggability.
-    public mutating func withID(_ id: String) -> Self {
-      self.id = id
-      return self
-    }
   }
   
-  public struct PushFirst<M, V: Collection, T>: ActionProtocol where V.Element == T {
-    public let keyPath: KeyPathField<M, V>
-    public let object: T
-    public var id: String = "__tmpl_push_first"
+  // MARK: - Push
+  
+  // Push an element at index 0 in the array the keyPath points at.
+  public struct Push<M, V: Collection>: ActionProtocol {
+    public let id: String
+    public let keyPath: KeyPathArg<M, V>
+    public let object: V.Element
 
-    public init(_ keyPath: KeyPathField<M, V>, object: T) {
+    public init(id: String = _Id.push, _ keyPath: KeyPathArg<M, V>, object: V.Element) {
+      self.id = id
       self.keyPath = keyPath
       self.object = object
     }
     
-    public init(_ keyPath: WritableKeyPath<M, V>, object: T) {
+    public init(id: String = _Id.push, _ keyPath: WritableKeyPath<M, V>, object: V.Element) {
+      self.id = id
       self.keyPath = .value(keyPath: keyPath)
       self.object = object
     }
     
-    public init(_ keyPath: WritableKeyPath<M, V?>, object: T) {
+    public init(id: String = _Id.push, _ keyPath: WritableKeyPath<M, V?>, object: V.Element) {
+      self.id = id
       self.keyPath = .optional(keyPath: keyPath)
       self.object = object
     }
 
     public func reduce(context: TransactionContext<Store<M>, Self>) {
-      defer { context.fulfill() }
+      defer {
+        context.fulfill()
+      }
       context.reduceModel { model in
         _mutateArray(object: &model, keyPath: keyPath) { $0.insert(object, at: 0) }
       }
     }
-    
-    /// Override the action identifier for increase debuggability.
-    public mutating func withID(_ id: String) -> Self {
-      self.id = id
-      return self
-    }
   }
 }
 
-public enum KeyPathField<M, V> {
+// MARK: - Internal
+
+public enum KeyPathArg<M, V> {
   /// A non-optional writeable keyPath.
   case value(keyPath: WritableKeyPath<M, V>)
   /// A optional writeable keyPath.
   case optional(keyPath: WritableKeyPath<M, V?>)
 }
 
-private func _mutateArray<M, V: Collection, T>(
+public struct _Id {
+  public static let reduce = "__template_reduce"
+  public static let assign = "__template_assign"
+  public static let filter = "__template_filter"
+  public static let remove = "__template_remove"
+  public static let append = "__template_append"
+  public static let push = "__template_push"
+}
+
+  // MARK: - Private
+  
+private func _mutateArray<M, V: Collection>(
   object: inout M,
-  keyPath: KeyPathField<M, V>,
-  mutate: (inout [T]) -> Void
-) where V.Element == T  {
+  keyPath: KeyPathArg<M, V>,
+  mutate: (inout [V.Element]) -> Void
+) {
   var value: V
   switch keyPath {
   case .value(let keyPath): value = object[keyPath: keyPath]
@@ -212,20 +249,20 @@ private func _mutateArray<M, V: Collection, T>(
     guard let unwrapped = object[keyPath: keyPath] else { return }
     value = unwrapped
   }
-  guard var array = value as? [T] else {
+  guard var array = value as? [V.Element] else {
     os_log(.error, log: OSLog.primary, " Arrays are the only collection type supported.")
     return
   }
   mutate(&array)
-  // Trivial cast.
-  guard let collection = array as? V else { return }
   switch keyPath {
-  case .value(let keyPath): object[keyPath: keyPath] = collection
-  case .optional(let keyPath): object[keyPath: keyPath] = collection
+  case .value(let keyPath):
+    object[keyPath: keyPath] = array as! V
+  case .optional(let keyPath):
+    object[keyPath: keyPath] = array as? V
   }
 }
 
-private func _assignKeyPath<M, V>(object: inout M, keyPath: KeyPathField<M, V>, value: V?) {
+private func _assignKeyPath<M, V>(object: inout M, keyPath: KeyPathArg<M, V>, value: V?) {
   switch keyPath {
   case .value(let keyPath):
     guard let value = value else { return }
