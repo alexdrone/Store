@@ -81,7 +81,6 @@ public enum PropertyDiff {
   case unspecified
 
   /// Returns `true` if the key path was added in this transaction, `false` otherwise.
-  @inlinable @inline(__always)
   public func isAdded() -> Bool {
     switch self {
     case .added: return true
@@ -90,7 +89,6 @@ public enum PropertyDiff {
   }
 
   /// Returns `true` if the key path was removed in this transaction, `false` otherwise.
-  @inlinable @inline(__always)
   public func isRemoved() -> Bool {
     switch self {
     case .removed: return true
@@ -99,7 +97,6 @@ public enum PropertyDiff {
   }
 
   /// Returns `true` if the key path was changed in this transaction, `false` otherwise.
-  @inlinable @inline(__always)
   public func isChanged() -> Bool {
     switch self {
     case .changed: return true
@@ -108,7 +105,6 @@ public enum PropertyDiff {
   }
 
   /// Returns the new value if the property was just added in this transaction, `nil` otherwise.
-  @inlinable @inline(__always)
   public func asNewAddedValue<T: Codable>() -> T? {
     switch self {
     case .added(let value): return value as? T
@@ -117,7 +113,6 @@ public enum PropertyDiff {
   }
 
   /// Returns the tuple (`old`, `new`) if the value of the property changed in this transaction.
-  @inlinable @inline(__always)
   public func asNewAddedValue<T: Codable>() -> (T, T)? {
     switch self {
     case .changed(let old, let new):

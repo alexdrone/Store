@@ -2,8 +2,6 @@ import Combine
 import Foundation
 
 public protocol AnyStoreProtocol: class {
-  /// Opaque reference to the model wrapped by this store.
-  var opaqueModelRef: Any { get }
   
   /// Whenever this store changes the parent will notify its observers as well.
   var parent: AnyStoreProtocol? { get }
@@ -46,9 +44,6 @@ open class Store<M>: StoreProtocol, ObservableObject {
   /// The current state of this store.
   public private(set) var model: M
 
-  /// Opaque reference to the model wrapped by this store.
-  public var opaqueModelRef: Any { model }
-
   /// All of the registered middleware.
   public var middleware: [Middleware] = []
   
@@ -71,9 +66,7 @@ open class Store<M>: StoreProtocol, ObservableObject {
     self._stateLock.lock()
     let old = self.model
     let new = assign(model, changes: closure)
-    _onMainThread {
-      self.model = new
-    }
+    self.model = new
     self._stateLock.unlock()
     didUpdateModel(transaction: transaction, old: old, new: new)
   }
@@ -88,9 +81,7 @@ open class Store<M>: StoreProtocol, ObservableObject {
   /// Notify the store observers for the change of this store.
   /// - note: Observers are always notified on the main thread.
   open func notifyObservers() {
-    _onMainThread {
-      objectWillChange.send()
-    }
+    objectWillChange.send()
   }
   
   // MARK: Middleware
@@ -216,15 +207,6 @@ open class Store<M>: StoreProtocol, ObservableObject {
       transaction.run(handler: nil)
     }
     return transactions
-  }
-
-  @inline(__always)
-  private func _onMainThread(_ closure: () -> Void) {
-    if Thread.isMainThread {
-      closure()
-    } else {
-      DispatchQueue.main.sync(execute: closure)
-    }
   }
 }
 

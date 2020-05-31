@@ -19,9 +19,3 @@ public extension ActionProtocol {
   /// E.g. Stop network transfer.
   func cancel(context: TransactionContext<AssociatedStoreType, Self>) { }
 }
-
-public final class UnspecifiedStore: Store<Void> { }
-
-
-
-

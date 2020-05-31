@@ -1,9 +1,9 @@
 import Foundation
 
 public class Throttler {
-  private var _executionItem: DispatchWorkItem = DispatchWorkItem(block: {})
-  private var _cancellationItem: DispatchWorkItem = DispatchWorkItem(block: {})
-  private var _previousRun: Date = Date.distantPast
+  private var _executionItem = DispatchWorkItem(block: {})
+  private var _cancellationItem = DispatchWorkItem(block: {})
+  private var _previousRun = Date.distantPast
   private let _queue: DispatchQueue
   private let _minimumDelay: TimeInterval
 

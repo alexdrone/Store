@@ -4,7 +4,6 @@ import os.log
 
 // MARK: - Function Builder
 
-@frozen
 @_functionBuilder
 public struct TransactionSequenceBuilder {
   public static func buildBlock(
@@ -39,7 +38,6 @@ public protocol TransactionConvertible {
 
 // MARK: - DSL / Concurrent
 
-@frozen
 public struct Concurrent: TransactionConvertible {
   /// The wrapped transactions.
   public let transactions: [TransactionProtocol]
@@ -55,7 +53,6 @@ public struct Concurrent: TransactionConvertible {
 
 // MARK: - DSL / Throttle
 
-@frozen
 public struct Throttle: TransactionConvertible {
   /// The wrapped transactions.
   public let transactions: [TransactionProtocol]
@@ -87,7 +84,6 @@ public struct Throttle: TransactionConvertible {
 
 // MARK: - DSL / Null
 
-@frozen
 public struct NullTransaction: TransactionConvertible {
   /// The wrapped transactions.
   public var transactions: [TransactionProtocol] = []

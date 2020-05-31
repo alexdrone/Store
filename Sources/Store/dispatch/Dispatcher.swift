@@ -16,10 +16,10 @@ public final class Dispatcher {
 
   public final class TransactionGroupError {
     /// The last error logged by an operation in the current dispatch group (if applicable).
-    @Atomic public var lastError: Error? = nil
+    public var lastError: Error? = nil
 
     /// Optional user defined map.
-    @Atomic public var userInfo: [String: Any] = [:]
+    public var userInfo: [String: Any] = [:]
   }
 
   public typealias TransactionCompletionHandler = ((TransactionGroupError) -> Void)?
@@ -34,7 +34,7 @@ public final class Dispatcher {
   private var _throttlersToActionIdMap: [String: Throttler] = [:]
 
   /// User-defined operation queues.
-  @Atomic private var _queues: [String: OperationQueue] = [:]
+  private var _queues: [String: OperationQueue] = [:]
 
   /// Run a set of transaction concurrently.
   public func run(
@@ -44,10 +44,7 @@ public final class Dispatcher {
     let dispatchGroupError = TransactionGroupError()
     var completionOperation: Operation?
     if let completionHandler = handler {
-      completionOperation
-        = BlockOperation {
-          completionHandler(dispatchGroupError)
-        }
+      completionOperation = BlockOperation { completionHandler(dispatchGroupError) }
       transactions.map { $0.operation }.forEach { completionOperation?.addDependency($0) }
       OperationQueue.main.addOperation(completionOperation!)
     }
@@ -89,7 +86,7 @@ public final class Dispatcher {
 
   /// Registers a new operation queue.
   public func registerOperationQueue(id: String, queue: OperationQueue) {
-    __queues.mutate { $0[id] = queue }
+    _queues[id] = queue
   }
 
   /// Cancel all of the operations of the given queue.

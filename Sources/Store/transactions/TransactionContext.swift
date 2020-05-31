@@ -1,9 +1,6 @@
 import Combine
 import Foundation
 
-// MARK: - Context
-
-@frozen
 public struct TransactionContext<S: StoreProtocol, A: ActionProtocol> {
   /// The operation that is currently running.
   /// - note: Invoke `context.operation.finish` to signal task completion.
@@ -19,14 +16,12 @@ public struct TransactionContext<S: StoreProtocol, A: ActionProtocol> {
   public let transaction: Transaction<A>
 
   /// Atomically update the store's model.
-  @inlinable @inline(__always)
   public func reduceModel(closure: (inout S.ModelType) -> (Void)) {
     store.reduceModel(transaction: transaction, closure: closure)
   }
 
   /// Terminates the operation if there was an error raised by a previous action in the following
   /// transaction group.
-  @inlinable @inline(__always)
   public func rejectOnGroupError() -> Bool {
     guard error.lastError != nil else {
       return false
@@ -36,14 +31,12 @@ public struct TransactionContext<S: StoreProtocol, A: ActionProtocol> {
   }
 
   /// Terminates this operation with an error.
-  @inlinable @inline(__always)
   public func reject(error: Error) {
     self.error.lastError = error
     operation.finish()
   }
 
   /// Terminates the operation.
-  @inlinable @inline(__always)
   public func fulfill() {
     operation.finish()
   }

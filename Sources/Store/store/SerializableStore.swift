@@ -125,12 +125,10 @@ open class SerializableStore<M: Codable>: Store<M> {
   }
 }
 
-
 // MARK: - Helpers
 
 /// Serialize the model passed as argument.
 /// - note: If the serialization fails, an empty dictionary is returned instead.
-@inline(__always)
 private func _serialize<V: Encodable>(model: V) -> EncodedDictionary {
   do {
     let dictionary: [String: Any] = try DictionaryEncoder().encode(model)
@@ -142,7 +140,6 @@ private func _serialize<V: Encodable>(model: V) -> EncodedDictionary {
 
 /// Deserialize the dictionary and returns a store of type `S`.
 /// - note: If the deserialization fails, an empty model is returned instead.
-@inline(__always)
 private func _deserialize<V: Decodable>(dictionary: EncodedDictionary) -> V? {
   do {
     let model = try DictionaryDecoder().decode(V.self, from: dictionary)

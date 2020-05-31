@@ -31,15 +31,9 @@ public final class SignpostTransaction: TransactionProtocol {
   /// Represents the progress of the transaction.
   public var state: TransactionState = .pending
 
-  public func on(_ queueWithStrategy: Dispatcher.Strategy) -> Self {
-    // No op.
-    return self
-  }
+  public func on(_ queueWithStrategy: Dispatcher.Strategy) -> Self { self }
 
-  public func throttle(_ minimumDelay: TimeInterval) -> Self {
-    // No op.
-    return self
-  }
+  public func throttle(_ minimumDelay: TimeInterval) -> Self { self }
 
   init(signpost: String) {
     self.actionId = signpost

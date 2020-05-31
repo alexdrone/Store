@@ -21,11 +21,11 @@ struct Root: Codable {
 
 class RootStore: SerializableStore<Root> {
   // Children test.
-  lazy var todoStore = makeChildSerializableStore(keyPath: \.todo)
-  lazy var noteStore = makeChildSerializableStore(keyPath: \.note)
+  lazy var todoStore = makeChildStore(keyPath: \.todo)
+  lazy var noteStore = makeChildStore(keyPath: \.note)
 
   // List and transient store tests.
-  lazy var listStore = makeChildSerializableStore(keyPath: \.list)
+  lazy var listStore = makeChildStore(keyPath: \.list)
 }
 
 // MARK: Combined Stores
@@ -124,7 +124,7 @@ final class CombinedStoreTests: XCTestCase {
     XCTAssertTrue(rootStore.model.list[0].description == "New")
     XCTAssertTrue(rootStore.model.list[0].done == false)
     
-    let todoStore: Store<Root.Todo> = rootStore.listStore.makeChildSerializableStore(keyPath: \.[0])
+    let todoStore: Store<Root.Todo> = rootStore.listStore.makeChildStore(keyPath: \.[0])
     todoStore.register(middleware: LoggerMiddleware())
 
     todoStore.run(action: Root.Todo.Action_MarkAsDone(), mode: .sync)
