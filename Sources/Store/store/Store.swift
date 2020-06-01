@@ -81,7 +81,9 @@ open class Store<M>: StoreProtocol, ObservableObject {
   /// Notify the store observers for the change of this store.
   /// - note: Observers are always notified on the main thread.
   open func notifyObservers() {
-    objectWillChange.send()
+    RunLoop.main.schedule {
+      self.objectWillChange.send()
+    }
   }
   
   // MARK: Middleware
