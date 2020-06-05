@@ -22,6 +22,8 @@ public struct TemplateAction {
       }
       context.reduceModel(closure: reduce)
     }
+    
+    public func cancel(context: TransactionContext<Store<M>, Self<M, V>>) { }
   }
   
   // MARK: - Assign
@@ -58,6 +60,8 @@ public struct TemplateAction {
         _assignKeyPath(object: &model, keyPath: keyPath, value: value)
       }
     }
+    
+    public func cancel(context: TransactionContext<Store<M>, Self<M, V>>) { }
   }
   
   // MARK: - Filter
@@ -106,6 +110,8 @@ public struct TemplateAction {
         _mutateArray(object: &model, keyPath: keyPath) { $0 = $0.filter(isIncluded) }
       }
     }
+    
+    public func cancel(context: TransactionContext<Store<M>, Self<M, V>>) { }
   }
   
   // MARK: - Remove
@@ -142,6 +148,8 @@ public struct TemplateAction {
         _mutateArray(object: &model, keyPath: keyPath) { $0.remove(at: index) }
       }
     }
+    
+    public func cancel(context: TransactionContext<Store<M>, Self<M, V>>) { }
   }
   
   // MARK: - Append
@@ -178,6 +186,8 @@ public struct TemplateAction {
         _mutateArray(object: &model, keyPath: keyPath) { $0.append(object) }
       }
     }
+    
+    public func cancel(context: TransactionContext<Store<M>, Self<M, V>>) { }
   }
   
   // MARK: - Push
@@ -214,6 +224,8 @@ public struct TemplateAction {
         _mutateArray(object: &model, keyPath: keyPath) { $0.insert(object, at: 0) }
       }
     }
+    
+    public func cancel(context: TransactionContext<Store<M>, Self<M, V>>) { }
   }
 }
 

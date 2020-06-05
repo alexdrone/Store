@@ -58,6 +58,8 @@ enum Action: ActionProtocol {
       }
     }
   }
+  
+  func cancel(context: TransactionContext<Store<TestModel>, Action>) { }
 }
 
 enum TestError: Error {

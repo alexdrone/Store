@@ -15,15 +15,24 @@ struct AppState: Codable {
 struct FetchTopStories: ActionProtocol {
   private let cancellable = AnyCancellableRef()
   
+  /// The execution body for this action.
   func reduce(context: TransactionContext<AppStateStore, Self>) {
     context.reduceModel { model in
       model.items = .pending(progress: 0)
     }
-    cancellable.pointee = context.store.api.topStories().sink { items in
+    cancellable.pointee = context.store.api.fetchTopStories().sink { items in
       context.reduceModel { model in
         model.items = .success(value: items, etag: 0)
       }
       context.fulfill()
+    }
+  }
+  
+  /// Cancels the operation.
+  func cancel(context: TransactionContext<AppStateStore, FetchTopStories>) {
+    cancellable.pointee?.cancel()
+    context.reduceModel { model in
+      model.items = .uninitalized
     }
   }
 }
@@ -31,13 +40,19 @@ struct FetchTopStories: ActionProtocol {
 class AppStateStore: SerializableStore<AppState> {
   /// Hackernews REST endpoints.
   let api = API()
+  /// The ongoing transaction.
+  private var fetchTopStoriesTransaction: TransactionProtocol?
   
   convenience init() {
     self.init(model: AppState(), diffing: .none)
   }
   
   func fetchTopStories() {
-    run(action: FetchTopStories())
+    fetchTopStoriesTransaction = run(action: FetchTopStories())
+  }
+  
+  func cancelFetchTopStories() {
+    fetchTopStoriesTransaction?.cancel()
   }
 }
 

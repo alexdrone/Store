@@ -12,10 +12,8 @@ public protocol ActionProtocol: Identifiable {
   /// The execution body for this action.
   /// - note: Invoke `context.operation.finish` to signal task completion.
   func reduce(context: TransactionContext<AssociatedStoreType, Self>)
-}
-
-public extension ActionProtocol {
-  /// *Optional* Used to implement custom cancellation logic for this action.
+  
+  /// Used to implement custom cancellation logic for this action.
   /// E.g. Stop network transfer.
-  func cancel(context: TransactionContext<AssociatedStoreType, Self>) { }
+  func cancel(context: TransactionContext<AssociatedStoreType, Self>)
 }

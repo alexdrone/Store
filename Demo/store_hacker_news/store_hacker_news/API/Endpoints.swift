@@ -22,7 +22,7 @@ final class API {
   private var fetchTopStoriesIdsCancellable: AnyCancellable?
   private var fetchItemsCancellable: AnyCancellable?
   
-  func topStories() -> Future<[Item], Never> {
+  func fetchTopStories() -> Future<[Item], Never> {
     Future { promise in
       self.fetchTopStoriesIdsCancellable = self.fetchTopStoriesIds().sink { ids in
         let idsPub = ids.map { id in self.fetchItem(id: id) }
@@ -34,7 +34,7 @@ final class API {
     }
   }
   
-  func fetchTopStoriesIds() -> AnyPublisher<[Identifier<Item>], Never>  {
+  private func fetchTopStoriesIds() -> AnyPublisher<[Identifier<Item>], Never>  {
     URLSession.shared
       .dataTaskPublisher(for: Endpoint.topStories.url)
       .map(\.data)

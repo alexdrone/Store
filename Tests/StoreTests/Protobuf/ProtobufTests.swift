@@ -11,6 +11,8 @@ extension Action_BookInfoSetTitle: ActionProtocol {
     defer { context.fulfill() }
     context.reduceModel { book in book.title = self.title }
   }
+  
+  public func cancel(context: TransactionContext<Store<BookInfo>, Action_BookInfoSetTitle>) { }
 }
 
 extension BookInfo {

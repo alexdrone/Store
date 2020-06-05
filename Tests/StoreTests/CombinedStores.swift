@@ -37,6 +37,8 @@ extension Root.Todo {
       defer { context.fulfill() }
       context.reduceModel { $0.done = true }
     }
+  
+    func cancel(context: TransactionContext<Store<Root.Todo>, Self>) { }
   }
 }
 
@@ -47,6 +49,8 @@ extension Root.Note {
       defer { context.fulfill() }
       context.reduceModel { $0.upvotes += 1 }
     }
+    
+    func cancel(context: TransactionContext<Store<Root.Note>, Self>) { }
   }
 }
 
@@ -64,6 +68,8 @@ extension Root.Todo {
         $0.append(new)
       }
     }
+    
+    func cancel(context: TransactionContext<Store<Array<Root.Todo>>, Self>) { }
   }
 }
 
