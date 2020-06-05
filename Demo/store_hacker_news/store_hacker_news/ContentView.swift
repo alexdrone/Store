@@ -1,11 +1,16 @@
 import SwiftUI
+import Store
+
+// MARK: - Main
 
 struct ContentView: View {
   @EnvironmentObject var store: AppStateStore
   
   var body: some View {
     Group {
-      if store.model.items.isPending {
+      if store.model.selectedItem != nil {
+        StoryView(store: self.store.childStore(id: store.model.selectedItem!))
+      } else if store.model.items.isPending {
         loadingStoriesBody
       } else if !store.model.items.hasValue {
         noStoriesBody
@@ -35,18 +40,39 @@ struct ContentView: View {
   
   private var storiesBody: some View {
     List {
-      ForEach(store.model.items.value ?? []) { self.storyBody(forItem: $0) }
+      ForEach(store.model.items.value ?? []) {
+        StoryView(store: self.store.childStore(id: $0))
+      }
+    }
+  }
+}
+
+// MARK: - Story 
+
+struct StoryView: View {
+  let store: Store<Item>
+  
+  private var title: String {
+    store.model.title
+  }
+  private var caption: String {
+    store.model.text ?? store.model.url ?? "N/A."
+  }
+  
+  var body: some View {
+    Button(action: store.select) {
+      VStack(alignment: store.isSelected ? .center : .leading) {
+        Text(title).font(.headline)
+        Text(caption).font(.subheadline).lineLimit(store.isSelected ? -1 : 4)
+        
+        if store.isSelected {
+          Button(action: store.deselect) {
+            Image(systemName: "xmark.circle")
+          }
+        }
+      }
+      .padding()
     }
   }
   
-  private func storyBody(forItem item: Item) -> some View {
-    VStack(alignment: .leading) {
-      Text(item.title)
-        .font(.headline)
-      Text(item.text ?? item.url ?? "No description.")
-        .lineLimit(4)
-        .font(.subheadline)
-    }.padding()
-  }
-
 }

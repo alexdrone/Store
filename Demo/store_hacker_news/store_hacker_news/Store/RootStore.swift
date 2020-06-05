@@ -7,8 +7,6 @@ struct AppState: Codable {
   var items: FetchedProperty<[Item], Int> = .uninitalized
   /// Whether there is an item on focus.
   var selectedItem: Item?
-  /// Whether there is a focused user.
-  var selectedUser: User?
 }
 
 /// Fetches the top stories from HackerNews.
@@ -44,18 +42,47 @@ class AppStateStore: SerializableStore<AppState> {
   private var fetchTopStoriesTransaction: TransactionProtocol?
   
   convenience init() {
-    self.init(model: AppState(), diffing: .none)
+    self.init(model: AppState(), diffing: .async)
   }
   
+  /// Fetches today's top stories from Hacker News.
   func fetchTopStories() {
     fetchTopStoriesTransaction = run(action: FetchTopStories())
   }
   
+  /// Cancels the fetch operation.
   func cancelFetchTopStories() {
     fetchTopStoriesTransaction?.cancel()
   }
+
+  /// Select (or deselect) a story.
+  func selectStory(_ item: Item?) {
+    run(action: TemplateAction.Assign( \AppState.selectedItem, item))
+  }
+  
+  func childStore(id: Item) -> Store<Item> {
+    let store = Store(model: id)
+    store.parent = self
+    return store
+  }
 }
 
+extension Store where M == Item {
+  var isSelected: Bool {
+    guard let parent = parent as? AppStateStore else { return false }
+    return parent.model.selectedItem?.id == model.id
+  }
+  
+  func select() {
+    guard let parent = parent as? AppStateStore else { return }
+    parent.selectStory(model)
+  }
+  
+  func deselect() {
+    guard let parent = parent as? AppStateStore else { return }
+    parent.selectStory(nil)
+  }
+}
 
 // MARK: - Internal
 
