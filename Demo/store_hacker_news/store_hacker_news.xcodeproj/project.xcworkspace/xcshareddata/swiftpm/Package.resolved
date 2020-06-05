@@ -5,9 +5,9 @@
         "package": "Store",
         "repositoryURL": "https://github.com/alexdrone/Store",
         "state": {
-          "branch": null,
-          "revision": "449b1373573ac08447885e6a5f50a5a8f048b341",
-          "version": "2.4.0"
+          "branch": "master",
+          "revision": "dd454f5f7c8072299eec6be8023f967e7bd061d6",
+          "version": null
         }
       },
       {
