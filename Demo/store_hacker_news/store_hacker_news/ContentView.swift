@@ -63,7 +63,7 @@ struct StoryView: View {
     Button(action: store.select) {
       VStack(alignment: store.isSelected ? .center : .leading) {
         Text(title).font(.headline)
-        Text(caption).font(.subheadline).lineLimit(store.isSelected ? -1 : 4)
+        Text(caption).font(.subheadline).lineLimit(store.isSelected ? nil : 4)
         
         if store.isSelected {
           Button(action: store.deselect) {

@@ -25,7 +25,7 @@ final class API {
   func fetchTopStories() -> Future<[Item], Never> {
     Future { promise in
       self.fetchTopStoriesIdsCancellable = self.fetchTopStoriesIds().sink { ids in
-        let idsPub = ids.map { id in self.fetchItem(id: id) }
+        let idsPub = ids.prefix(50).map { id in self.fetchItem(id: id) }
         self.fetchItemsCancellable = Publishers.MergeMany(idsPub).collect().sink { items in
           let nonNilItems = items.compactMap { $0 }
           promise(.success(nonNilItems))
