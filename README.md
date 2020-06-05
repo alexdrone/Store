@@ -147,10 +147,8 @@ struct ContentView_Previews : PreviewProvider {
 
 ### Demo projects
 
-### (HackerNews Client)[https://github.com/alexdrone/Store/tree/master/Demo/store_hacker_news]
-
-<img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/store_hacker_news_demo.gif" width=300 alt="hacker_news_demo" align=center />
-
+* [HackerNews Client](https://github.com/alexdrone/Store/tree/master/Demo/store_hacker_news)
+<img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/store_hacker_news_demo.gif" width=600 alt="hacker_news_demo" align=center />
 
 ### DSL
 
