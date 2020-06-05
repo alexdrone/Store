@@ -1,0 +1,25 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "Store",
+        "repositoryURL": "https://github.com/alexdrone/Store",
+        "state": {
+          "branch": null,
+          "revision": "449b1373573ac08447885e6a5f50a5a8f048b341",
+          "version": "2.4.0"
+        }
+      },
+      {
+        "package": "SwiftProtobuf",
+        "repositoryURL": "https://github.com/apple/swift-protobuf.git",
+        "state": {
+          "branch": null,
+          "revision": "7f36441e3372665b1b414f8ac93b5905cc42a405",
+          "version": "1.9.0"
+        }
+      }
+    ]
+  },
+  "version": 1
+}
