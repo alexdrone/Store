@@ -60,19 +60,36 @@ struct StoryView: View {
   }
   
   var body: some View {
-    Button(action: store.select) {
-      VStack(alignment: store.isSelected ? .center : .leading) {
-        Text(title).font(.headline)
-        Text(caption).font(.subheadline).lineLimit(store.isSelected ? nil : 4)
-        
-        if store.isSelected {
-          Button(action: store.deselect) {
-            Image(systemName: "xmark.circle")
-          }
-        }
+    Group {
+      if store.isSelected {
+        expanded
+      } else {
+        collapsed
       }
-      .padding()
+    }.padding()
+  }
+  
+  var collapsed: some View {
+    Button(action: store.select) {
+      VStack(alignment: .leading) {
+        Text(title).font(.headline)
+        Text(caption).font(.subheadline).lineLimit(2)
+      }
     }
   }
+  
+  var expanded: some View {
+    VStack(alignment: .center) {
+      Text(title).font(.system(.headline, design: .rounded))
+      ScrollView {
+        Text(caption).font(.callout)
+      }
+      Spacer()
+      Button(action: store.deselect) {
+        Image(systemName: "xmark.circle")
+      }
+    }
+  }
+  
   
 }
