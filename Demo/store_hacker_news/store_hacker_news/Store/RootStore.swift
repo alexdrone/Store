@@ -35,7 +35,7 @@ struct FetchTopStories: ActionProtocol {
   }
 }
 
-class AppStateStore: SerializableStore<AppState> {
+class AppStateStore: CodableStore<AppState> {
   /// Hackernews REST endpoints.
   let api = API()
   /// The ongoing transaction.
@@ -61,25 +61,23 @@ class AppStateStore: SerializableStore<AppState> {
   }
   
   func childStore(id: Item) -> Store<Item> {
-    let store = Store(model: id)
-    store.parent = self
-    return store
+    Store(model: id, combine: CombineStore(parent: self))
   }
 }
 
 extension Store where M == Item {
   var isSelected: Bool {
-    guard let parent = parent as? AppStateStore else { return false }
+    guard let parent = parent(type: AppState.self) else { return false }
     return parent.model.selectedItem?.id == model.id
   }
   
   func select() {
-    guard let parent = parent as? AppStateStore else { return }
+    guard let parent = parent(type: AppState.self) as? AppStateStore else { return }
     parent.selectStory(model)
   }
   
   func deselect() {
-    guard let parent = parent as? AppStateStore else { return }
+    guard let parent = parent(type: AppState.self) as? AppStateStore else { return }
     parent.selectStory(nil)
   }
 }
