@@ -107,7 +107,14 @@ open class Store<M>: StoreProtocol, ObservableObject {
     self.middleware.removeAll { $0 === middleware }
   }
   
-  // MARK: Parent Store
+  // MARK: Child/Parent Store
+  
+  public func makeChildStore<C>(keyPath: WritableKeyPath<M, C>) -> Store<C> {
+    Store<C>(model: model[keyPath: keyPath], combine: CombineStore(
+      parent: self,
+      notify: true,
+      merge: .keyPath(keyPath: keyPath)))
+  }
   
   public func parent<T>(type: T.Type) -> Store<T>? {
     if let parent = combine?.parentStore as? Store<T> {
