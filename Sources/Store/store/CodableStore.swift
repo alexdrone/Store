@@ -26,13 +26,22 @@ open class CodableStore<M: Codable>: Store<M> {
   /// Last serialized snapshot for the model.
   private var _lastModelSnapshot: [FlatEncoding.KeyPath: Codable?] = [:]
 
-  public init(model: M, diffing: Diffing = .async) {
+  public init(
+    id: StoreID = singletonID,
+    model: M,
+    diffing: Diffing = .async
+  ) {
     self.diffing = diffing
     super.init(model: model)
     self._lastModelSnapshot = CodableStore.encodeFlat(model: model)
   }
   
-  public init<P>(model: M, diffing: Diffing = .async, combine: CombineStore<P, M>) {
+  public init<P>(
+    id: StoreID = singletonID,
+    model: M,
+    diffing: Diffing = .async,
+    combine: CombineStore<P, M>
+  ) {
     self.diffing = diffing
     super.init(model: model, combine: combine)
     self._lastModelSnapshot = CodableStore.encodeFlat(model: model)

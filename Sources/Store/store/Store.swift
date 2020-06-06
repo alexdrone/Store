@@ -2,6 +2,7 @@ import Combine
 import Foundation
 
 public protocol AnyStoreProtocol: class {
+  var id: String { get }
   /// In charge of reconciling this store with its parent one (if applicable).
   var combine: AnyCombineStore? { get }
   /// All of the registered middleware.
@@ -30,7 +31,9 @@ public protocol StoreProtocol: AnyStoreProtocol {
   func reduceModel(transaction: TransactionProtocol?, closure: (inout ModelType) -> Void)
 }
 
-open class Store<M>: StoreProtocol, ObservableObject {
+open class Store<M>: StoreProtocol, ObservableObject, Identifiable {
+  /// The stable identity of the entity.
+  public var id: String
   /// A publisher that emits before the object has changed.
   public let objectWillChange = ObservableObjectPublisher()
   /// The current state of this store.
@@ -43,13 +46,15 @@ open class Store<M>: StoreProtocol, ObservableObject {
   private var _stateLock = SpinLock()
   private var _performWithoutNotifyingObservers: Bool = false
   
-  public init(model: M) {
+  public init(id: StoreID = singletonID, model: M) {
+    self.id = id.id
     self.model = model
     self.combine = nil
     register(middleware: LoggerMiddleware())
   }
   
-  public init<P>(model: M, combine: CombineStore<P, M>) {
+  public init<P>(id: StoreID = singletonID, model: M, combine: CombineStore<P, M>) {
+    self.id = id.id
     self.model = model
     self.combine = combine
     register(middleware: LoggerMiddleware())
@@ -109,8 +114,11 @@ open class Store<M>: StoreProtocol, ObservableObject {
   
   // MARK: Child/Parent Store
   
-  public func makeChildStore<C>(keyPath: WritableKeyPath<M, C>) -> Store<C> {
-    Store<C>(model: model[keyPath: keyPath], combine: CombineStore(
+  public func makeChildStore<C>(
+    id: StoreID = singletonID,
+    keyPath: WritableKeyPath<M, C>
+  ) -> Store<C> {
+    Store<C>(id: id, model: model[keyPath: keyPath], combine: CombineStore(
       parent: self,
       notify: true,
       merge: .keyPath(keyPath: keyPath)))
@@ -163,5 +171,19 @@ open class Store<M>: StoreProtocol, ObservableObject {
     let transactions = actions.map { transaction(action: $0, mode: mode) }
     transactions.run(handler: handler)
     return transactions
+  }
+  
+  /// Returns the store default identifier (applicable for singleton store)
+  public static var singletonID: StoreID { StoreID.init(type: self) }
+}
+
+// MARK: - ID
+
+public struct StoreID {
+  /// The unique identifier for the store.
+  public let id: String
+  
+  init<T>(type: T.Type, id: String = "_singleton") {
+    self.id = "\(String(describing: type)):\(id)"
   }
 }

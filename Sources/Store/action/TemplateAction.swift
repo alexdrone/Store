@@ -11,7 +11,7 @@ public struct TemplateAction {
     public let id: String
     public let reduce: (inout M) -> Void
 
-    public init(id: String = _Id.reduce, reduce: @escaping (inout M) -> Void) {
+    public init(id: String = _ID.reduce, reduce: @escaping (inout M) -> Void) {
       self.id = id
       self.reduce = reduce
     }
@@ -34,19 +34,19 @@ public struct TemplateAction {
     public let keyPath: KeyPathArg<M, V>
     public let value: V?
     
-    public init(id: String = _Id.assign, _ keyPath: KeyPathArg<M, V>, _ value: V) {
+    public init(id: String = _ID.assign, _ keyPath: KeyPathArg<M, V>, _ value: V) {
       self.id = id
       self.keyPath = keyPath
       self.value = value
     }
 
-    public init(id: String = _Id.assign, _ keyPath: WritableKeyPath<M, V>, _ value: V) {
+    public init(id: String = _ID.assign, _ keyPath: WritableKeyPath<M, V>, _ value: V) {
       self.id = id
       self.keyPath = .value(keyPath: keyPath)
       self.value = value
     }
     
-    public init(id: String = _Id.assign,_ keyPath: WritableKeyPath<M, V?>, _ value: V?) {
+    public init(id: String = _ID.assign,_ keyPath: WritableKeyPath<M, V?>, _ value: V?) {
       self.id = id
       self.keyPath = .optional(keyPath: keyPath)
       self.value = value
@@ -73,7 +73,7 @@ public struct TemplateAction {
     public let isIncluded: (V.Element) -> Bool
 
     public init(
-      id: String = _Id.filter,
+      id: String = _ID.filter,
       _ keyPath: KeyPathArg<M, V>,
       _ isIncluded: @escaping (V.Element) -> Bool
     ) {
@@ -83,7 +83,7 @@ public struct TemplateAction {
     }
     
     public init(
-      id: String = _Id.filter,
+      id: String = _ID.filter,
       _ keyPath: WritableKeyPath<M, V>,
       _ isIncluded: @escaping (V.Element) -> Bool
     ) {
@@ -93,7 +93,7 @@ public struct TemplateAction {
     }
     
     public init(
-      id: String = _Id.filter,
+      id: String = _ID.filter,
       _ keyPath: WritableKeyPath<M, V?>,
       _ isIncluded: @escaping (V.Element) -> Bool
     ) {
@@ -122,19 +122,19 @@ public struct TemplateAction {
     public let keyPath: KeyPathArg<M, V>
     public let index: Int
 
-    public init(id: String = _Id.remove, _ keyPath: KeyPathArg<M, V>, index: Int) {
+    public init(id: String = _ID.remove, _ keyPath: KeyPathArg<M, V>, index: Int) {
       self.id = id
       self.keyPath = keyPath
       self.index = index
     }
     
-    public init(id: String = _Id.remove, _ keyPath: WritableKeyPath<M, V>, index: Int) {
+    public init(id: String = _ID.remove, _ keyPath: WritableKeyPath<M, V>, index: Int) {
       self.id = id
       self.keyPath = .value(keyPath: keyPath)
       self.index = index
     }
     
-    public init(id: String = _Id.remove, _ keyPath: WritableKeyPath<M, V?>, index: Int) {
+    public init(id: String = _ID.remove, _ keyPath: WritableKeyPath<M, V?>, index: Int) {
       self.id = id
       self.keyPath = .optional(keyPath: keyPath)
       self.index = index
@@ -160,19 +160,19 @@ public struct TemplateAction {
     public let keyPath: KeyPathArg<M, V>
     public let object: V.Element
 
-    public init(id: String = _Id.append, _ keyPath: KeyPathArg<M, V>, object: V.Element) {
+    public init(id: String = _ID.append, _ keyPath: KeyPathArg<M, V>, object: V.Element) {
       self.id = id
       self.keyPath = keyPath
       self.object = object
     }
     
-    public init(id: String = _Id.append, _ keyPath: WritableKeyPath<M, V>, object: V.Element) {
+    public init(id: String = _ID.append, _ keyPath: WritableKeyPath<M, V>, object: V.Element) {
       self.id = id
       self.keyPath = .value(keyPath: keyPath)
       self.object = object
     }
     
-    public init(id: String = _Id.append, _ keyPath: WritableKeyPath<M, V?>, object: V.Element) {
+    public init(id: String = _ID.append, _ keyPath: WritableKeyPath<M, V?>, object: V.Element) {
       self.id = id
       self.keyPath = .optional(keyPath: keyPath)
       self.object = object
@@ -198,19 +198,19 @@ public struct TemplateAction {
     public let keyPath: KeyPathArg<M, V>
     public let object: V.Element
 
-    public init(id: String = _Id.push, _ keyPath: KeyPathArg<M, V>, object: V.Element) {
+    public init(id: String = _ID.push, _ keyPath: KeyPathArg<M, V>, object: V.Element) {
       self.id = id
       self.keyPath = keyPath
       self.object = object
     }
     
-    public init(id: String = _Id.push, _ keyPath: WritableKeyPath<M, V>, object: V.Element) {
+    public init(id: String = _ID.push, _ keyPath: WritableKeyPath<M, V>, object: V.Element) {
       self.id = id
       self.keyPath = .value(keyPath: keyPath)
       self.object = object
     }
     
-    public init(id: String = _Id.push, _ keyPath: WritableKeyPath<M, V?>, object: V.Element) {
+    public init(id: String = _ID.push, _ keyPath: WritableKeyPath<M, V?>, object: V.Element) {
       self.id = id
       self.keyPath = .optional(keyPath: keyPath)
       self.object = object
@@ -238,7 +238,7 @@ public enum KeyPathArg<M, V> {
   case optional(keyPath: WritableKeyPath<M, V?>)
 }
 
-public struct _Id {
+public struct _ID {
   public static let reduce = "__template_reduce"
   public static let assign = "__template_assign"
   public static let filter = "__template_filter"

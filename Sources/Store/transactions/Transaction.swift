@@ -124,7 +124,6 @@ public final class Transaction<A: ActionProtocol>: TransactionProtocol, Identifi
       os_log(.error, log: OSLog.primary, "context/store is nil - the operation won't be executed.")
       return
     }
-
     let context = TransactionContext(
       operation: operation,
       store: store,
