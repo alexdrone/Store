@@ -3,11 +3,9 @@ import Foundation
 public final class TransactionOperation<T: TransactionProtocol>: AsyncOperation {
   /// The associated transaction.
   public let transaction: T
-
   /// The completion block type for this operation.
   /// - note: Internal only.
   internal var _finishBlock: CompletionBlock = {}
-
   /// Constructs a new action operation.
   /// - parameter transaction: The transaction for this operation.
   public init(transaction: T) {

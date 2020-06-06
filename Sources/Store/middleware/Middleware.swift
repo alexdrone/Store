@@ -2,8 +2,6 @@ import Combine
 import Foundation
 import os.log
 
-// MARK: - Protocol
-
 public protocol Middleware: class {
   /// A transaction has changed its state.
   func onTransactionStateChange(_ transaction: TransactionProtocol)

@@ -5,15 +5,12 @@ import Foundation
 public enum FetchedProperty<T: Codable, E: Codable>: Codable {
   /// The property has no yet a value.
   case uninitalized
-
   /// The property is being set.
   /// The property can be updated with regual progress or have `Progress.indeterminate` if the
   /// progress is unknown.
   case pending(progress: Float)
-
   /// The property has been fetched successfully.
   case success(value: T, etag: E)
-
   /// An error has occurred while fetching the property.
   case error(_ error: Error)
 

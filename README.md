@@ -150,24 +150,6 @@ struct ContentView_Previews : PreviewProvider {
 * [HackerNews Client](https://github.com/alexdrone/Store/tree/master/Demo/store_hacker_news)
 <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/store_hacker_news_demo.gif" width=600 alt="hacker_news_demo" align=center />
 
-### DSL
-
-Actions can be chained using the `Store.runGroup` DSL.
-
-
-```swift
-store.runGroup {
-  Transaction<MyAction>(.prepareFoo) // 1
-  Transaction<MyAction>(.prepareBar) // 2
-
-  Concurrent {
-    Transaction<SomeAPIAction>(.dowloadFoo) // 3
-    Transaction<SomeAPIAction>(.downloadBar) // 4
-  }
-  Transaction<MyAction>(.finalize) // 5
-}
-
-```
 
 This is equivalent to:
 
@@ -357,23 +339,6 @@ func calledOften() {
 
 ```
 
-This causes `.myAction` to be executed at max once every 0.5 seconds.
-Similiarly using the `runGroup` DSL.
-
-```swift
-
-func calledOften() {
-  store.runGroup {
-    Throttle(0.5) {
-      Transaction(.myAction(amount: 1))
-      Transaction(.myAction(amount: 1))
-    }
-    Transaction(.someOtherAction)
-  }
-}
-
-```
-
 ### Tracking a transaction state
 
 Sometimes it's useful to track the state of a transaction (it might be useful to update the UI state to reflect that).
@@ -432,23 +397,6 @@ Dispatcher.main.cancelAllTransactions(id: queueId)
 ▩ 𝙄𝙉𝙁𝙊 (-Lo4riSWZ3m5v1AvhgOb) INCREASE [✖ canceled]
 ```
 
-### Multi-Store RunGroup
-
-```swift
-RunGroup {
-  Transaction<MyStore1Action>(.prepareFoo, in: store1)
-  Transaction<MyStore1Action>(.prepareBar, in: store1)
-  Concurrent {
-    Transaction<MyStore2Action>(.dooSomethingOnStore2, in: store2)
-    Transaction<MyStore2Action>(.dooSomethingElseOnStore2, in: store2)
-  }
-  Transaction<MyStore1Action>(.backToStore1, in: store1)
-  Throttle(1) {
-    Transaction<UIUpdateAction>(.updateMainUI, in: uiStore)
-  }
-}
-```
-
 ### Combined Stores
 
 Support for children store (similar to Redux `combineStores`).
@@ -467,25 +415,17 @@ struct Root {
   var note: Note = Note()
 }
 
-class RootStore: Store<Root> {
-  lazy var todoStore = makeChildStore(keyPath: \.todo)
-  lazy var noteStore = makeChildStore(keyPath: \.note)
-}
+/// A child store pointing at the todo model.
+var todoStore Store(model: model.todo, combine: CombineStore(
+  parent: rootStore, 
+  notify: true, 
+  merge: .keyPath(keyPath: \.todo)))
 
 extension Root.Todo {
   struct Action_MarkAsDone: ActionProtocol {
     func reduce(context: TransactionContext<Store<Root.Todo>, Self>) {
       defer { context.fulfill() }
       context.reduceModel { $0.done = true }
-    }
-  }
-}
-
-extension Root.Note {
-  struct Action_IncreaseUpvotes: ActionProtocol {
-    func reduce(context: TransactionContext<Store<Root.Note>, Self>) {
-      defer { context.fulfill() }
-      context.reduceModel { $0.upvotes += 1 }
     }
   }
 }

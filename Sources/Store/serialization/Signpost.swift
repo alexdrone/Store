@@ -12,26 +12,22 @@ public enum Signpost {
 public final class SignpostTransaction: TransactionProtocol {
   /// See `SignpostAction`.
   public let actionId: String
-
+  /// Randomized identifier for the current transaction that preserve the temporal information.
   public let id: String = PushID.default.make()
-
-  public let strategy: Dispatcher.Strategy = .async(nil)
-
+  /// The threading strategy that should be used to dispatch this transaction.
+  public let strategy: Executor.Strategy = .async(nil)
   /// - note: Never set because `SignpostTransaction`s do not have a backing operation.
-  public var error: Dispatcher.TransactionGroupError? = nil
-
+  public var error: Executor.TransactionGroupError? = nil
   /// - note: Never set because `SignpostTransaction`s do not have a backing operation.
   public var operation: AsyncOperation {
     fatalError("This transaction does not spawn any operation.")
   }
-
   /// No associated store ref.
   public var opaqueStoreRef: AnyStoreProtocol? = nil
-
   /// Represents the progress of the transaction.
   public var state: TransactionState = .pending
 
-  public func on(_ queueWithStrategy: Dispatcher.Strategy) -> Self { self }
+  public func on(_ queueWithStrategy: Executor.Strategy) -> Self { self }
 
   public func throttle(_ minimumDelay: TimeInterval) -> Self { self }
 
@@ -43,7 +39,7 @@ public final class SignpostTransaction: TransactionProtocol {
     // No op.
   }
 
-  public func run(handler: Dispatcher.TransactionCompletionHandler) {
+  public func run(handler: Executor.TransactionCompletionHandler) {
     // No op.
   }
 

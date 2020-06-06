@@ -19,13 +19,28 @@ struct Root: Codable {
   var list: [Todo] = []
 }
 
-class RootStore: SerializableStore<Root> {
+class RootStore: CodableStore<Root> {
   // Children test.
-  lazy var todoStore = makeChildStore(keyPath: \.todo)
-  lazy var noteStore = makeChildStore(keyPath: \.note)
-
-  // List and transient store tests.
-  lazy var listStore = makeChildStore(keyPath: \.list)
+  lazy var todoStore = {
+    Store(model: model.todo, combine: CombineStore(
+      parent: self,
+      notify: true,
+      merge: .keyPath(keyPath: \.todo)))
+  }()
+  
+  lazy var noteStore = {
+    Store(model: model.note, combine: CombineStore(
+      parent: self,
+      notify: true,
+      merge: .keyPath(keyPath: \.note)))
+  }()
+  
+  lazy var listStore = {
+    Store(model: model.list, combine: CombineStore(
+      parent: self,
+      notify: true,
+      merge: .keyPath(keyPath: \.list)))
+  }()
 }
 
 // MARK: Combined Stores
@@ -105,7 +120,7 @@ final class CombinedStoreTests: XCTestCase {
     sink = rootStore.objectWillChange.sink {
       XCTAssertTrue(rootStore.model.todo.done)
       XCTAssertTrue(rootStore.todoStore.model.done)
-      observerExpectation.fulfill()      
+      observerExpectation.fulfill()
     }
     rootStore.todoStore.run(action: Root.Todo.Action_MarkAsDone(), mode: .sync)
     XCTAssertTrue(rootStore.todoStore.model.done)
@@ -130,7 +145,13 @@ final class CombinedStoreTests: XCTestCase {
     XCTAssertTrue(rootStore.model.list[0].description == "New")
     XCTAssertTrue(rootStore.model.list[0].done == false)
     
-    let todoStore: Store<Root.Todo> = rootStore.listStore.makeChildStore(keyPath: \.[0])
+    let listStore = rootStore.listStore
+    
+    let todoStore = Store(model: listStore.model.first!, combine: CombineStore(
+      parent: listStore,
+      notify: true,
+      merge: .keyPath(keyPath: \.[0])))
+    
     todoStore.register(middleware: LoggerMiddleware())
 
     todoStore.run(action: Root.Todo.Action_MarkAsDone(), mode: .sync)

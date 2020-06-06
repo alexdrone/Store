@@ -33,16 +33,13 @@ public final class PushID {
 
   // Timestamp of last push, used to prevent local collisions if you push twice in one ms.
   private var _lastPushTime: UInt64 = 0
-
   // We generate 72-bits of randomness which get turned into 12 characters and appended to the
   // timestamp to prevent collisions with other clients.  We store the last characters we
   // generated because in the event of a collision, we'll use those same characters except
   // "incremented" by one.
   private var _lastRandChars = [Int](repeating: 0, count: 12)
-
   // For testability purposes.
   private let _dateProvider: () -> Date
-
   // Ensure the generator synchronization.
   private var _lock = SpinLock()
 

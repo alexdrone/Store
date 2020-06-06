@@ -5,13 +5,10 @@ public struct TransactionContext<S: StoreProtocol, A: ActionProtocol> {
   /// The operation that is currently running.
   /// - note: Invoke `context.operation.finish` to signal task completion.
   public let operation: AsyncOperation
-
   /// The target store for this transaction.
   public let store: S
-
   /// Last recorded error (or side effects) in this dispatch group.
-  public let error: Dispatcher.TransactionGroupError
-
+  public let error: Executor.TransactionGroupError
   /// The current transaction.
   public let transaction: Transaction<A>
 
@@ -42,9 +39,3 @@ public struct TransactionContext<S: StoreProtocol, A: ActionProtocol> {
   }
 }
 
-extension ActionProtocol {
-  /// Default identifier implementation.
-  public var id: String {
-    return String(describing: type(of: self))
-  }
-}

@@ -2,17 +2,13 @@ import Combine
 import Foundation
 import os.log
 
-// MARK: - SerializableStore
-
-open class SerializableStore<M: Codable>: Store<M> {
+open class CodableStore<M: Codable>: Store<M> {
   /// Transaction diffing options.
-  public enum TransactionDiffStrategy {
+  public enum Diffing {
     /// Does not compute any diff.
     case none
-
     /// Computes the diff synchronously right after the transaction has completed.
     case sync
-
     /// Computes the diff asynchronously (in a serial queue) when transaction is completed.
     case async
   }
@@ -21,23 +17,25 @@ open class SerializableStore<M: Codable>: Store<M> {
   @Published public var lastTransactionDiff: TransactionDiff = TransactionDiff(
     transaction: SignpostTransaction(signpost: Signpost.prior),
     diffs: [:])
-
   /// Where the diffing routine should be dispatched.
-  public let transactionDiffStrategy: TransactionDiffStrategy
-
+  public let diffing: Diffing
   /// Serial queue used to run the diffing routine.
   private let _queue = DispatchQueue(label: "io.store.diff")
-
   /// Set of `transaction.id` for all of the transaction that have run of this store.
   private var _transactionIdsHistory = Set<String>()
-
   /// Last serialized snapshot for the model.
   private var _lastModelSnapshot: [FlatEncoding.KeyPath: Codable?] = [:]
 
-  public init(model: M, diffing: TransactionDiffStrategy = .async) {
-    self.transactionDiffStrategy = diffing
+  public init(model: M, diffing: Diffing = .async) {
+    self.diffing = diffing
     super.init(model: model)
-    self._lastModelSnapshot = SerializableStore.encodeFlat(model: model)
+    self._lastModelSnapshot = CodableStore.encodeFlat(model: model)
+  }
+  
+  public init<P>(model: M, diffing: Diffing = .async, combine: CombineStore<P, M>) {
+    self.diffing = diffing
+    super.init(model: model, combine: combine)
+    self._lastModelSnapshot = CodableStore.encodeFlat(model: model)
   }
 
   override open func reduceModel(transaction: TransactionProtocol?, closure: (inout M) -> Void) {
@@ -50,7 +48,7 @@ open class SerializableStore<M: Codable>: Store<M> {
     guard let transaction = transaction else {
       return
     }
-    func dispatch(option: TransactionDiffStrategy, execute: @escaping () -> Void) {
+    func dispatch(option: Diffing, execute: @escaping () -> Void) {
       switch option {
       case .sync:
         _queue.sync(execute: execute)
@@ -60,10 +58,10 @@ open class SerializableStore<M: Codable>: Store<M> {
         return
       }
     }
-    dispatch(option: transactionDiffStrategy) {
+    dispatch(option: diffing) {
       self._transactionIdsHistory.insert(transaction.id)
       /// The resulting dictionary won't be nested and all of the keys will be paths.
-      let encodedModel: FlatEncoding.Dictionary = SerializableStore.encodeFlat(model: new)
+      let encodedModel: FlatEncoding.Dictionary = CodableStore.encodeFlat(model: new)
       var diffs: [FlatEncoding.KeyPath: PropertyDiff] = [:]
       for (key, value) in encodedModel {
         // The (`keyPath`, `value`) pair was not in the previous _lastModelSnapshot.
@@ -86,15 +84,6 @@ open class SerializableStore<M: Codable>: Store<M> {
         .debug, log: OSLog.diff, "▩ 𝘿𝙄𝙁𝙁 (%s) %s %s",
         transaction.id, transaction.actionId, diffs.storeDebugDescription(short: true))
     }
-  }
-  
-  /// Creates a store for a subtree of the wrapped model.
-  /// Similar to Redux `combineStores`.
-  public func makeChildSerializableStore<M_1>(
-    keyPath: WritableKeyPath<M, M_1>,
-    create: (M_1) -> SerializableStore<M_1> = { SerializableStore<M_1>(model: $0) }
-  ) -> SerializableStore<M_1> {
-    super.makeChildStore(keyPath: keyPath, create: create) as! SerializableStore<M_1>
   }
   
   // MARK: - Model Encode/Decode
