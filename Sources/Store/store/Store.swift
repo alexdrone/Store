@@ -33,7 +33,7 @@ public protocol StoreProtocol: AnyStoreProtocol {
 
 open class Store<M>: StoreProtocol, ObservableObject, Identifiable {
   /// The stable identity of the entity.
-  public var id: String
+  public private(set) var id: String
   /// A publisher that emits before the object has changed.
   public let objectWillChange = ObservableObjectPublisher()
   /// The current state of this store.
@@ -46,19 +46,21 @@ open class Store<M>: StoreProtocol, ObservableObject, Identifiable {
   private var _stateLock = SpinLock()
   private var _performWithoutNotifyingObservers: Bool = false
   
-  public init(id: StoreID = singletonID, model: M) {
-    self.id = id.id
+  public init(id: ModelKey = nil, model: M) {
+    self.id = Self.makeID(key: id)
     self.model = model
     self.combine = nil
     register(middleware: LoggerMiddleware())
+    Dispatcher.default.registry.register(store: self)
   }
   
-  public init<P>(id: StoreID = singletonID, model: M, combine: CombineStore<P, M>) {
-    self.id = id.id
+  public init<P>(id: ModelKey = nil, model: M, combine: CombineStore<P, M>) {
+    self.id = Self.makeID(key: id)
     self.model = model
     self.combine = combine
     register(middleware: LoggerMiddleware())
     combine.child = self
+    Dispatcher.default.registry.register(store: self)
   }
 
   // MARK: Model updates
@@ -115,7 +117,7 @@ open class Store<M>: StoreProtocol, ObservableObject, Identifiable {
   // MARK: Child/Parent Store
   
   public func makeChildStore<C>(
-    id: StoreID = singletonID,
+    id: ModelKey = nil,
     keyPath: WritableKeyPath<M, C>
   ) -> Store<C> {
     Store<C>(id: id, model: model[keyPath: keyPath], combine: CombineStore(
@@ -173,17 +175,15 @@ open class Store<M>: StoreProtocol, ObservableObject, Identifiable {
     return transactions
   }
   
-  /// Returns the store default identifier (applicable for singleton store)
-  public static var singletonID: StoreID { StoreID.init(type: self) }
-}
-
-// MARK: - ID
-
-public struct StoreID {
-  /// The unique identifier for the store.
-  public let id: String
+  // MARK: ID
   
-  init<T>(type: T.Type, id: String = "_singleton") {
-    self.id = "\(String(describing: type)):\(id)"
+  /// Make a new store unique identifier.
+  /// - parameter key: Optional store key, useful when your store type is not unique.
+  /// - note: The store is prefixed with the model type.
+  public static func makeID(key: ModelKey) -> String {
+    let type = String(describing: M.self)
+    return key != nil ? type + ":" + key!.description : type
   }
 }
+
+public typealias ModelKey = CustomStringConvertible?

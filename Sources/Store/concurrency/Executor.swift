@@ -111,7 +111,7 @@ public final class Executor {
   }
 }
 
-// MARK: - Throttler
+// MARK: - Throttle
 
 public class Throttler {
   private var _executionItem = DispatchWorkItem(block: {})

@@ -27,23 +27,23 @@ open class CodableStore<M: Codable>: Store<M> {
   private var _lastModelSnapshot: [FlatEncoding.KeyPath: Codable?] = [:]
 
   public init(
-    id: StoreID = singletonID,
+    id: ModelKey = nil,
     model: M,
     diffing: Diffing = .async
   ) {
     self.diffing = diffing
-    super.init(model: model)
+    super.init(id: id, model: model)
     self._lastModelSnapshot = CodableStore.encodeFlat(model: model)
   }
   
   public init<P>(
-    id: StoreID = singletonID,
+    id: ModelKey = nil,
     model: M,
     diffing: Diffing = .async,
     combine: CombineStore<P, M>
   ) {
     self.diffing = diffing
-    super.init(model: model, combine: combine)
+    super.init(id: id, model: model, combine: combine)
     self._lastModelSnapshot = CodableStore.encodeFlat(model: model)
   }
 

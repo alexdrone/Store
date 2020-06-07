@@ -12,7 +12,6 @@ public protocol Middleware: class {
 public final class LoggerMiddleware: Middleware {
   /// Syncronizes the access to the middleware.
   private var _lock = SpinLock()
-
   /// The transactions start time (in µs).
   private var _transactionStartNanos: [String: UInt64] = [:]
 
@@ -21,6 +20,7 @@ public final class LoggerMiddleware: Middleware {
   /// Logs the transaction identifier, the action name and its current state.
   public func onTransactionStateChange(_ transaction: TransactionProtocol) {
     _lock.lock()
+    let storeId = transaction.opaqueStoreRef?.id ?? "error"
     let id = transaction.id
     let name = transaction.actionId
     switch transaction.state {
@@ -32,10 +32,10 @@ public final class LoggerMiddleware: Middleware {
       guard let prev = _transactionStartNanos[transaction.id] else { break }
       let time = _nanos() - prev
       let millis = Float(time)/1_000_000
-      os_log(.info, log: OSLog.primary, "▩ (%s) %s [%fs ms]", id, name, millis)
+      os_log(.info, log: OSLog.primary, "▩ (%s) %s::%s [%fs ms]", id, storeId, name, millis)
       _transactionStartNanos[transaction.id] = nil
     case .canceled:
-      os_log(.info, log: OSLog.primary, "▩ (%s) %s [✖ cancelled]", id, name)
+      os_log(.info, log: OSLog.primary, "▩ (%s) %s::%s [✖ cancelled]", id, storeId, name)
       _transactionStartNanos[transaction.id] = nil
     }
     _lock.unlock()
@@ -54,6 +54,6 @@ public final class LoggerMiddleware: Middleware {
 // MARK: - Log Subsystems
 
 extension OSLog {
-  public static let primary = OSLog(subsystem: "io.store.StoreService", category: "primary")
-  public static let diff = OSLog(subsystem: "io.store.StoreService", category: "diff")
+  public static let primary = OSLog(subsystem: "io.store", category: "primary")
+  public static let diff = OSLog(subsystem: "io.store", category: "diff")
 }

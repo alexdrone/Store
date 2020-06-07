@@ -1,12 +1,6 @@
 import Combine
 import Foundation
 
-public enum Signpost {
-  public static let prior = "__signpost_prior"
-  public static let modelUpdate = "__signpost_model_update"
-  public static let undoRedo = "__signpost_undo_redo"
-}
-
 // MARK: - SigPostTransaction
 
 public final class SignpostTransaction: TransactionProtocol {
@@ -54,4 +48,12 @@ public final class SignpostTransaction: TransactionProtocol {
   public func resume() {
     // No op.
   }
+}
+
+// MARK: - IDs
+
+public enum Signpost {
+  public static let prior = "_SIGNPOST_PRIOR"
+  public static let modelUpdate = "_SIGNPOST_UPDATE"
+  public static let undoRedo = "_SIGNPOST_UNDO_REDO"
 }

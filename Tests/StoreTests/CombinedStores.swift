@@ -47,7 +47,7 @@ class RootStore: CodableStore<Root> {
 
 extension Root.Todo {
   struct Action_MarkAsDone: ActionProtocol {
-    let id = "mark_as_done"
+    let id = "MARK_AS_DONE"
     func reduce(context: TransactionContext<Store<Root.Todo>, Self>) {
       defer { context.fulfill() }
       context.reduceModel { $0.done = true }
@@ -59,7 +59,7 @@ extension Root.Todo {
 
 extension Root.Note {
   struct Action_IncreaseUpvotes: ActionProtocol {
-    let id = "increase_upvotes"
+    let id = "INCREASE_UPVOTES"
     func reduce(context: TransactionContext<Store<Root.Note>, Self>) {
       defer { context.fulfill() }
       context.reduceModel { $0.upvotes += 1 }
@@ -73,7 +73,7 @@ extension Root.Note {
 
 extension Root.Todo {
   struct Action_ListCreateNew: ActionProtocol {
-    let id = "list_create_new"
+    let id = "LIST_CREATE_NEW"
     let name: String
     let description: String
     func reduce(context: TransactionContext<Store<Array<Root.Todo>>, Self>) {
@@ -147,7 +147,7 @@ final class CombinedStoreTests: XCTestCase {
     
     let listStore = rootStore.listStore
     
-    let todoStore = Store(model: listStore.model.first!, combine: CombineStore(
+    let todoStore = Store(id: 0, model: listStore.model.first!, combine: CombineStore(
       parent: listStore,
       notify: true,
       merge: .keyPath(keyPath: \.[0])))

@@ -238,16 +238,7 @@ public enum KeyPathArg<M, V> {
   case optional(keyPath: WritableKeyPath<M, V?>)
 }
 
-public struct _ID {
-  public static let reduce = "__template_reduce"
-  public static let assign = "__template_assign"
-  public static let filter = "__template_filter"
-  public static let remove = "__template_remove"
-  public static let append = "__template_append"
-  public static let push = "__template_push"
-}
-
-  // MARK: - Private
+// MARK: - Private
   
 private func _mutateArray<M, V: Collection>(
   object: inout M,
@@ -282,4 +273,15 @@ private func _assignKeyPath<M, V>(object: inout M, keyPath: KeyPathArg<M, V>, va
   case .optional(let keyPath):
     object[keyPath: keyPath] = value
   }
+}
+
+// MARK: - IDs
+
+public struct _ID {
+  public static let reduce = "_TEMPLATE_REDUCE"
+  public static let assign = "_TEMPLATE_ASSIGN"
+  public static let filter = "_TEMPLATE_FILTER"
+  public static let remove = "_TEMPLATE_REMOVE"
+  public static let append = "_TEMPLATE_APPEND"
+  public static let push = "_TEMPLATE_PUSH"
 }
