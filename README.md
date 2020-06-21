@@ -151,13 +151,6 @@ struct ContentView_Previews : PreviewProvider {
 <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/store_hacker_news_demo.gif" width=600 alt="hacker_news_demo" align=center />
 
 
-This is equivalent to:
-
-```
-Run 1 -> Run 2 -> Run 3 and 4 concurrently -> Run 5
-
-```
-
 
 ### Middleware
 
