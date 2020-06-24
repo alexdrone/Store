@@ -11,7 +11,7 @@ public final class SignpostTransaction: TransactionProtocol {
   /// The threading strategy that should be used to dispatch this transaction.
   public let strategy: Executor.Strategy = .async(nil)
   /// - note: Never set because `SignpostTransaction`s do not have a backing operation.
-  public var error: Executor.TransactionGroupError? = nil
+  public var error: ErrorRef? = nil
   /// - note: Never set because `SignpostTransaction`s do not have a backing operation.
   public var operation: AsyncOperation {
     fatalError("This transaction does not spawn any operation.")
@@ -21,9 +21,9 @@ public final class SignpostTransaction: TransactionProtocol {
   /// Represents the progress of the transaction.
   public var state: TransactionState = .pending
 
-  public func on(_ queueWithStrategy: Executor.Strategy) -> Self { self }
+  public func on(_ queueWithStrategy: Executor.Strategy) { }
 
-  public func throttle(_ minimumDelay: TimeInterval) -> Self { self }
+  public func throttleIfNeeded(_ minimumDelay: TimeInterval) { }
 
   init(signpost: String) {
     self.actionId = signpost

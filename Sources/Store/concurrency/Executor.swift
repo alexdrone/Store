@@ -12,15 +12,7 @@ public final class Executor {
     case async(_ identifier: String?)
   }
 
-  public final class TransactionGroupError {
-    /// The last error logged by an operation in the current dispatch group (if applicable).
-    public var lastError: Error? = nil
-
-    /// Optional user defined map.
-    public var userInfo: [String: Any] = [:]
-  }
-
-  public typealias TransactionCompletionHandler = ((TransactionGroupError) -> Void)?
+  public typealias TransactionCompletionHandler = ((Error?) -> Void)?
   /// Shared instance.
   public static let main = Executor()
   /// The background queue used for the .async mode.
@@ -35,15 +27,15 @@ public final class Executor {
     transactions: [TransactionProtocol],
     handler: TransactionCompletionHandler = nil
   ) {
-    let dispatchGroupError = TransactionGroupError()
+    let errorRef = ErrorRef()
     var completionOperation: Operation?
     if let completionHandler = handler {
-      completionOperation = BlockOperation { completionHandler(dispatchGroupError) }
+      completionOperation = BlockOperation { completionHandler(errorRef.error) }
       transactions.map { $0.operation }.forEach { completionOperation?.addDependency($0) }
       OperationQueue.main.addOperation(completionOperation!)
     }
     for transaction in transactions {
-      transaction.error = dispatchGroupError
+      transaction.error = errorRef
       if let throttler = _throttlersToActionIdMap[transaction.actionId] {
         throttler.throttle(
           execution: { [weak self] in self?._run(transaction: transaction) },

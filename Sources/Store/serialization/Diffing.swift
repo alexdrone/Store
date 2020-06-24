@@ -131,7 +131,6 @@ public enum PropertyDiff {
 ///   tokens/0: "foo",
 ///   tokens/1: "bar"
 /// } ```
-@inline(__always)
 public func flatten(encodedModel: EncodedDictionary) -> FlatEncoding.Dictionary {
   var result: FlatEncoding.Dictionary = [:]
   FlatEncoding._flatten(path: "", node: .dictionary(encodedModel), result: &result)
@@ -219,7 +218,6 @@ public enum FlatEncoding {
 
   /// Private recursive flatten method.
   /// - note: See `flatten(encodedModel:)`.
-  @inline(__always)
   fileprivate static func _flatten(path: String, node: Node, result: inout Dictionary) {
     let formattedPath = path.isEmpty ? "" : "\(path)\(KeyPath.separator)"
     func process(path: String, value: Any) {

@@ -136,7 +136,7 @@ open class Store<M>: StoreProtocol, ObservableObject, Identifiable {
     return nil
   }
 
-  // MARK: Executing transactions
+  // MARK: Constructing transactions
 
   @discardableResult
   public func transaction<A: ActionProtocol, M>(
@@ -146,8 +146,12 @@ open class Store<M>: StoreProtocol, ObservableObject, Identifiable {
     guard let store = self as? A.AssociatedStoreType else {
       fatalError("error: Store type mismatch.")
     }
-    return Transaction<A>(action, in: store).on(mode)
+    let transaction = Transaction<A>(action, in: store)
+    transaction.on(mode)
+    return transaction
   }
+  
+  // MARK: Executing transactions
 
   @discardableResult
   public func run<A: ActionProtocol, M>(
@@ -156,12 +160,10 @@ open class Store<M>: StoreProtocol, ObservableObject, Identifiable {
     throttle: TimeInterval = 0,
     handler: Executor.TransactionCompletionHandler = nil
   ) -> Transaction<A> where A.AssociatedStoreType: Store<M> {
-    let transactionObj = transaction(action: action, mode: mode)
-    if throttle > TimeInterval.ulpOfOne {
-      transactionObj.throttle(throttle)
-    }
-    transactionObj.run(handler: handler)
-    return transactionObj
+    let transaction = self.transaction(action: action, mode: mode)
+    transaction.throttleIfNeeded(throttle)
+    transaction.run(handler: handler)
+    return transaction
   }
 
   @discardableResult
@@ -175,6 +177,18 @@ open class Store<M>: StoreProtocol, ObservableObject, Identifiable {
     return transactions
   }
   
+  // MARK: Executing transactions (Futures)
+  
+  public func run<A: ActionProtocol, M>(
+    action: A,
+    mode: Executor.Strategy = .async(nil),
+    throttle: TimeInterval = 0
+  ) -> Future<Transaction<A>, Error> where A.AssociatedStoreType: Store<M> {
+    let transaction = self.transaction(action: action, mode: mode)
+    transaction.throttleIfNeeded(throttle)
+    return transaction.run()
+  }
+
   // MARK: ID
   
   /// Make a new store unique identifier.

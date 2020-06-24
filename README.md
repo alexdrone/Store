@@ -371,7 +371,7 @@ struct IncreaseAction: ActionProtocol {
     // Remember to always call `fulfill` to signal the completion of this operation.
     defer { context.fulfill() }
     // The operation terminates here because an error has been raised in this dispatch group.
-    guard !context.rejectOnGroupError() { else return }
+    guard !context.rejectOnPreviousError() { else return }
     // Kill the transaction and set TransactionGroupError.lastError.
     guard store.model.count != 42 { context.reject(error: Error("Max count reach") }
     // Business as usual...

@@ -7,11 +7,13 @@ public struct TransactionContext<S: StoreProtocol, A: ActionProtocol> {
   public let operation: AsyncOperation
   /// The target store for this transaction.
   public let store: S
-  /// Last recorded error (or side effects) in this dispatch group.
-  public let error: Executor.TransactionGroupError
+  /// Error internal storage.
+  public var errorRef = ErrorRef()
+  /// Last recorded error in this dispatch group.
+  public var error: Error? { errorRef.error }
   /// The current transaction.
   public let transaction: Transaction<A>
-
+  
   /// Atomically update the store's model.
   public func reduceModel(closure: (inout S.ModelType) -> (Void)) {
     store.reduceModel(transaction: transaction, closure: closure)
@@ -19,8 +21,8 @@ public struct TransactionContext<S: StoreProtocol, A: ActionProtocol> {
 
   /// Terminates the operation if there was an error raised by a previous action in the following
   /// transaction group.
-  public func rejectOnGroupError() -> Bool {
-    guard error.lastError != nil else {
+  public func rejectOnPreviousError() -> Bool {
+    guard error != nil else {
       return false
     }
     operation.finish()
@@ -29,7 +31,7 @@ public struct TransactionContext<S: StoreProtocol, A: ActionProtocol> {
 
   /// Terminates this operation with an error.
   public func reject(error: Error) {
-    self.error.lastError = error
+    self.errorRef.error = error
     operation.finish()
   }
 
@@ -39,3 +41,8 @@ public struct TransactionContext<S: StoreProtocol, A: ActionProtocol> {
   }
 }
 
+// MARK: - ErrorRef
+
+public final class ErrorRef {
+  public var error: Error?
+}

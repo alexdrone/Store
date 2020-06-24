@@ -11,8 +11,8 @@ final class StoreTests: XCTestCase {
     let transactionExpectation = expectation(description: "Transaction completed.")
     let store = CodableStore(model: TestModel(), diffing: .sync)
     store.register(middleware: LoggerMiddleware())
-    store.run(action: Action.increase(amount: 42)) { context in
-      XCTAssert(context.lastError == nil)
+    store.run(action: Action.increase(amount: 42)) { error in
+      XCTAssert(error == nil)
       XCTAssert(store.model.count == 42)
       transactionExpectation.fulfill()
     }
