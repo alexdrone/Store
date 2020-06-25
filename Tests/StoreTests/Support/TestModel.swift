@@ -18,7 +18,7 @@ struct TestModel: Codable {
 }
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-enum Action: ActionProtocol {
+enum TestAction: Action {
   case increase(amount: Int)
   case throttleIncrease(amount: Int)
   case decrease(amount: Int)
@@ -59,7 +59,7 @@ enum Action: ActionProtocol {
     }
   }
   
-  func cancel(context: TransactionContext<Store<TestModel>, Action>) { }
+  func cancel(context: TransactionContext<Store<TestModel>, Self>) { }
 }
 
 enum TestError: Error {
@@ -67,7 +67,7 @@ enum TestError: Error {
 }
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-struct CancellableAction: ActionProtocol {
+struct CancellableAction: Action {
 
   func reduce(context: TransactionContext<Store<TestModel>, Self>) {
     context.reduceModel { $0.stateDemo = .success(value: "Loaded", etag: noEtag) }

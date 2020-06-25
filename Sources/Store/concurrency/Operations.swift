@@ -1,11 +1,14 @@
 import Foundation
 
-public final class TransactionOperation<T: TransactionProtocol>: AsyncOperation {
+public final class TransactionOperation<T: AnyTransaction>: AsyncOperation {
+  
   /// The associated transaction.
   public let transaction: T
+  
   /// The completion block type for this operation.
   /// - note: Internal only.
-  internal var _finishBlock: CompletionBlock = {}
+  var _finishBlock: CompletionBlock = {}
+  
   /// Constructs a new action operation.
   /// - parameter transaction: The transaction for this operation.
   public init(transaction: T) {
@@ -35,12 +38,12 @@ public final class TransactionOperation<T: TransactionProtocol>: AsyncOperation 
 /// Subclasses are expected to override the 'execute' function and call
 /// the function 'finish' when they're done with their task.
 open class AsyncOperation: Operation {
+  
   /// The completion block type for this operation.
   public typealias CompletionBlock = () -> Void
 
   // Internal properties override.
   @objc dynamic override public var isAsynchronous: Bool { true }
-
   @objc dynamic override public var isConcurrent: Bool { true }
   @objc dynamic override public var isExecuting: Bool { __executing }
   @objc dynamic override public var isFinished: Bool { __finished }
@@ -63,14 +66,13 @@ open class AsyncOperation: Operation {
     execute()
   }
 
-  /// Subclasses are expected to override the 'execute' function and call
-  /// the function 'finish' when they're done with their task.
+  /// Subclasses are expected to override the `execute` function and call the function `finish`
+  /// when they're done with their task.
   @objc open func execute() {
     fatalError("Your subclass must override this")
   }
 
-  /// This function should be called inside 'execute' when the task for this
-  /// operation is completed.
+  /// This function should be called inside `execute` when the task for this operation is completed.
   @objc dynamic open func finish() {
     __executing = false
     __finished = true

@@ -2,14 +2,20 @@ import Combine
 import Foundation
 import os.log
 
+/// Middleware objects are used to intercept transactions running on the store and implement some
+/// specific logic triggered by them.
+/// *Logging*, *undo/redo* and *local/remote database synchronization* are a good examples of when
+/// a middleware could be necessary.
 public protocol Middleware: class {
-  /// A transaction has changed its state.
-  func onTransactionStateChange(_ transaction: TransactionProtocol)
+  
+  /// This function is called whenever a running transaction changes its state.
+  func onTransactionStateChange(_ transaction: AnyTransaction)
 }
 
 // MARK: - Logger
 
 public final class LoggerMiddleware: Middleware {
+  
   /// Syncronizes the access to the middleware.
   private var _lock = SpinLock()
   /// The transactions start time (in µs).
@@ -18,9 +24,8 @@ public final class LoggerMiddleware: Middleware {
   public init() {}
 
   /// Logs the transaction identifier, the action name and its current state.
-  public func onTransactionStateChange(_ transaction: TransactionProtocol) {
+  public func onTransactionStateChange(_ transaction: AnyTransaction) {
     _lock.lock()
-    let storeId = transaction.opaqueStoreRef?.id ?? "error"
     let id = transaction.id
     let name = transaction.actionId
     switch transaction.state {
@@ -32,10 +37,10 @@ public final class LoggerMiddleware: Middleware {
       guard let prev = _transactionStartNanos[transaction.id] else { break }
       let time = _nanos() - prev
       let millis = Float(time)/1_000_000
-      os_log(.info, log: OSLog.primary, "▩ (%s) %s::%s [%fs ms]", id, storeId, name, millis)
+      os_log(.info, log: OSLog.primary, "▩ (%s) %s [%fs ms]", id, name, millis)
       _transactionStartNanos[transaction.id] = nil
     case .canceled:
-      os_log(.info, log: OSLog.primary, "▩ (%s) %s::%s [✖ cancelled]", id, storeId, name)
+      os_log(.info, log: OSLog.primary, "▩ (%s) %s [✖ cancelled]", id, name)
       _transactionStartNanos[transaction.id] = nil
     }
     _lock.unlock()

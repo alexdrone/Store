@@ -1,7 +1,7 @@
 import Combine
 import Foundation
 
-public struct TransactionContext<S: StoreProtocol, A: ActionProtocol> {
+public struct TransactionContext<S: ReducibleStore, A: Action> {
   /// The operation that is currently running.
   /// - note: Invoke `context.operation.finish` to signal task completion.
   public let operation: AsyncOperation

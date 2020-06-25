@@ -2,7 +2,12 @@ import Combine
 import Foundation
 import os.log
 
+/// A `Store` subclass with serialization capabilities.
+/// Additionally a `CodableStore` can emits diffs for every transaction execution (see
+/// the `lastTransactionDiff` pubblisher).
+/// This can be useful for store synchronization (e.g. with a local or remote database).
 open class CodableStore<M: Codable>: Store<M> {
+  
   /// Transaction diffing options.
   public enum Diffing {
     /// Does not compute any diff.
@@ -15,10 +20,11 @@ open class CodableStore<M: Codable>: Store<M> {
 
   /// Publishes a stream with the model changes caused by the last transaction.
   @Published public var lastTransactionDiff: TransactionDiff = TransactionDiff(
-    transaction: SignpostTransaction(signpost: Signpost.prior),
+    transaction: SignpostTransaction(signpost: SignpostID.prior),
     diffs: [:])
   /// Where the diffing routine should be dispatched.
   public let diffing: Diffing
+  
   /// Serial queue used to run the diffing routine.
   private let _queue = DispatchQueue(label: "io.store.diff")
   /// Set of `transaction.id` for all of the transaction that have run of this store.
@@ -26,33 +32,46 @@ open class CodableStore<M: Codable>: Store<M> {
   /// Last serialized snapshot for the model.
   private var _lastModelSnapshot: [FlatEncoding.KeyPath: Codable?] = [:]
 
+  /// Constructs a new Store instance with a given initial model.
+  ///
+  /// - parameter model: The initial model state.
+  /// - parameter diffing: The store diffing option.
+  ///                      This will aftect how `lastTransactionDiff` is going to be produced.
   public init(
-    id: ModelKey = nil,
     model: M,
     diffing: Diffing = .async
   ) {
     self.diffing = diffing
-    super.init(id: id, model: model)
+    super.init(model: model)
     self._lastModelSnapshot = CodableStore.encodeFlat(model: model)
   }
   
+  
+  /// Constructs a new Store instance with a given initial model.
+  ///
+  /// - parameter model: The initial model state.
+  /// - parameter diffing: The store diffing option.
+  ///                      This will aftect how `lastTransactionDiff` is going to be produced.
+  /// - parameter combine: A associated parent store. Useful whenever it is desirable to merge
+  ///                      back changes from a child store to its parent.
   public init<P>(
-    id: ModelKey = nil,
     model: M,
     diffing: Diffing = .async,
     combine: CombineStore<P, M>
   ) {
     self.diffing = diffing
-    super.init(id: id, model: model, combine: combine)
+    super.init(model: model, combine: combine)
     self._lastModelSnapshot = CodableStore.encodeFlat(model: model)
   }
+  
+  // MARK: Model updates
 
-  override open func reduceModel(transaction: TransactionProtocol?, closure: (inout M) -> Void) {
-    let transaction = transaction ?? SignpostTransaction(signpost: Signpost.modelUpdate)
+  override open func reduceModel(transaction: AnyTransaction?, closure: (inout M) -> Void) {
+    let transaction = transaction ?? SignpostTransaction(signpost: SignpostID.modelUpdate)
     super.reduceModel(transaction: transaction, closure: closure)
   }
 
-  override open func didUpdateModel(transaction: TransactionProtocol?, old: M, new: M) {
+  override open func didUpdateModel(transaction: AnyTransaction?, old: M, new: M) {
     super.didUpdateModel(transaction: transaction, old: old, new: new)
     guard let transaction = transaction else {
       return
@@ -103,7 +122,7 @@ open class CodableStore<M: Codable>: Store<M> {
     return result
   }
 
-  /// Encodes the state into a dictionary.
+  /// Encodes the model into a flat dictionary.
   /// The resulting dictionary won't be nested and all of the keys will be paths.
   /// e.g. `{user: {name: "John", lastname: "Appleseed"}, tokens: ["foo", "bar"]`
   /// turns into ``` {
@@ -112,6 +131,8 @@ open class CodableStore<M: Codable>: Store<M> {
   ///   tokens/0: "foo",
   ///   tokens/1: "bar"
   /// } ```
+  /// - note: This is particularly useful to synchronize the model with document-based databases
+  /// (e.g. Firebase).
   static public func encodeFlat<V: Encodable>(model: V) -> FlatEncoding.Dictionary {
     let result = _serialize(model: model)
     return flatten(encodedModel: result)

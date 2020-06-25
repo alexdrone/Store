@@ -2,11 +2,6 @@ import Combine
 import Foundation
 import os.log
 
-public enum TransactionError: Error {
-  /// The transaction failed because of user cancellation.
-  case canceled;
-}
-
 /// Transaction state.
 public enum TransactionState {
   /// The transaction is pending execution.
@@ -19,70 +14,94 @@ public enum TransactionState {
   case canceled
 }
 
-/// Represents an individual execution of a given action.
-public protocol TransactionProtocol: class {
+// MARK: - Protocols
+
+/// Represents an individual execution for a given action.
+public protocol AnyTransaction: class {
+  
+  // MARK: Properties
+  
   /// Unique action identifier.
   /// An high level description of the action (e.g. `FETCH_USER` or `DELETE_COMMENT`)
   /// - note: See `ActionType.id`.
   var actionId: String { get }
+  
   /// Randomized identifier for the current transaction that preserve the temporal information.
   /// - note: see `PushID`.
   var id: String { get }
-  /// The threading strategy that should be used to dispatch this transaction.
+  
+  /// The execution strategy (*sync*/*aysnc*).
   var strategy: Executor.Strategy { get }
+  
   /// Tracks any error that might have been raised in this transaction group.
   var error: ErrorRef? { get set }
-  /// Opaque reference to the transaction store.
-  var opaqueStoreRef: AnyStoreProtocol? { get set }
-  /// Represents the progress of the transaction.
+
+  /// Represents the transaction execution progress.
   /// Trackable `@Published` property.
   var state: TransactionState { get set }
+  
   /// Returns the asynchronous operation that is going to be executed with this transaction.
   var operation: AsyncOperation { get }
-  /// Dispatch strategy modifier.
+  
+  // MARK: Modifiers
+  
+  /// The execution strategy (*sync*/*aysnc*).
   func on(_ queueWithStrategy: Executor.Strategy)
+  
+  /// If greater that 0, the action will only be triggered at most once during a given
+  /// window of time.
+  func throttleIfNeeded(_ minimumDelay: TimeInterval)
+  
+  // MARK: Execution
+  
+  /// Execute the transaction by running the associated action `reduce(context:)` function.
+  /// - returns: A Future that is resolved whenever the transaction execution has completed.
+  func run() -> Future<Void, Error>
+
+
+  /// Execute the transaction by running the associated action `reduce(context:)` function.
+  func run(handler: Executor.TransactionCompletion)
+  
+  /// Cancel the transaction by running the associated action `cancel(context:)` function.
+  func cancel()
+  
+  // MARK: Internal
+  
+  /// Opaque reference to the transaction store.
+  var opaqueStoreRef: AnyStore? { get set }
+  
   /// - note: Performs `ActionType.perform(context:)`.
   func perform(operation: AsyncOperation)
-  /// Throttle invocation modifier.
-  func throttleIfNeeded(_ minimumDelay: TimeInterval)
-  /// Execute the transaction.
-  func run(handler: Executor.TransactionCompletionHandler)
-  /// *Optional* Used to implement custom cancellation logic for this action.
-  /// E.g. Stop network transfer.
-  func cancel()
 }
 
-extension TransactionProtocol {
-  public var transactions: [TransactionProtocol] { [self] }
+extension AnyTransaction {
+  public var transactions: [AnyTransaction] { [self] }
   
   /// This transaction will execute after all of the operations in `transactions` are completed.
-  public func depend(on transactions: [TransactionProtocol]) {
+  public func depend(on transactions: [AnyTransaction]) {
     transactions.map { $0.operation }.forEach { operation.addDependency($0) }
   }
 }
 
 // MARK: - Implementation
 
-public final class Transaction<A: ActionProtocol>: TransactionProtocol, Identifiable {
-  /// Unique action identifier.
-  /// An high level description of the action (e.g. `FETCH_USER` or `DELETE_COMMENT`)
+public final class Transaction<A: Action>: AnyTransaction, Identifiable {
+  // AnyTransaction.
   public var actionId: String { action.id }
-  /// Randomized identifier for the current transaction that preserve the temporal information.
   public let id: String = PushID.default.make()
-  /// The threading strategy that should be used for this transaction.
   public var strategy = Executor.Strategy.async(nil)
-  /// Tracks any error that might have been raised in this transaction group.
   public var error: ErrorRef?
-  /// Opaque reference to the transaction store.
-  public var opaqueStoreRef: AnyStoreProtocol? {
+  public var opaqueStoreRef: AnyStore? {
     set {
       guard let newValue = newValue as? A.AssociatedStoreType else { return }
       store = newValue
     }
     get { store }
   }
+  
   /// Stored handler.
-  private var _handler: Executor.TransactionCompletionHandler = nil
+  private var _handler: Executor.TransactionCompletion = nil
+  
   /// Represents the progress of the transaction.
   @Published public var state: TransactionState = .pending {
     didSet {
@@ -93,6 +112,7 @@ public final class Transaction<A: ActionProtocol>: TransactionProtocol, Identifi
       }
     }
   }
+  
   /// Returns the asynchronous operation that is going to be executed with this transaction.
   public lazy var operation: AsyncOperation = {
     let operation = TransactionOperation(transaction: self)
@@ -101,8 +121,10 @@ public final class Transaction<A: ActionProtocol>: TransactionProtocol, Identifi
     }
     return operation
   }()
+  
   /// The store that is going to be affected.
   public weak var store: A.AssociatedStoreType?
+  
   /// The action associated with this transaction.
   public let action: A
 
@@ -112,19 +134,15 @@ public final class Transaction<A: ActionProtocol>: TransactionProtocol, Identifi
     TransactionDisposeBag.shared.register(transaction: self)
   }
 
-  /// Dispatch strategy modifier.
   public func on(_ queueWithStrategy: Executor.Strategy) {
     strategy = queueWithStrategy
   }
 
-  /// Throttle invocation modifier.
-  /// - note: No-op when minimumDelay is 0.
   public func throttleIfNeeded(_ minimumDelay: TimeInterval) {
     guard minimumDelay > TimeInterval.ulpOfOne else { return  }
     Executor.main.throttle(actionId: actionId, minimumDelay: minimumDelay)
   }
 
-  /// - note: Performs `ActionType.perform(context:)`.
   public func perform(operation: AsyncOperation) {
     guard let store = store, let error = error else {
       os_log(.error, log: OSLog.primary, "context/store is nil - the operation won't be executed.")
@@ -137,18 +155,8 @@ public final class Transaction<A: ActionProtocol>: TransactionProtocol, Identifi
       transaction: self)
     action.reduce(context: context)
   }
-
-  /// Execute the transaction and runs the handler passed as argument.
-  public func run(handler: Executor.TransactionCompletionHandler = nil) {
-    guard store != nil else {
-      os_log(.error, log: OSLog.primary, "store is nil - the operation won't be executed.")
-      return
-    }
-    Executor.main.run(transactions: [self], handler: handler ?? self._handler)
-  }
   
-  /// Returns a future with the result coming from the execution of this transaction.
-  public func future() -> Future<Transaction<A>, Error> {
+  public func run() -> Future<Void, Error> {
     Future { promise in
       self.run { error in
         if let error = error {
@@ -156,13 +164,20 @@ public final class Transaction<A: ActionProtocol>: TransactionProtocol, Identifi
         } else if self.state == .canceled {
           promise(.failure(TransactionError.canceled))
         } else {
-          promise(.success(self))
+          promise(.success(()))
         }
       }
     }
   }
 
-  /// Cancel the operation associated with this transaction.
+  public func run(handler: Executor.TransactionCompletion = nil) {
+    guard store != nil else {
+      os_log(.error, log: OSLog.primary, "store is nil - the operation won't be executed.")
+      return
+    }
+    Executor.main.run(transactions: [self], handler: handler ?? self._handler)
+  }
+  
   public func cancel() {
     guard let store = store, let error = error else {
       os_log(.error, log: OSLog.primary, "context/store is nil - the operation won't be cancelled.")
@@ -178,15 +193,17 @@ public final class Transaction<A: ActionProtocol>: TransactionProtocol, Identifi
   }
 }
 
-extension Array where Element: TransactionProtocol {
+// MARK: - Array Extensions
+
+extension Array where Element: AnyTransaction {
   /// Execute all of the transactions.
-  public func run(handler: Executor.TransactionCompletionHandler = nil) {
+  public func run(handler: Executor.TransactionCompletion = nil) {
     Executor.main.run(transactions: self, handler: handler)
   }
   
   /// Returns a future associated with the execution of all the transaction contained in this
   /// array.
-  public func future() -> Future<Self, Error> {
+  public func run() -> Future<Void, Error> {
     Future { promise in
       self.run { error in
         if let error = error {
@@ -194,7 +211,7 @@ extension Array where Element: TransactionProtocol {
         } else if !self.filter({ $0.state == .canceled }).isEmpty {
           promise(.failure(TransactionError.canceled))
         } else {
-          promise(.success(self))
+          promise(.success(()))
         }
       }
     }
@@ -208,26 +225,33 @@ extension Array where Element: TransactionProtocol {
   }
 }
 
-// MARK: - TransactionDisposeBag (Internal)
+// MARK: - Transaction Dispose Bag (Internal)
 
 final class TransactionDisposeBag {
-  /// Shared instance.
   static let shared = TransactionDisposeBag()
+  
   /// All of the ongoing transactions.
-  private var _ongoingTransactions: [String: TransactionProtocol] = [:]
+  private var _ongoingTransactions: [String: AnyTransaction] = [:]
   private var _collectionLock = SpinLock()
 
   private init() { }
   
-  func register(transaction: TransactionProtocol) {
+  func register(transaction: AnyTransaction) {
     _collectionLock.lock()
     _ongoingTransactions[transaction.id] = transaction
     _collectionLock.unlock()
   }
   
-  func dispose(transaction: TransactionProtocol) {
+  func dispose(transaction: AnyTransaction) {
     _collectionLock.lock()
     _ongoingTransactions[transaction.id] = nil
     _collectionLock.unlock()
   }
+}
+
+// MARK: - Errors
+
+public enum TransactionError: Error {
+  /// The transaction failed because of user cancellation.
+  case canceled;
 }

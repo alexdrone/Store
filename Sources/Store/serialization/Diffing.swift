@@ -1,8 +1,7 @@
 import Foundation
 import os.log
 
-@dynamicMemberLookup
-public final class Query {
+@dynamicMemberLookup public final class Query {
   private var segments: [String] = []
   private let transactionDiff: TransactionDiff
 
@@ -26,8 +25,7 @@ public final class Query {
 }
 
 /// A collection of changes associated to a transaction.
-@frozen
-public struct TransactionDiff {
+@frozen public struct TransactionDiff {
   /// The set of (`path`, `value`) that has been **added**/**removed**/**changed**.
   ///
   /// e.g. ``` {
@@ -52,7 +50,7 @@ public struct TransactionDiff {
   public let actionId: String
 
   /// Reference to the transaction that cause this change.
-  public private(set) weak var transaction: TransactionProtocol?
+  public private(set) weak var transaction: AnyTransaction?
 
   /// Returns the `diffs` map encoded as **JSON** data.
   public var json: Data {
@@ -64,7 +62,7 @@ public struct TransactionDiff {
     keyPath(Query(transactionDiff: self)).toPropertyDiff()
   }
 
-  public init(transaction: TransactionProtocol, diffs: [FlatEncoding.KeyPath: PropertyDiff]) {
+  public init(transaction: AnyTransaction, diffs: [FlatEncoding.KeyPath: PropertyDiff]) {
     self.transaction = transaction
     self.diffs = diffs
     self.transactionId = transaction.id
@@ -248,7 +246,7 @@ public enum FlatEncoding {
   }
 }
 
-/// Shared **JSON** Encoder.
+/// Shared `JSON` Encoder.
 fileprivate let sharedJSONEncoder = JSONEncoder()
 
 // MARK: - PropertyDiff

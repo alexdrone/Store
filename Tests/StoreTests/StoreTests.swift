@@ -11,7 +11,7 @@ final class StoreTests: XCTestCase {
     let transactionExpectation = expectation(description: "Transaction completed.")
     let store = CodableStore(model: TestModel(), diffing: .sync)
     store.register(middleware: LoggerMiddleware())
-    store.run(action: Action.increase(amount: 42)) { error in
+    store.run(action: TestAction.increase(amount: 42)) { error in
       XCTAssert(error == nil)
       XCTAssert(store.model.count == 42)
       transactionExpectation.fulfill()
@@ -24,23 +24,23 @@ final class StoreTests: XCTestCase {
     let store = CodableStore(model: TestModel(), diffing: .sync)
     store.register(middleware: LoggerMiddleware())
     store.run(actions: [
-      Action.increase(amount: 1),
-      Action.increase(amount: 1),
-      Action.increase(amount: 1),
+      TestAction.increase(amount: 1),
+      TestAction.increase(amount: 1),
+      TestAction.increase(amount: 1),
     ]) { context in
       XCTAssert(store.model.count == 3)
       transactionExpectation.fulfill()
     }
-    waitForExpectations(timeout: 1)
+    waitForExpectations(timeout: 10)
   }
 
   func testSyncOperation() {
     let store = CodableStore(model: TestModel(), diffing: .sync)
     store.register(middleware: LoggerMiddleware())
-    store.run(action: Action.updateLabel(newLabel: "Bar"), mode: .sync)
+    store.run(action: TestAction.updateLabel(newLabel: "Bar"), mode: .sync)
     XCTAssert(store.model.label == "Bar")
     XCTAssert(store.model.nested.label == "Bar")
-    store.run(action: Action.updateLabel(newLabel: "Foo"), mode: .sync)
+    store.run(action: TestAction.updateLabel(newLabel: "Foo"), mode: .sync)
     XCTAssert(store.model.label == "Foo")
     XCTAssert(store.model.nested.label == "Foo")
   }
@@ -48,7 +48,7 @@ final class StoreTests: XCTestCase {
   func testAccessNestedKeyPathInArray() {
     let store = CodableStore(model: TestModel(), diffing: .sync)
     store.register(middleware: LoggerMiddleware())
-    store.run(action: Action.setArray(index: 1, value: "Foo"), mode: .sync)
+    store.run(action: TestAction.setArray(index: 1, value: "Foo"), mode: .sync)
     XCTAssert(store.model.array[1].label == "Foo")
   }
 
@@ -56,7 +56,7 @@ final class StoreTests: XCTestCase {
     let transactionExpectation = expectation(description: "Transactions completed.")
     let store = CodableStore(model: TestModel(), diffing: .sync)
     store.register(middleware: LoggerMiddleware())
-    store.run(action: Action.updateLabel(newLabel: "Bar"), mode: .sync)
+    store.run(action: TestAction.updateLabel(newLabel: "Bar"), mode: .sync)
     sink = store.$lastTransactionDiff.sink { diff in
       XCTAssert(diff.query { $0.label }.isChanged() == true)
       XCTAssert(diff.query { $0.nested.label }.isChanged() == true)
@@ -71,7 +71,7 @@ final class StoreTests: XCTestCase {
     let transactionExpectation = expectation(description: "Transactions canceled.")
     let store = CodableStore(model: TestModel(), diffing: .sync)
     store.register(middleware: LoggerMiddleware())
-    let transaction = store.transaction(action: Action.increase(amount: 1))
+    let transaction = store.transaction(action: TestAction.increase(amount: 1))
     sink = transaction.$state.sink { state in
       XCTAssert(state != .completed)
       XCTAssert(store.model.count == 0)

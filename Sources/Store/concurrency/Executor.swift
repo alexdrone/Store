@@ -2,6 +2,9 @@ import Foundation
 import os.log
 
 public final class Executor {
+  
+  public typealias TransactionCompletion = ((Error?) -> Void)?
+
   /// The threading strategy that should be used for a given action.
   public enum Strategy {
     /// The action is dispatched asynchronously on the main thread.
@@ -11,10 +14,12 @@ public final class Executor {
     /// The action is dispatched on a serial background queue.
     case async(_ identifier: String?)
   }
-
-  public typealias TransactionCompletionHandler = ((Error?) -> Void)?
+  
   /// Shared instance.
   public static let main = Executor()
+  
+  // Private.
+  
   /// The background queue used for the .async mode.
   private let _backgroundQueue = OperationQueue()
   /// Action identifier to `Throttler` map.
@@ -24,22 +29,35 @@ public final class Executor {
 
   /// Run a set of transaction concurrently.
   public func run(
-    transactions: [TransactionProtocol],
-    handler: TransactionCompletionHandler = nil
+    transactions: [AnyTransaction],
+    handler: TransactionCompletion = nil
   ) {
     let errorRef = ErrorRef()
     var completionOperation: Operation?
     if let completionHandler = handler {
-      completionOperation = BlockOperation { completionHandler(errorRef.error) }
-      transactions.map { $0.operation }.forEach { completionOperation?.addDependency($0) }
+      /// Wraps the completion handler in an operation.
+      completionOperation = BlockOperation {
+        completionHandler(errorRef.error)
+      }
+      /// Set the completion handler as dependent from every operation.
+      for operation in transactions.map(\.operation) {
+        completionOperation?.addDependency(operation)
+      }
+      for operation in transactions.map(\.operation) {
+        print(operation.dependencies)
+      }
       OperationQueue.main.addOperation(completionOperation!)
     }
     for transaction in transactions {
       transaction.error = errorRef
+      /// Throttles the transaction if necessary.
       if let throttler = _throttlersToActionIdMap[transaction.actionId] {
         throttler.throttle(
-          execution: { [weak self] in self?._run(transaction: transaction) },
-          cancellation: {
+          /// The operation execution body.
+          execution: {
+            [weak self] in self?._run(transaction: transaction)
+          /// Performed whenever the operation is canceled.
+          }, cancellation: {
             transaction.operation.completionBlock = nil
             transaction.operation.finish()
         })
@@ -81,8 +99,10 @@ public final class Executor {
   public func cancelAllTransactions(queueId: String? = nil) {
     operationQueue(id: queueId)?.cancelAllOperations()
   }
+  
+  // MARK: Private
 
-  private func _run(transaction: TransactionProtocol) {
+  private func _run(transaction: AnyTransaction) {
     let operation = transaction.operation
     switch transaction.strategy {
     case .mainThread:

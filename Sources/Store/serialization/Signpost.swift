@@ -3,21 +3,23 @@ import Foundation
 
 // MARK: - SigPostTransaction
 
-public final class SignpostTransaction: TransactionProtocol {
+public final class SignpostTransaction: AnyTransaction {
+
   /// See `SignpostAction`.
   public let actionId: String
-  /// Randomized identifier for the current transaction that preserve the temporal information.
+  
   public let id: String = PushID.default.make()
-  /// The threading strategy that should be used to dispatch this transaction.
   public let strategy: Executor.Strategy = .async(nil)
-  /// - note: Never set because `SignpostTransaction`s do not have a backing operation.
   public var error: ErrorRef? = nil
+  
   /// - note: Never set because `SignpostTransaction`s do not have a backing operation.
   public var operation: AsyncOperation {
     fatalError("This transaction does not spawn any operation.")
   }
+  
   /// No associated store ref.
-  public var opaqueStoreRef: AnyStoreProtocol? = nil
+  public var opaqueStoreRef: AnyStore? = nil
+  
   /// Represents the progress of the transaction.
   public var state: TransactionState = .pending
 
@@ -33,8 +35,14 @@ public final class SignpostTransaction: TransactionProtocol {
     // No op.
   }
 
-  public func run(handler: Executor.TransactionCompletionHandler) {
+  public func run(handler: Executor.TransactionCompletion) {
     // No op.
+  }
+  
+  public func run() -> Future<Void, Error> {
+    Future { promise in
+      promise(.success(()))
+    }
   }
 
   public func cancel() {
@@ -52,7 +60,7 @@ public final class SignpostTransaction: TransactionProtocol {
 
 // MARK: - IDs
 
-public enum Signpost {
+public enum SignpostID {
   public static let prior = "_SIGNPOST_PRIOR"
   public static let modelUpdate = "_SIGNPOST_UPDATE"
   public static let undoRedo = "_SIGNPOST_UNDO_REDO"
