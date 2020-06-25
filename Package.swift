@@ -18,7 +18,6 @@ let package = Package(
             targets: ["Store"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-protobuf.git", from: "1.6.0"),
     ],
     targets: [
         .target(
@@ -26,6 +25,6 @@ let package = Package(
             dependencies: []),
         .testTarget(
             name: "StoreTests",
-            dependencies: ["Store", "SwiftProtobuf"]),
+            dependencies: ["Store"]),
     ]
 )

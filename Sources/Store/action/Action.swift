@@ -17,16 +17,6 @@ public protocol ActionProtocol: Identifiable {
   func cancel(context: TransactionContext<AssociatedStoreType, Self>)
 }
 
-#if canImport(SwiftProtobuf)
-import SwiftProtobuf
-
-extension SwiftProtobuf.Message where Self: ActionProtocol {
-  /// Unique action identifier.
-  /// An high level description of the action (e.g. `FETCH_USER` or `DELETE_COMMENT`)
-  var id: String { Self.protoMessageName }
-}
-#endif
-
 extension ActionProtocol {
   /// Default identifier implementation.
   public var id: String {

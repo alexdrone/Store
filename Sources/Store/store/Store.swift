@@ -3,7 +3,7 @@ import Foundation
 
 public protocol AnyStoreProtocol: class {
   var id: String { get }
-  /// In charge of reconciling this store with its parent one (if applicable).
+  /// In charge of reconciling this store with its parent (if applicable).
   var combine: AnyCombineStore? { get }
   /// All of the registered middleware.
   var middleware: [Middleware] { get }
@@ -179,14 +179,14 @@ open class Store<M>: StoreProtocol, ObservableObject, Identifiable {
   
   // MARK: Executing transactions (Futures)
   
-  public func run<A: ActionProtocol, M>(
+  public func future<A: ActionProtocol, M>(
     action: A,
     mode: Executor.Strategy = .async(nil),
     throttle: TimeInterval = 0
   ) -> Future<Transaction<A>, Error> where A.AssociatedStoreType: Store<M> {
     let transaction = self.transaction(action: action, mode: mode)
     transaction.throttleIfNeeded(throttle)
-    return transaction.run()
+    return transaction.future()
   }
 
   // MARK: ID

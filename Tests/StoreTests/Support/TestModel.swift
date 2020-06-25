@@ -31,7 +31,7 @@ enum Action: ActionProtocol {
     case .throttleIncrease(_): return "THROTTLE_INCREASE"
     case .decrease(_): return "DECREASE"
     case .updateLabel(_): return "UPDATE_LABEL"
-    case .setArray(_): return "SET_ARRAY"
+    case .setArray(_, _): return "SET_ARRAY"
     }
   }
 

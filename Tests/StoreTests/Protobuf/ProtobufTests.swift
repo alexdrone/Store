@@ -1,3 +1,4 @@
+/* #if canImport(SwiftProtobuf)
 
 import XCTest
 import SwiftProtobuf
@@ -36,3 +37,5 @@ final class ProtobufTests: XCTestCase {
     ("testProtobufModelInit", testProtobufModelInit),
   ]
 }
+
+#endif */

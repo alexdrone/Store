@@ -6,6 +6,8 @@
 // For information on using the generated types, please see the documenation:
 //   https://github.com/apple/swift-protobuf/
 
+/* #if canImport(SwiftProtobuf)
+
 import Foundation
 import SwiftProtobuf
 
@@ -159,3 +161,5 @@ extension Action_BookInfoSetAuthor: SwiftProtobuf.Message, SwiftProtobuf._Messag
     return true
   }
 }
+
+#endif */

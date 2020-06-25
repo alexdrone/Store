@@ -148,7 +148,7 @@ public final class Transaction<A: ActionProtocol>: TransactionProtocol, Identifi
   }
   
   /// Returns a future with the result coming from the execution of this transaction.
-  public func run() -> Future<Transaction<A>, Error> {
+  public func future() -> Future<Transaction<A>, Error> {
     Future { promise in
       self.run { error in
         if let error = error {
@@ -186,7 +186,7 @@ extension Array where Element: TransactionProtocol {
   
   /// Returns a future associated with the execution of all the transaction contained in this
   /// array.
-  public func run() -> Future<Self, Error> {
+  public func future() -> Future<Self, Error> {
     Future { promise in
       self.run { error in
         if let error = error {
