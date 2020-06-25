@@ -128,12 +128,15 @@ enum CounterAction: Action {
       context.reduceModel { $0.count -= amount }
     }
   }
+  
+  func cancel(context: TransactionContext<Store<Counter>, Self>) { }
+
 }
 
 // MARK: - UI
 
 struct ContentView : View {
-  @EnvironmentObject var store: Store<Counter>
+  @StateObject var store: Store<Counter>
   var body: some View {
     Text("counter \(store.model.count)").tapAction {
       store.run(action: CounterAction.increase(amount: 1))
