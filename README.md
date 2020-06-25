@@ -102,9 +102,7 @@ TL;DR
 import SwiftUI
 import Store
 
-struct Counter {
-  var count = 0
-}
+struct Counter { var count = 0 }
 
 enum CounterAction: Action {
   case increase(amount: Int)
@@ -130,16 +128,16 @@ enum CounterAction: Action {
   }
   
   func cancel(context: TransactionContext<Store<Counter>, Self>) { }
-
 }
 
 // MARK: - UI
 
 struct ContentView : View {
-  @StateObject var store: Store<Counter>
+  @StateObject var store = Store<Counter>(model: Counter())
+  
   var body: some View {
     Text("counter \(store.model.count)").tapAction {
-      store.run(action: CounterAction.increase(amount: 1))
+      store.run(action: .increase(amount: 1))
     }
   }
 }
@@ -149,7 +147,7 @@ struct ContentView : View {
 #if DEBUG
 struct ContentView_Previews : PreviewProvider {
     static var previews: some View {
-        ContentView().environmentObject(Store<Counter>(model: Counter()))
+        ContentView()
     }
 }
 #endif
