@@ -154,7 +154,7 @@ struct ContentView_Previews : PreviewProvider {
 
 #  Documentation
 
-## Store
+### `class Store<M>: ObservableObject, Identifiable`
 
 This class is the default implementation of the `ReducibleStore` protocol.
 A store wraps a value-type model, synchronizes its mutations, and emits notifications to its
@@ -264,7 +264,8 @@ Middleware objects are notified whenever a transaction running in this store cha
 * `func unregister(middleware: Middleware)`
 Unregister a middleware service.
 
-## Codable Store
+### `class CodableStore<M: Codable>: Store<M>`
+
 A `Store` subclass with serialization capabilities.
 Additionally a `CodableStore` can emits diffs for every transaction execution (see
 the `lastTransactionDiff` pubblisher).
