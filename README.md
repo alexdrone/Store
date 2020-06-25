@@ -297,6 +297,8 @@ turns into
 
 # Cookbook
 
+A collection of Store usage scenarios.
+
 ## Serialization and Diffing
 
 TL;DR
