@@ -5,37 +5,48 @@ Unidirectional, transactional, operation-based Store implementation for Swift an
 
 # Overview
 
-Store eschews MVC in favour of a unidirectional data flow. When a user interacts with a view, the view propagates an action through a central dispatcher, to the various stores that hold the application's data and business logic, which updates all of the views that are affected.
+Store eschews MVC in favour of a unidirectional data flow. 
+When a user interacts with a view, the view propagates an action to a store that hold the 
+application's data and business logic, which updates all of the views that are affected.
 
-This works especially well with *SwiftUI*'s declarative programming style, which allows the store to send updates without specifying how to transition views between states.
+This works especially well with *SwiftUI*'s declarative programming style, which allows the 
+store to send updates without specifying how to transition views between states.
 
-- **Stores**: Holds the state of your application. You can have multiple stores for multiple domains of your app.
-- **Actions**: You can only perform state changes through actions. Actions are small pieces of data (typically *enums* or *structs*) that describe a state change. By drastically limiting the way state can be mutated, your app becomes easier to understand and it gets easier to work with many collaborators.
-- **Transaction**:  A single execution of an action.
-- **Views**: A simple function of your state. This works especially well with *SwiftUI*'s declarative programming style.
+- **Stores**: Holds the state of your application. You can have multiple stores for multiple 
+domains of your app.
+- **Actions**: You can only perform state changes through actions. 
+Actions are small pieces of data (typically *enums* or *structs*) that describe a state change. 
+By drastically limiting the way state can be mutated, your app becomes easier to understand and 
+it gets easier to work with many collaborators.
+- **Views**: A simple function of your state. This works especially well with *SwiftUI*'s 
+declarative programming style.
 
 ### Store
 
-Stores contain the application state and logic. Their role is somewhat similar to a model in a traditional MVC, but they manage the state of many objects — they do not represent a single record of data like ORM models do. More than simply managing a collection of ORM-style objects, stores manage the application state for a particular domain within the application.
+Stores contain the application state and logic. Their role is somewhat similar to a model in a 
+traditional MVC, but they manage the state of many objects — they do not represent a single record
+of data like ORM models do. More than simply managing a collection of ORM-style objects, stores 
+manage the application state for a particular domain within the application.
 
-This allows an action to result in an update to the state of the store. After the stores are updated, they notify the observers that their state has changed, so the views may query the new state and update themselves.
+This allows an action to result in an update to the state of the store. 
+After the stores are updated, they notify the observers that their state has changed,
+so the views may query the new state and update themselves.
 
 ```swift
 struct Counter {
   var count = 0
 }
-
 let store = Store<Counter>(model: Counter())
 ```
 
-### Action
+### Actions
 
 An action represent an operation on the store.
 
 It can be represented using an enum:
 
 ```swift
-enum CounterAction: ActionProtocol {
+enum CounterAction: Action {
 
   case increase
   case decrease
@@ -59,15 +70,16 @@ enum CounterAction: ActionProtocol {
       context.reduceModel { $0.count -= 1 }
     }
   }
+  
+  func cancel(context: TransactionContext<Store<Counter>, Self>) { }
 }
 ```
 
 Or a struct:
 
 ```swift
-struct IncreaseAction: ActionProtocol {
+struct IncreaseAction: Action {
   let count: Int
-
   var id: String = "INCREASE"
 
   func reduce(context: TransactionContext<Store<Counter>, Self>) {
@@ -77,14 +89,10 @@ struct IncreaseAction: ActionProtocol {
     }
     context.reduceModel { $0.count += 1 }
   }
+  
+  func cancel(context: TransactionContext<Store<Counter>, Self>) { }
 }
 ```
-
-### Transaction
-
-A transaction represent an execution of a given action.
-The dispatcher can run transaction in three different modes: `async`, `sync`, and `mainThread`.
-Additionally the trailing closure of the `run` method can be used to run a completion closure for the actions that have had run.
 
 # Getting started
 
@@ -98,8 +106,7 @@ struct Counter {
   var count = 0
 }
 
-enum CounterAction: ActionProtocol {
-
+enum CounterAction: Action {
   case increase(amount: Int)
   case decrease(amount: Int)
 
@@ -145,31 +152,151 @@ struct ContentView_Previews : PreviewProvider {
 #endif
 ```
 
-### Demo projects
+#  Documentation
+
+## Store
+
+This class is the default implementation of the `ReducibleStore` protocol.
+A store wraps a value-type model, synchronizes its mutations, and emits notifications to its
+observers any time the model changes.
+
+Model mutations are performed through `Action`s: These are operation-based, cancellable and
+abstract the concurrency execution mode.
+Every invokation of `run(action:)` spawns a new transaction object that can be logged,
+rolled-back and used to inspect the model diffs (see `TransactionDiff`).
+
+It's recommendable not to define a custom subclass (you can use `CodableStore` if you want
+diffing and store serialization capabilities).
+Domain-specific functions can be added to this class by writing an extension that targets the
+user-defined model type.
+e.g.
+```swift
+ let store = Store(model: Todo())
+ [...]
+ extension Store where M == Todo {
+   func upload() -> Future<Void, Error> {
+     run(action: TodoAction.uploadAndSynchronizeTodo, throttle: 1)
+   }
+ }
+ ```
+ 
+ ### Model
+
+* `var model: ModelType { get }`
+ The associated model object. This is typically a value type.
+ 
+* ` func reduceModel(transaction: AnyTransaction?, closure: (inout ModelType) -> Void)`
+Atomically update the model and notifies all of the observers.
+
+ ### Observation
+ 
+ * `func notifyObservers()`
+Notify the store observers for the change of this store.
+`Store` and `CodableStore` are `ObservableObject`s and they automatically call this
+function (that triggers a `objectWillChange` publlisher) every time the model changes.
+Note: Observers are always scheduled on the main run loop.
+ 
+* `func performWithoutNotifyingObservers(_ perform: () -> Void)`
+The block passed as argument does not trigger any notification for the Store observers.
+e.g. By calling `reduceModel(transaction:closure:)` inside the `perform` block the store
+won't pubblish any update.
+
+### Combine Stores
+
+* `func parent<T>(type: T.Type) -> Store<T>?`
+Recursively traverse the parents until it founds one that matches the specified model type.
+
+* `var combine: AnyCombineStore? { get }`
+Wraps a reference to its parent store (if applicable) and describes how this store should
+be merged back. This is done by running `reconcile()` every time the model wrapped by 
+this store changes.
+ 
+* `func makeChildStore<C>(keyPath: WritableKeyPath<M, C>) -> Store<C>`
+Used to express a parent-child relationship between two stores.
+This is the case when it is desired to have a store (child) to manage to a subtree of 
+the store (parent) model.
+`CombineStore` define a merge strategy to reconcile back the changes from the child to the parent.
+ e.g.
+ ```swift
+struct Model { let items: [Item] }
+let store = Store(model: Model())
+ let child = store.makeChildStore(keyPath: \.[0])
+ ```
+ This is equivalent to
+ ```swift
+[...]
+let child = Store(model: items[0], combine: CombineStore(parent: store, merge: .keyPath(\.[0])))
+ ```
+
+### Transactions
+
+* `func transaction<A: Action, M>( action: A, mode: Executor.Strategy = default) -> Transaction<A>`
+Builds a transaction object for the action passed as argument.
+This can be executed by calling the `run` function on it.
+Transactions can depend on each other's completion by calling the `depend(on:)` function.
+ e.g.
+ ```swift
+let t1 = store.transaction(.addItem(cost: 125))
+let t2 = store.transaction(.checkout)
+let t3 = store.transaction(.showOrdern)
+t2.depend(on: [t1])
+t3.depend(on: [t2])
+[t1, t2, t3].run()
+```
+
+### Running Actions
+
+* `func run<A: Action, M>(action: A, mode: Executor.Strategy = default, throttle: TimeInterval = default) -> Future<Void, Error> `
+Runs the action passed as argument on this store and returns a future that is resolved when the 
+action execution has completed.
+
+* `func run<A: Action, M>(actions: [A], mode: Executor.Strategy = default) -> Future<Void, Error> `
+Runs all of the actions passed as argument sequentially.
+This means that `actions[1]` will run after `actions[0]` has completed its execution, 
+`actions[2]` after `actions[1]` and so on.
+
+### Middleware
+
+* `func register(middleware: Middleware)`
+Register a new middleware service.
+Middleware objects are notified whenever a transaction running in this store changes its state.
+
+* `func unregister(middleware: Middleware)`
+Unregister a middleware service.
+
+## Codable Store
+A `Store` subclass with serialization capabilities.
+Additionally a `CodableStore` can emits diffs for every transaction execution (see
+the `lastTransactionDiff` pubblisher).
+This can be useful for store synchronization (e.g. with a local or remote database).
+
+* `static func encode<V: Encodable>(model: V) -> EncodedDictionary`
+Encodes the model into a dictionary.
+
+* `static func encodeFlat<V: Encodable>(model: V) -> FlatEncoding.Dictionary`
+Encodes the model into a flat dictionary.
+The resulting dictionary won't be nested and all of the keys will be paths.
+e.g. `{user: {name: "John", lastname: "Appleseed"}, tokens: ["foo", "bar"]`
+turns into
+```json
+{
+   user/name: "John",
+   user/lastname: "Appleseed",
+   tokens/0: "foo",
+   tokens/1: "bar"
+ } 
+ ```
+ This is particularly useful to synchronize the model with document-based databases
+(e.g. Firebase).
+
+# Demos
 
 * [HackerNews Client](https://github.com/alexdrone/Store/tree/master/Demo/store_hacker_news)
 <img src="https://raw.githubusercontent.com/alexdrone/Dispatch/master/docs/store_hacker_news_demo.gif" width=600 alt="hacker_news_demo" align=center />
 
+# Cookbook
 
-
-### Middleware
-
-Middleware objects must conform to:
-
-```swift
-public protocol Middleware: class {
-  /// A transaction has changed its state.
-  func onTransactionStateChange(_ transaction: AnyTransaction)
-}
-```
-
-And can be registered to a store by calling the `register(middleware:)` method.
-
-```swift
-store.register(middleware: MyMiddleware())
-```
-
-# Serialization and Diffing
+## Serialization and Diffing
 
 TL;DR
 
@@ -221,7 +348,7 @@ public enum PropertyDiff {
 }
 ```
 
-Using a  `SerializableModelType` improves debuggability thanks to the console output for every transaction. e.g.
+Diff output:
 
 ```
 ▩ INFO (-LnpwxkPuE3t1YNCPjjD) UPDATE_LABEL [0.045134 ms]
@@ -232,10 +359,10 @@ Using a  `SerializableModelType` improves debuggability thanks to the console ou
   }
 ```
 
+## Combining Stores
 
-# Combining Stores
-
-As your app logic grows could be convient to split store into smaller one, still using the same root model.
+As your app logic grows could be convient to split store into smaller one, still using the 
+same root model.
 This can be achieved by using the `makeChildStore(keyPath:)` API.
 
 ```swift
@@ -249,7 +376,7 @@ struct App {
 }
 
 // This action targets a Store<Todo>...
-struct TodoActionMarkAsDone: ActionProtocol {
+struct TodoActionMarkAsDone: Action {
   func reduce(context: TransactionContext<Store<App.Todo>, Self>) {
     defer { context.fulfill() }
     context.reduceModel { $0.done = true }
@@ -257,7 +384,7 @@ struct TodoActionMarkAsDone: ActionProtocol {
 }
 
 // ..While this one the whole collection Store<[Todo]>
-struct TodoListActionCreateNew: ActionProtocol {
+struct TodoListActionCreateNew: Action {
   let name: String
   let description: String
   func reduce(context: TransactionContext<Store<Array<App.Todo>>, Self>) {
@@ -279,11 +406,14 @@ let todoStore = rootStore.makeChildStore(keyPath: \.[0])
 todoStore.run(action: TodoActionMarkAsDone(), mode: .sync)
 ```
 
-This is a good strategy to prevent passing down the whole application store as a dependency when not needed _(e.g. maybe your datasource just need the TodoList store and your cell the single-value Todo store)._ 
+This is a good strategy to prevent passing down the whole application store as a dependency 
+when not needed 
+_(e.g. maybe your datasource just need the TodoList store and your cell the single-value Todo store)._ 
 
-# Advanced
+## Advanced
 
-Dispatch takes advantage of *Operations* and *OperationQueues* and you can define complex dependencies between the operations that are going to be run on your store.
+Dispatch takes advantage of *Operations* and *OperationQueues* and you can define 
+complex dependencies between the operations that are going to be run on your store.
 
 
 ### Chaining actions
@@ -306,10 +436,8 @@ store.run(action: CounterAction.increase(amount: 1), strategy: .sync)
 
 ### Complex Dependencies
 
-Dependencies can be expressed using the `runGroup` DSL *(see above)*.
-
-
-You can form a dependency graph by manually constructing your transactions and use the `depend(on:)` method.
+You can form a dependency graph by manually constructing your transactions and use
+the `depend(on:)` method.
 
 ```swift
 let t1 = store.transaction(.addItem(cost: 125))
@@ -325,16 +453,15 @@ t3.depend(on: [t2])
 Transactions can express a throttle delay.
 
 ```swift
-
 func calledOften() {
   store.run(.myAction, throttle: 0.5)
 }
-
 ```
 
 ### Tracking a transaction state
 
-Sometimes it's useful to track the state of a transaction (it might be useful to update the UI state to reflect that).
+Sometimes it's useful to track the state of a transaction (it might be useful to update the 
+UI state to reflect that).
 
 ```swift
 store.run(action: CounterAction.increase(amount: 1)).$state.sink { state in
@@ -357,7 +484,7 @@ sink = store.$lastTransactionDiff.sink { diff in
 ### Dealing with errors
 
 ```swift
-struct IncreaseAction: ActionProtocol {
+struct IncreaseAction: Action {
   let count: Int
 
   func reduce(context: TransactionContext<Store<Counter>, Self>) {
@@ -390,7 +517,7 @@ Dispatcher.main.cancelAllTransactions(id: queueId)
 ▩ 𝙄𝙉𝙁𝙊 (-Lo4riSWZ3m5v1AvhgOb) INCREASE [✖ canceled]
 ```
 
-### Combined Stores
+### Combine Stores
 
 Support for children store (similar to Redux `combineStores`).
 

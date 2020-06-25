@@ -139,7 +139,7 @@ open class CodableStore<M: Codable>: Store<M> {
   }
 
   /// Decodes the model from a dictionary.
-  static public  func decode<V: Decodable>(dictionary: EncodedDictionary) -> V? {
+  static public func decode<V: Decodable>(dictionary: EncodedDictionary) -> V? {
     _deserialize(dictionary: dictionary)
   }
 }

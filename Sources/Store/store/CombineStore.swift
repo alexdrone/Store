@@ -27,8 +27,6 @@ public protocol AnyCombineStore {
 ///   model: items[0],
 ///   combine: CombineStore(parent: store, merge: .keyPath(\.[0])))
 /// ```
-///
-///
 public final class CombineStore<P, C>: AnyCombineStore {
   
   public enum MergeStrategy {
