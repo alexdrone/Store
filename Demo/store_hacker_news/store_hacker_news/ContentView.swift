@@ -4,7 +4,7 @@ import Store
 // MARK: - Main
 
 struct ContentView: View {
-  @EnvironmentObject var store: AppStateStore
+  @ObservedObject var store: AppStateStore
   
   var body: some View {
     Group {
@@ -71,10 +71,14 @@ struct StoryView: View {
   
   var collapsed: some View {
     Button(action: store.select) {
-      VStack(alignment: .leading) {
-        Text(title).font(.headline)
-        Text(caption).font(.subheadline).lineLimit(2)
+      HStack {
+        Image(systemName: "hexagon").padding()
+        VStack(alignment: .leading) {
+          Text(title).font(.headline)
+          Text(caption).font(.subheadline).lineLimit(2)
+        }
       }
+
     }
   }
   
@@ -90,6 +94,6 @@ struct StoryView: View {
       }
     }
   }
-  
-  
+
 }
+
