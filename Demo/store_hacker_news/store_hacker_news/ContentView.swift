@@ -35,6 +35,7 @@ struct ContentView: View {
       Button(action: store.fetchTopStories) {
         Image(systemName: "tray.and.arrow.down")
       }
+      Toggle("(Test binding flag)", isOn: $store.bindingProxy.flag)
     }
   }
   

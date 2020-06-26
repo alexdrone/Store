@@ -95,7 +95,7 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
   /// `Toggle("...", isOn: $store.bindingProxy.someProperty)`.
   /// When the binding set a new value an implicit action is being triggered and the property is
   /// updated.
-  public internal(set) var bindingProxy: BindingProxy<M>! = nil
+  public var bindingProxy: BindingProxy<M>! = nil
   
   // See `AnyStore`.
   public let combine: AnyCombineStore?
