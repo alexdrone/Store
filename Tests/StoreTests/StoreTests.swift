@@ -79,11 +79,25 @@ final class StoreTests: XCTestCase {
         transactionExpectation.fulfill()
       }
     }
-    transaction.run()
+    let _ = transaction.run()
     Executor.main.cancelAllTransactions()
     waitForExpectations(timeout: 2)
   }
 
+  func testFutures() {
+    let transactionExpectation = expectation(description: "Transactions completed.")
+    let store = CodableStore(model: TestModel(), diffing: .sync)
+    store.register(middleware: LoggerMiddleware())
+    let action1 = TestAction.increaseWithDelay(amount: 5, delay: 0.1)
+
+    sink = store.futureOf(action: action1)
+      .replaceError(with: ())
+      .sink {
+      XCTAssert(store.model.count == 5)
+      transactionExpectation.fulfill()
+    }
+    waitForExpectations(timeout: 1)
+  }
 
     static var allTests = [
       ("testAsyncOperation", testAsyncOperation),

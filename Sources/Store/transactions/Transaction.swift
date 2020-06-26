@@ -161,8 +161,6 @@ public final class Transaction<A: Action>: AnyTransaction, Identifiable {
       self.run { error in
         if let error = error {
           promise(.failure(error))
-        } else if self.state == .canceled {
-          promise(.failure(TransactionError.canceled))
         } else {
           promise(.success(()))
         }
@@ -184,12 +182,14 @@ public final class Transaction<A: Action>: AnyTransaction, Identifiable {
       return
     }
     state = .canceled
+    error.error = TransactionError.canceled
     let context = TransactionContext(
       operation: operation,
       store: store,
       errorRef: error,
       transaction: self)
     action.cancel(context: context)
+    context.reject(error: error.error!)
   }
 }
 
@@ -208,8 +208,6 @@ extension Array where Element: AnyTransaction {
       self.run { error in
         if let error = error {
           promise(.failure(error))
-        } else if !self.filter({ $0.state == .canceled }).isEmpty {
-          promise(.failure(TransactionError.canceled))
         } else {
           promise(.success(()))
         }

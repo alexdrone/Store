@@ -268,7 +268,7 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
   /// - parameter throttle: If greater that 0, the action will only be triggered at most once
   ///                       during a given window of time.
   /// - returns: A future that is resolved whenever the action has completed its execution.
-  @discardableResult public func run<A: Action, M>(
+  @discardableResult public func futureOf<A: Action, M>(
     action: A,
     mode: Executor.Strategy = .async(nil),
     throttle: TimeInterval = 0
