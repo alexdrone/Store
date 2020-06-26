@@ -183,8 +183,15 @@ e.g.
  
  ### Model
 
-* `var model: ModelType { get }`
+* `let model: M`
  The associated model object. This is typically a value type.
+ 
+ * `let bindingProxy: BindingProxy<M>`
+ Used to have read-write access to the model through `@Binding` in SwiftUI.
+ e.g.
+ `Toggle("...", isOn: $store.bindingProxy.someProperty)`.
+ When the binding set a new value an implicit action is being triggered and the property is
+ updated.
  
 * ` func reduceModel(transaction: AnyTransaction?, closure: (inout ModelType) -> Void)`
 Atomically update the model and notifies all of the observers.

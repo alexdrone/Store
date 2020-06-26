@@ -7,6 +7,8 @@ struct AppState: Codable {
   var items: FetchedProperty<[Item], Int> = .uninitalized
   /// Whether there is an item on focus.
   var selectedItem: Item?
+  /// Test property used to test @ObservedObject binding usage with Store.
+  var flag: Bool = false
 }
 
 /// Fetches the top stories from HackerNews.

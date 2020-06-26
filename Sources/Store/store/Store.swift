@@ -90,6 +90,12 @@ public protocol ReducibleStore: AnyStore {
 open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
   /// A publisher that emits when the model has changed.
   public let objectWillChange = ObservableObjectPublisher()
+  /// Used tvarave read-write access to the model through `@Binding` in SwiftUI.
+  /// e.g.
+  /// `Toggle("...", isOn: $store.bindingProxy.someProperty)`.
+  /// When the binding set a new value an implicit action is being triggered and the property is
+  /// updated.
+  public internal(set) var bindingProxy: BindingProxy<M>! = nil
   
   // See `AnyStore`.
   public let combine: AnyCombineStore?
@@ -104,6 +110,7 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
   public init(model: M) {
     self.model = model
     self.combine = nil
+    self.bindingProxy = BindingProxy(store: self)
     register(middleware: LoggerMiddleware())
   }
   
@@ -115,8 +122,10 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
   public init<P>(model: M, combine: CombineStore<P, M>) {
     self.model = model
     self.combine = combine
+    self.bindingProxy = BindingProxy(store: self)
     register(middleware: LoggerMiddleware())
     combine.child = self
+
   }
 
   // MARK: Model updates
@@ -279,4 +288,22 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
     return transaction.run()
   }
 }
+
+// MARK: - Binding Proxy
+
+/// This class is used to have read-write access to the model through `@Binding` in SwiftUI.
+@dynamicMemberLookup public struct BindingProxy<M> {
+  /// Associated store.
+  private weak var store: Store<M>!
+  
+  init(store: Store<M>) {
+    self.store = store
+  }
+  
+  public subscript<T>(dynamicMember keyPath: WritableKeyPath<M, T>) -> T {
+    get { store.model[keyPath: keyPath] }
+    set { store.run(action: TemplateAction.Assign(keyPath, newValue), mode: .mainThread) }
+  }
+}
+
 

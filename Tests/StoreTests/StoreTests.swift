@@ -98,6 +98,12 @@ final class StoreTests: XCTestCase {
     }
     waitForExpectations(timeout: 1)
   }
+  
+  func testAccessToBindingProxy() {
+    let store = CodableStore(model: TestModel(), diffing: .sync)
+    store.bindingProxy.count = 3
+    XCTAssert(store.model.count == 3)
+  }
 
     static var allTests = [
       ("testAsyncOperation", testAsyncOperation),
