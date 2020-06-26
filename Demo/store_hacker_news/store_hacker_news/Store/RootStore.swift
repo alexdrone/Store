@@ -10,7 +10,7 @@ struct AppState: Codable {
 }
 
 /// Fetches the top stories from HackerNews.
-struct FetchTopStories: ActionProtocol {
+struct FetchTopStories: Action {
   private let cancellable = AnyCancellableRef()
   
   /// The execution body for this action.
@@ -39,7 +39,7 @@ class AppStateStore: CodableStore<AppState> {
   /// Hackernews REST endpoints.
   let api = API()
   /// The ongoing transaction.
-  private var fetchTopStoriesTransaction: TransactionProtocol?
+  private var fetchTopStoriesTransaction: AnyTransaction?
   
   convenience init() {
     self.init(model: AppState(), diffing: .async)
