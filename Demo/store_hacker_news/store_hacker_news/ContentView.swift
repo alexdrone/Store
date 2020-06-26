@@ -31,12 +31,18 @@ struct ContentView: View {
   
   private var noStoriesBody: some View {
     VStack {
+      Spacer()
       Text("No stories loaded.").font(.body)
       Button(action: store.fetchTopStories) {
         Image(systemName: "tray.and.arrow.down")
       }
-      Toggle("(Test binding flag)", isOn: $store.bindingProxy.flag)
+      Spacer()
+      bindingProxyTest
     }
+  }
+  
+  private var bindingProxyTest: some View {
+    Toggle("", isOn: $store.bindingProxy.flag).padding(/*@START_MENU_TOKEN@*/.all/*@END_MENU_TOKEN@*/, /*@START_MENU_TOKEN@*/10/*@END_MENU_TOKEN@*/)
   }
   
   private var storiesBody: some View {
