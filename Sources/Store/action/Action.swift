@@ -48,7 +48,7 @@ extension Action {
 ///   }
 ///
 /// ```
-@propertyWrapper public struct CancellableRef {
+@propertyWrapper public final class CancellableRef {
     public var wrappedValue: AnyCancellable?
   
     public init(wrappedValue: AnyCancellable? = nil) {
