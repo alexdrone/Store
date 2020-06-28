@@ -13,7 +13,7 @@ struct AppState: Codable {
 
 /// Fetches the top stories from HackerNews.
 struct FetchTopStories: Action {
-  @CancellableRef private var cancellable = nil
+  @CancellableStorage private var cancellable = nil
   
   /// The execution body for this action.
   func reduce(context: TransactionContext<AppStateStore, Self>) {
@@ -30,7 +30,7 @@ struct FetchTopStories: Action {
   
   /// Cancels the operation.
   func cancel(context: TransactionContext<AppStateStore, FetchTopStories>) {
-    cancellable.cancel()
+    cancellable?.cancel()
     context.reduceModel { model in
       model.items = .uninitalized
     }
@@ -81,11 +81,4 @@ extension Store where M == Item {
     guard let parent = parent(type: AppState.self) as? AppStateStore else { return }
     parent.selectStory(nil)
   }
-}
-
-// MARK: - Internal
-
-final class AnyCancellableRef {
-  /// The cancellable value-type.
-  var pointee: AnyCancellable?
 }

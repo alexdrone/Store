@@ -35,7 +35,7 @@ extension Action {
 /// e.g.
 /// ```
 /// struct FetchTopStories: Action {
-///   @CancellableRef let cancellable
+///   @CancellableRef private var cancellable = nil
 ///
 ///   func reduce(context: Context...) {
 ///      ...
@@ -44,11 +44,11 @@ extension Action {
 ///   }
 ///
 ///   func cancel(context: Context...) {
-///     cancellable.cancel()
+///     cancellable?.cancel()
 ///   }
 ///
 /// ```
-@propertyWrapper public final class CancellableRef {
+@propertyWrapper public final class CancellableStorage {
     public var wrappedValue: AnyCancellable?
   
     public init(wrappedValue: AnyCancellable? = nil) {
