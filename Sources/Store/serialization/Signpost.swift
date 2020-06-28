@@ -10,7 +10,7 @@ public final class SignpostTransaction: AnyTransaction {
   
   public let id: String = PushID.default.make()
   public let strategy: Executor.Strategy = .async(nil)
-  public var error: ErrorRef? = nil
+  public var error: AnyError? = nil
   
   /// - note: Never set because `SignpostTransaction`s do not have a backing operation.
   public var operation: AsyncOperation {
@@ -19,25 +19,17 @@ public final class SignpostTransaction: AnyTransaction {
   
   /// No associated store ref.
   public var opaqueStoreRef: AnyStore? = nil
-  
-  /// Represents the progress of the transaction.
   public var state: TransactionState = .pending
 
   public func on(_ queueWithStrategy: Executor.Strategy) { }
-
   public func throttleIfNeeded(_ minimumDelay: TimeInterval) { }
 
   init(signpost: String) {
     self.actionId = signpost
   }
 
-  public func perform(operation: AsyncOperation) {
-    // No op.
-  }
-
-  public func run(handler: Executor.TransactionCompletion) {
-    // No op.
-  }
+  public func perform(operation: AsyncOperation) { }
+  public func run(handler: Executor.TransactionCompletion) { }
   
   public func run() -> Future<Void, Error> {
     Future { promise in
@@ -45,16 +37,10 @@ public final class SignpostTransaction: AnyTransaction {
     }
   }
 
-  public func cancel() {
-    // No op.
-  }
-
-  public func pause() {
-    // No op.
-  }
-
-  public func resume() {
-    // No op.
+  public func cancel() { }
+  
+  public func eraseToAnyCancellable() -> AnyCancellable {
+    AnyCancellable(self)
   }
 }
 

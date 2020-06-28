@@ -32,12 +32,12 @@ public final class Executor {
     transactions: [AnyTransaction],
     handler: TransactionCompletion = nil
   ) {
-    let errorRef = ErrorRef()
+    let error = AnyError()
     var completionOperation: Operation?
     if let completionHandler = handler {
       /// Wraps the completion handler in an operation.
       completionOperation = BlockOperation {
-        completionHandler(errorRef.error)
+        completionHandler(error.error)
       }
       /// Set the completion handler as dependent from every operation.
       for operation in transactions.map(\.operation) {
@@ -49,7 +49,7 @@ public final class Executor {
       OperationQueue.main.addOperation(completionOperation!)
     }
     for transaction in transactions {
-      transaction.error = errorRef
+      transaction.error = error
       /// Throttles the transaction if necessary.
       if let throttler = _throttlersToActionIdMap[transaction.actionId] {
         throttler.throttle(

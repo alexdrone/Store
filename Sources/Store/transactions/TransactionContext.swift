@@ -8,7 +8,7 @@ public struct TransactionContext<S: ReducibleStore, A: Action> {
   /// The target store for this transaction.
   public let store: S
   /// Error internal storage.
-  public var errorRef = ErrorRef()
+  public var errorRef = AnyError()
   /// Last recorded error in this dispatch group.
   public var error: Error? { errorRef.error }
   /// The current transaction.
@@ -43,6 +43,6 @@ public struct TransactionContext<S: ReducibleStore, A: Action> {
 
 // MARK: - ErrorRef
 
-public final class ErrorRef {
+public final class AnyError {
   public var error: Error?
 }

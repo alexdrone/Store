@@ -42,7 +42,7 @@ struct ContentView: View {
   }
   
   private var bindingProxyTest: some View {
-    Toggle("", isOn: $store.bindingProxy.flag).padding(/*@START_MENU_TOKEN@*/.all/*@END_MENU_TOKEN@*/, /*@START_MENU_TOKEN@*/10/*@END_MENU_TOKEN@*/)
+    Toggle("", isOn: $store.binding.flag).padding(/*@START_MENU_TOKEN@*/.all/*@END_MENU_TOKEN@*/, /*@START_MENU_TOKEN@*/10/*@END_MENU_TOKEN@*/)
   }
   
   private var storiesBody: some View {
