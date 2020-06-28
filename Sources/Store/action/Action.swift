@@ -28,6 +28,34 @@ extension Action {
   }
 }
 
+// MARK: - Cancellable Property Wrapper
+
+/// Wraps a cancellable modifiable type.
+/// Useful when using cancellable pubblisher within a value-type action.
+/// e.g.
+/// ```
+/// struct FetchTopStories: Action {
+///   @CancellableRef let cancellable
+///
+///   func reduce(context: Context...) {
+///      ...
+///      cancellable =  URLSession.shared.dataTaskPublisher(for: ...).eraseToAnyPublisher()
+///      ...
+///   }
+///
+///   func cancel(context: Context...) {
+///     cancellable.cancel()
+///   }
+///
+/// ```
+@propertyWrapper struct CancellableRef<T: Cancellable> {
+    var wrappedValue: T?
+  
+    init(wrappedValue: T? = nil) {
+        self.wrappedValue = wrappedValue
+    }
+}
+
 // MARK: - Template Actions
 
 /// Utility actions that are applicable to any store.

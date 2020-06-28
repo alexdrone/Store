@@ -260,3 +260,4 @@ public enum TransactionError: Error {
   /// The transaction failed because of user cancellation.
   case canceled;
 }
+

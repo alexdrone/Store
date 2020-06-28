@@ -40,7 +40,6 @@ struct FetchTopStories: Action {
 class AppStateStore: CodableStore<AppState> {
   /// Hackernews REST endpoints.
   let api = API()
-  /// The ongoing transaction.
   private var fetchTopStoriesTransaction: AnyCancellable?
   
   convenience init() {
@@ -48,8 +47,8 @@ class AppStateStore: CodableStore<AppState> {
   }
   
   /// Fetches today's top stories from Hacker News.
-  func fetchTopStories() -> AnyCancellable {
-    AnyCancellable(run(action: FetchTopStories()))
+  func fetchTopStories() {
+    fetchTopStoriesTransaction = run(action: FetchTopStories()).eraseToAnyCancellable()
   }
   
   /// Cancels the fetch operation.
