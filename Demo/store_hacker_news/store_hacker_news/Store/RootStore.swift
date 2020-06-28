@@ -13,14 +13,14 @@ struct AppState: Codable {
 
 /// Fetches the top stories from HackerNews.
 struct FetchTopStories: Action {
-  private let cancellable = Can
+  @CancellableRef private let cancellable
   
   /// The execution body for this action.
   func reduce(context: TransactionContext<AppStateStore, Self>) {
     context.reduceModel { model in
       model.items = .pending(progress: 0)
     }
-    cancellable.pointee = context.store.api.fetchTopStories().sink { items in
+    cancellable = context.store.api.fetchTopStories().sink { items in
       context.reduceModel { model in
         model.items = .success(value: items, etag: 0)
       }
@@ -30,7 +30,7 @@ struct FetchTopStories: Action {
   
   /// Cancels the operation.
   func cancel(context: TransactionContext<AppStateStore, FetchTopStories>) {
-    cancellable.pointee?.cancel()
+    cancellable.cancel()
     context.reduceModel { model in
       model.items = .uninitalized
     }
