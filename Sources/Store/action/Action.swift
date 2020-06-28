@@ -48,10 +48,10 @@ extension Action {
 ///   }
 ///
 /// ```
-@propertyWrapper struct CancellableRef<T: Cancellable> {
-    var wrappedValue: T?
+@propertyWrapper struct CancellableRef {
+    var wrappedValue: AnyCancellable?
   
-    init(wrappedValue: T? = nil) {
+    init(wrappedValue: AnyCancellable? = nil) {
         self.wrappedValue = wrappedValue
     }
 }

@@ -13,7 +13,7 @@ struct AppState: Codable {
 
 /// Fetches the top stories from HackerNews.
 struct FetchTopStories: Action {
-  private let cancellable = AnyCancellableRef()
+  private let cancellable = Can
   
   /// The execution body for this action.
   func reduce(context: TransactionContext<AppStateStore, Self>) {
