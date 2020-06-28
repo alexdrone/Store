@@ -1,6 +1,6 @@
 import Combine
 import Foundation
-import os.log
+import Logging
 
 /// Transaction state.
 public enum TransactionState {
@@ -148,7 +148,7 @@ public final class Transaction<A: Action>: AnyTransaction, Identifiable {
 
   public func perform(operation: AsyncOperation) {
     guard let store = store, let error = error else {
-      os_log(.error, log: OSLog.primary, "context/store is nil - the operation won't be executed.")
+      logger.error("context/store is nil - the operation won't be executed.")
       return
     }
     let context = TransactionContext(
@@ -173,7 +173,7 @@ public final class Transaction<A: Action>: AnyTransaction, Identifiable {
 
   public func run(handler: Executor.TransactionCompletion = nil) {
     guard store != nil else {
-      os_log(.error, log: OSLog.primary, "store is nil - the operation won't be executed.")
+      logger.error("store is nil - the operation won't be executed.")
       return
     }
     Executor.main.run(transactions: [self], handler: handler ?? self._handler)
@@ -181,7 +181,7 @@ public final class Transaction<A: Action>: AnyTransaction, Identifiable {
   
   public func cancel() {
     guard let store = store, let error = error else {
-      os_log(.error, log: OSLog.primary, "context/store is nil - the operation won't be cancelled.")
+      logger.error("context/store is nil - the operation won't be executed.")
       return
     }
     state = .canceled

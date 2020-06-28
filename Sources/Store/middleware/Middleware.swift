@@ -1,9 +1,9 @@
 import Combine
 import Foundation
-import os.log
+import Logging
 
 /// Middleware objects are used to intercept transactions running on the store and implement some
-/// specific logic triggered by them.
+/// specific logic triggered by them."Logging"
 /// *Logging*, *undo/redo* and *local/remote database synchronization* are a good examples of when
 /// a middleware could be necessary.
 public protocol Middleware: class {
@@ -13,6 +13,10 @@ public protocol Middleware: class {
 }
 
 // MARK: - Logger
+
+/// The infra logger.
+/// The output stream can be redirected.
+public let logger = Logger(label: "io.store")
 
 public final class LoggerMiddleware: Middleware {
   
@@ -37,10 +41,10 @@ public final class LoggerMiddleware: Middleware {
       guard let prev = _transactionStartNanos[transaction.id] else { break }
       let time = _nanos() - prev
       let millis = Float(time)/1_000_000
-      os_log(.info, log: OSLog.primary, "▩ (%s) %s [%fs ms]", id, name, millis)
+      logger.info("▩ \(id) \(name) [\(millis)) ms]")
       _transactionStartNanos[transaction.id] = nil
     case .canceled:
-      os_log(.info, log: OSLog.primary, "▩ (%s) %s [✖ cancelled]", id, name)
+      logger.info("▩ \(id) \(name) [✖ cancelled]")
       _transactionStartNanos[transaction.id] = nil
     }
     _lock.unlock()
@@ -54,11 +58,4 @@ public final class LoggerMiddleware: Middleware {
     let nanos = currentTime * UInt64(info.numer) / UInt64(info.denom)
     return nanos
   }
-}
-
-// MARK: - Log Subsystems
-
-extension OSLog {
-  public static let primary = OSLog(subsystem: "io.store", category: "primary")
-  public static let diff = OSLog(subsystem: "io.store", category: "diff")
 }

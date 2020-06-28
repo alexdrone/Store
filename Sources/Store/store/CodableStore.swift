@@ -1,6 +1,6 @@
 import Combine
 import Foundation
-import os.log
+import Logging
 
 /// A `Store` subclass with serialization capabilities.
 /// Additionally a `CodableStore` can emits diffs for every transaction execution (see
@@ -108,9 +108,10 @@ open class CodableStore<M: Codable>: Store<M> {
       self.lastTransactionDiff = TransactionDiff(transaction: transaction, diffs: diffs)
       self._lastModelSnapshot = encodedModel
 
-      os_log(
-        .debug, log: OSLog.diff, "▩ 𝘿𝙄𝙁𝙁 (%s) %s %s",
-        transaction.id, transaction.actionId, diffs.storeDebugDescription(short: true))
+      let id = transaction.id
+      let aid = transaction.actionId
+      let desc = diffs.storeDebugDescription(short: true)
+      logger.info("▩ 𝘿𝙄𝙁𝙁 (\(id)) \(aid) \(desc)")
     }
   }
   

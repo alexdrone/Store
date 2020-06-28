@@ -18,13 +18,14 @@ let package = Package(
             targets: ["Store"]),
     ],
     dependencies: [
+      .package(url: "https://github.com/apple/swift-log.git", from: "1.2.0"),
     ],
     targets: [
         .target(
             name: "Store",
-            dependencies: []),
+            dependencies: ["Logging"]),
         .testTarget(
             name: "StoreTests",
-            dependencies: ["Store"]),
+            dependencies: ["Store", "Logging"]),
     ]
 )

@@ -1,6 +1,6 @@
 import Combine
 import Foundation
-import os.log
+import Logging
 
 /// An action represent an operation on the store.
 public protocol Action: Identifiable {
@@ -310,7 +310,7 @@ private func _mutateArray<M, V: Collection>(
     value = unwrapped
   }
   guard var array = value as? [V.Element] else {
-    os_log(.error, log: OSLog.primary, " Arrays are the only collection type supported.")
+    logger.error("Arrays are the only collection type supported.")
     return
   }
   mutate(&array)

@@ -1,5 +1,5 @@
 import Foundation
-import os.log
+import Logging
 
 public final class Executor {
   
@@ -43,9 +43,6 @@ public final class Executor {
       for operation in transactions.map(\.operation) {
         completionOperation?.addDependency(operation)
       }
-      for operation in transactions.map(\.operation) {
-        print(operation.dependencies)
-      }
       OperationQueue.main.addOperation(completionOperation!)
     }
     for transaction in transactions {
@@ -83,7 +80,7 @@ public final class Executor {
     }
     let queue = _queues[id]
     if queue == nil {
-      os_log(.error, log: OSLog.primary, " No queue registered with identifier: %s.", id)
+      logger.error("No queue registered with identifier: \(id).")
     }
     return queue
   }

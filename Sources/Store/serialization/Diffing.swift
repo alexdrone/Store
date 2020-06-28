@@ -1,5 +1,5 @@
 import Foundation
-import os.log
+import Logging
 
 @dynamicMemberLookup public final class Query {
   private var segments: [String] = []
@@ -225,9 +225,7 @@ public enum FlatEncoding {
         _flatten(path: path, node: .array(array), result: &result)
       } else {
         guard let keyPath = KeyPath(path) else {
-            if #available(iOS 12.0, OSX 10.14, watchOS 5.0, tvOS 13.0, *) {
-                os_log(.error, log: OSLog.primary, "Malformed FlatEncoding keypath: %s.", path)
-            }
+          logger.error("Malformed FlatEncoding keypath: \(path).")
           return
         }
         result[keyPath] = value as? Codable
