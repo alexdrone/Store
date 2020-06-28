@@ -32,7 +32,7 @@ public final class Executor {
     transactions: [AnyTransaction],
     handler: TransactionCompletion = nil
   ) {
-    let error = AnyError()
+    let error = ErrorStorage()
     var completionOperation: Operation?
     if let completionHandler = handler {
       /// Wraps the completion handler in an operation.

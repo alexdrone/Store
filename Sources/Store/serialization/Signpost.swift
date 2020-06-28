@@ -10,7 +10,7 @@ public final class SignpostTransaction: AnyTransaction {
   
   public let id: String = PushID.default.make()
   public let strategy: Executor.Strategy = .async(nil)
-  public var error: AnyError? = nil
+  public var error: ErrorStorage? = nil
   
   /// - note: Never set because `SignpostTransaction`s do not have a backing operation.
   public var operation: AsyncOperation {

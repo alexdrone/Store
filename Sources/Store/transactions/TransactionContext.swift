@@ -8,9 +8,9 @@ public struct TransactionContext<S: ReducibleStore, A: Action> {
   /// The target store for this transaction.
   public let store: S
   /// Error internal storage.
-  public var errorRef = AnyError()
+  public var errorStorage = ErrorStorage()
   /// Last recorded error in this dispatch group.
-  public var error: Error? { errorRef.error }
+  public var error: Error? { errorStorage.error }
   /// The current transaction.
   public let transaction: Transaction<A>
   
@@ -31,7 +31,7 @@ public struct TransactionContext<S: ReducibleStore, A: Action> {
 
   /// Terminates this operation with an error.
   public func reject(error: Error) {
-    self.errorRef.error = error
+    self.errorStorage.error = error
     operation.finish()
   }
 
@@ -41,8 +41,8 @@ public struct TransactionContext<S: ReducibleStore, A: Action> {
   }
 }
 
-// MARK: - ErrorRef
+// MARK: - errorStorage
 
-public final class AnyError {
+public final class ErrorStorage {
   public var error: Error?
 }

@@ -34,7 +34,7 @@ public protocol AnyTransaction: class, Cancellable {
   var strategy: Executor.Strategy { get }
   
   /// Tracks any error that might have been raised in this transaction group.
-  var error: AnyError? { get set }
+  var error: ErrorStorage? { get set }
 
   /// Represents the transaction execution progress.
   /// Trackable `@Published` property.
@@ -93,7 +93,7 @@ public final class Transaction<A: Action>: AnyTransaction, Identifiable {
   public var actionId: String { action.id }
   public let id: String = PushID.default.make()
   public var strategy = Executor.Strategy.async(nil)
-  public var error: AnyError?
+  public var error: ErrorStorage?
   public var opaqueStoreRef: AnyStore? {
     set {
       guard let newValue = newValue as? A.AssociatedStoreType else { return }
@@ -154,7 +154,7 @@ public final class Transaction<A: Action>: AnyTransaction, Identifiable {
     let context = TransactionContext(
       operation: operation,
       store: store,
-      errorRef: error,
+      errorStorage: error,
       transaction: self)
     action.reduce(context: context)
   }
@@ -189,7 +189,7 @@ public final class Transaction<A: Action>: AnyTransaction, Identifiable {
     let context = TransactionContext(
       operation: operation,
       store: store,
-      errorRef: error,
+      errorStorage: error,
       transaction: self)
     action.cancel(context: context)
     context.reject(error: error.error!)
