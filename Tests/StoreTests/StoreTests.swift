@@ -101,7 +101,7 @@ final class StoreTests: XCTestCase {
   
   func testAccessToBindingProxy() {
     let store = CodableStore(model: TestModel(), diffing: .sync)
-    store.bindingProxy.count = 3
+    store.binding.count = 3
     XCTAssert(store.model.count == 3)
   }
 

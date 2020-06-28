@@ -17,7 +17,7 @@ public enum TransactionState {
 // MARK: - Protocols
 
 /// Represents an individual execution for a given action.
-public protocol AnyTransaction: class {
+public protocol AnyTransaction: class, Cancellable {
   
   // MARK: Properties
   

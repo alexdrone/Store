@@ -186,8 +186,8 @@ e.g.
 * `let model: M`
  The associated model object. This is typically a value type.
  
- * `let bindingProxy: BindingProxy<M>`
- Used to have read-write access to the model through `@Binding` in SwiftUI.
+ * `let binding: BindingProxy<M>`
+ Read-write access to the model through `@Binding` in SwiftUI.
  e.g.
  `Toggle("...", isOn: $store.bindingProxy.someProperty)`.
  When the binding set a new value an implicit action is being triggered and the property is
