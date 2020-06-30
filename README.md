@@ -189,7 +189,7 @@ e.g.
  * `let binding: BindingProxy<M>`
  Read-write access to the model through `@Binding` in SwiftUI.
  e.g.
- `Toggle("...", isOn: $store.bindingProxy.someProperty)`.
+ `Toggle("...", isOn: $store.binding.someProperty)`.
  When the binding set a new value an implicit action is being triggered and the property is
  updated.
  
