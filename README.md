@@ -514,14 +514,8 @@ struct IncreaseAction: Action {
 ### Cancellation
 
 ```swift
-store.run(action: CounterAction.increase(amount: 1))
-Dispatcher.main.cancelAllTransactions()
-
-// or with a custom queue.
-let queueId = "myCancellableQueue"
-Dispatcher.main.registerQueue(id: queueId, queue: OperationQueue())
-store.run(action: CounterAction.increase(amount: 1), mode: .async(queueId))
-Dispatcher.main.cancelAllTransactions(id: queueId)
+let cancellable: AnyCancellable = store.run(action: CounterAction.increase(amount: 1)).eraseToAnyCancellable();
+cancellable.cancel()
 ```
 
 ```
