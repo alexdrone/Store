@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "Store",
     platforms: [
-        .iOS(.v13),
+        .iOS(.v12),
         .macOS(.v10_15),
         .tvOS(.v13),
         .watchOS(.v6)
@@ -19,11 +19,12 @@ let package = Package(
     ],
     dependencies: [
       .package(url: "https://github.com/apple/swift-log.git", from: "1.2.0"),
+      .package(url: "https://github.com/OpenCombine/OpenCombine.git", from: "0.10.0")
     ],
     targets: [
         .target(
             name: "Store",
-            dependencies: ["Logging"]),
+            dependencies: ["Logging", "OpenCombine", "OpenCombineDispatch"]),
         .testTarget(
             name: "StoreTests",
             dependencies: ["Store", "Logging"]),

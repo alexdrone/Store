@@ -1,6 +1,11 @@
-import Combine
 import Foundation
 import Logging
+#if canImport(Combine)
+import Combine
+#else
+import OpenCombine
+import OpenCombineDispatch
+#endif
 
 /// A `Store` subclass with serialization capabilities.
 /// Additionally a `CodableStore` can emits diffs for every transaction execution (see

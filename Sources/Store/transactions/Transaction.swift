@@ -1,6 +1,11 @@
-import Combine
 import Foundation
 import Logging
+#if canImport(Combine)
+import Combine
+#else
+import OpenCombine
+import OpenCombineDispatch
+#endif
 
 /// Transaction state.
 public enum TransactionState {

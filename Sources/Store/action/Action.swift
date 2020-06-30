@@ -1,6 +1,12 @@
-import Combine
 import Foundation
 import Logging
+#if canImport(Combine)
+import Combine
+#else
+import OpenCombine
+import OpenCombineDispatch
+#endif
+
 
 /// An action represent an operation on the store.
 public protocol Action: Identifiable {

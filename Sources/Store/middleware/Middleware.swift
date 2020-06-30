@@ -1,6 +1,11 @@
-import Combine
 import Foundation
 import Logging
+#if canImport(Combine)
+import Combine
+#else
+import OpenCombine
+import OpenCombineDispatch
+#endif
 
 /// Middleware objects are used to intercept transactions running on the store and implement some
 /// specific logic triggered by them."Logging"
