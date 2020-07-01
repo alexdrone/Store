@@ -114,7 +114,7 @@ enum CounterAction: Action {
 
 // MARK: - UI
 
-struct ContentView : View {
+struct ContentView: View {
   @StateObject var store = Store<Counter>(model: Counter())
   
   var body: some View {
