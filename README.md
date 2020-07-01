@@ -33,9 +33,7 @@ After the stores are updated, they notify the observers that their state has cha
 so the views may query the new state and update themselves.
 
 ```swift
-struct Counter {
-  var count = 0
-}
+struct Counter { var count = 0 }
 let store = Store<Counter>(model: Counter())
 ```
 
