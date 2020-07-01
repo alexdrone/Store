@@ -47,16 +47,8 @@ It can be represented using an enum:
 
 ```swift
 enum CounterAction: Action {
-
   case increase
   case decrease
-
-  var id: String {
-    switch self {
-    case .increase: return "INCREASE"
-    case .decrease: return "DECREASE"
-    }
-  }
 
   func reduce(context: TransactionContext<Store<Counter>, Self>) {
     defer {
@@ -80,7 +72,6 @@ Or a struct:
 ```swift
 struct IncreaseAction: Action {
   let count: Int
-  var id: String = "INCREASE"
 
   func reduce(context: TransactionContext<Store<Counter>, Self>) {
     defer {
@@ -107,13 +98,6 @@ struct Counter { var count = 0 }
 enum CounterAction: Action {
   case increase(amount: Int)
   case decrease(amount: Int)
-
-  var id: String {
-    switch self {
-    case .increase(_): return "INCREASE"
-    case .decrease(_): return "DECREASE"
-    }
-  }
 
   func reduce(context: TransactionContext<Store<Counter>, Self>) {
     defer {
