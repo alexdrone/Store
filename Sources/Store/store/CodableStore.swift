@@ -43,30 +43,19 @@ open class CodableStore<M: Codable>: Store<M> {
   /// - parameter diffing: The store diffing option.
   ///                      This will aftect how `lastTransactionDiff` is going to be produced.
   public init(
-    model: M,
+    modelStorage: ModelStorageBase<M>,
     diffing: Diffing = .async
   ) {
     self.diffing = diffing
-    super.init(model: model)
-    self._lastModelSnapshot = CodableStore.encodeFlat(model: model)
+    super.init(modelStorage: modelStorage)
+    self._lastModelSnapshot = CodableStore.encodeFlat(model: modelStorage.model)
   }
   
-  
-  /// Constructs a new Store instance with a given initial model.
-  ///
-  /// - parameter model: The initial model state.
-  /// - parameter diffing: The store diffing option.
-  ///                      This will aftect how `lastTransactionDiff` is going to be produced.
-  /// - parameter combine: A associated parent store. Useful whenever it is desirable to merge
-  ///                      back changes from a child store to its parent.
-  public init<P>(
+  public convenience init(
     model: M,
-    diffing: Diffing = .async,
-    combine: CombineStore<P, M>
+    diffing: Diffing = .async
   ) {
-    self.diffing = diffing
-    super.init(model: model, combine: combine)
-    self._lastModelSnapshot = CodableStore.encodeFlat(model: model)
+    self.init(modelStorage: ModelStorage(model: model), diffing: diffing)
   }
   
   // MARK: Model updates
@@ -118,6 +107,16 @@ open class CodableStore<M: Codable>: Store<M> {
       let desc = diffs.storeDebugDescription(short: true)
       logger.info("▩ 𝘿𝙄𝙁𝙁 (\(id)) \(aid) \(desc)")
     }
+  }
+  
+  /// Creates a store for a subtree of this store model. e.g.
+  ///
+  ///  - parameter keyPath: The keypath pointing at a subtree of the model object.
+  public func makeCodableChildStore<C>(
+    keyPath: WritableKeyPath<M, C>
+  ) -> CodableStore<C> where M: Codable, C: Codable {
+    let childModelStorage: ModelStorageBase<C> = modelStorage.makeChild(keyPath: keyPath)
+    return CodableStore<C>(modelStorage: childModelStorage)
   }
   
   // MARK: - Model Encode/Decode

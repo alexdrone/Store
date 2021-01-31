@@ -124,9 +124,7 @@ public final class Transaction<A: Action>: AnyTransaction, Identifiable {
   /// Returns the asynchronous operation that is going to be executed with this transaction.
   public lazy var operation: AsyncOperation = {
     let operation = TransactionOperation(transaction: self)
-    operation._finishBlock = { [weak self] in
-      self?.store?.notifyObservers()
-    }
+    operation._finishBlock = { [weak self] in }
     return operation
   }()
   

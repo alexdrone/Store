@@ -165,8 +165,8 @@ e.g.
  
  ### Model
 
-* `let model: M`
- The associated model object. This is typically a value type.
+* `let modelStorage: M`
+ The associated storage for the model (typically a value type).
  
  * `let binding: BindingProxy<M>`
  Read-write access to the model through `@Binding` in SwiftUI.
@@ -193,13 +193,6 @@ won't pubblish any update.
 
 ### Combine Stores
 
-* `func parent<T>(type: T.Type) -> Store<T>?`
-Recursively traverse the parents until it founds one that matches the specified model type.
-
-* `var combine: AnyCombineStore? { get }`
-Wraps a reference to its parent store (if applicable) and describes how this store should
-be merged back. This is done by running `reconcile()` every time the model wrapped by 
-this store changes.
  
 * `func makeChildStore<C>(keyPath: WritableKeyPath<M, C>) -> Store<C>`
 Used to express a parent-child relationship between two stores.
@@ -211,11 +204,6 @@ the store (parent) model.
 struct Model { let items: [Item] }
 let store = Store(model: Model())
  let child = store.makeChildStore(keyPath: \.[0])
- ```
- This is equivalent to
- ```swift
-[...]
-let child = Store(model: items[0], combine: CombineStore(parent: store, merge: .keyPath(\.[0])))
  ```
 
 ### Transactions
@@ -502,39 +490,4 @@ cancellable.cancel()
 
 ```
 ▩ 𝙄𝙉𝙁𝙊 (-Lo4riSWZ3m5v1AvhgOb) INCREASE [✖ canceled]
-```
-
-### Combine Stores
-
-Support for children store (similar to Redux `combineStores`).
-
-```swift
-struct Root {
-  struct Todo {
-    var name: String = "Untitled"
-    var done: Bool = false
-  }
-  struct Note {
-    var text: String = ""
-    var upvotes: Int = 0
-  }
-  var todo: Todo = Todo()
-  var note: Note = Note()
-}
-
-/// A child store pointing at the todo model.
-var todoStore Store(model: model.todo, combine: CombineStore(
-  parent: rootStore, 
-  notify: true, 
-  merge: .keyPath(keyPath: \.todo)))
-
-extension Root.Todo {
-  struct Action_MarkAsDone: ActionProtocol {
-    func reduce(context: TransactionContext<Store<Root.Todo>, Self>) {
-      defer { context.fulfill() }
-      context.reduceModel { $0.done = true }
-    }
-  }
-}
-
 ```

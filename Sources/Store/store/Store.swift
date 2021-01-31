@@ -13,13 +13,7 @@ import OpenCombineDispatch
 public protocol AnyStore: class {
 
   // MARK: Observation
-  
-  /// Notify the store observers for the change of this store.
-  /// `Store` and `CodableStore` are `ObservableObject`s and they automatically call this
-  /// function (that triggers a `objectWillChange` publlisher) every time the model changes.
-  /// - note: Observers are always scheduled on the main run loop.
-  func notifyObservers()
-  
+    
   /// The block passed as argument does not trigger any notification for the Store observers.
   /// e.g. By calling `reduceModel(transaction:closure:)` inside the `perform` block the store
   /// won't pubblish any update.
@@ -41,16 +35,6 @@ public protocol AnyStore: class {
   /// Manually notify all of the registered middleware services.
   /// - note: See `MiddlewareType.onTransactionStateChange`.
   func notifyMiddleware(transaction: AnyTransaction)
-  
-  // MARK: Parent Store
-  
-  /// Recursively traverse the parents until it founds one that matches the specified model type.
-  func parent<T>(type: T.Type) -> Store<T>?
-
-  /// Wraps a reference to its parent store (if applicable) and describes how this store should
-  /// be merged back.
-  /// This is done by running `reconcile()` every time the model wrapped by this store changes.
-  var combine: AnyCombineStore? { get }
 }
 
 /// Represents a store that has an typed associated model.
@@ -61,7 +45,7 @@ public protocol ReducibleStore: AnyStore {
   
   /// The associated model object.
   /// -note: This is typically a value type.
-  var model: ModelType { get }
+  var modelStorage: ModelStorageBase<ModelType> { get }
   
   /// Atomically update the model and notifies all of the observers.
   func reduceModel(transaction: AnyTransaction?, closure: (inout ModelType) -> Void)
@@ -92,7 +76,7 @@ public protocol ReducibleStore: AnyStore {
 ///   }
 /// }
 /// ```
-open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
+open class Store<M>: ReducibleStore, Identifiable {
   /// A publisher that emits when the model has changed.
   public let objectWillChange = ObservableObjectPublisher()
   /// Used to have read-write access to the model through `@Binding` in SwiftUI.
@@ -103,59 +87,62 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
   public var binding: BindingProxy<M>! = nil
   
   // See `AnyStore`.
-  public let combine: AnyCombineStore?
   public var middleware: [Middleware] = []
-  // See `ReducibleStore`.
-  public private(set) var model: M
+  public private(set) var modelStorage: ModelStorageBase<M>
   // Private.
-  private var _stateLock = SpinLock()
   private var _performWithoutNotifyingObservers: Bool = false
+  private var _modelStorageObserver: AnyCancellable?
   
   /// Constructs a new Store instance with a given initial model.
-  public init(model: M) {
-    self.model = model
-    self.combine = nil
-    self.binding = BindingProxy(store: self)
-    register(middleware: LoggerMiddleware())
+  public convenience init(model: M) {
+    self.init(modelStorage: ModelStorage(model: model))
   }
   
-  /// Constructs a new Store instance with a given initial model.
-  ///
-  /// - parameter model: The initial model state.
-  /// - parameter combine: A associated parent store. Useful whenever it is desirable to merge
-  ///                      back changes from a child store to its parent.
-  public init<P>(model: M, combine: CombineStore<P, M>) {
-    self.model = model
-    self.combine = combine
+  public init(modelStorage: ModelStorageBase<M>) {
+    self.modelStorage = modelStorage
     self.binding = BindingProxy(store: self)
     register(middleware: LoggerMiddleware())
-    combine.child = self
-
+    
+    _modelStorageObserver = modelStorage.objectWillChange
+      .receive(on: RunLoop.main)
+      .sink { [weak self] in
+        guard let self = self else { return }
+        guard !self._performWithoutNotifyingObservers else { return }
+        self.objectWillChange.send()
+      }
+  }
+  
+  /// Creates a store for a subtree of this store model. e.g.
+  /// ```
+  /// struct Subject {
+  ///   struct Teacher { var name }
+  ///   let title: String
+  ///   let teacher: Teacher
+  /// }
+  /// let subjectStore = Store(model: Subject(...))
+  /// let teacherStore = subjectStore.makeChild(keyPath: \.teacher)
+  /// ```
+  /// When the child store is being updated the parent store (this object) will also trigger
+  /// a `objectWillChange` notification.
+  ///
+  ///  - parameter keyPath: The keypath pointing at a subtree of the model object.
+  public func makeChildStore<C>(keyPath: WritableKeyPath<M, C>) -> Store<C> {
+    let childModelStorage: ModelStorageBase<C> = modelStorage.makeChild(keyPath: keyPath)
+    return Store<C>(modelStorage: childModelStorage)
   }
 
   // MARK: Model updates
 
   open func reduceModel(transaction: AnyTransaction? = nil, closure: (inout M) -> Void) {
-    self._stateLock.lock()
-    let old = self.model
-    let new = assign(model, changes: closure)
-    self.model = new
-    self._stateLock.unlock()
+    let old = modelStorage.model
+    modelStorage.reduce(closure)
+    let new = modelStorage.model
     didUpdateModel(transaction: transaction, old: old, new: new)
   }
 
   /// Emits the `objectWillChange` event and propage the changes to its parent.
   /// - note: Call `super` implementation if you override this function.
   open func didUpdateModel(transaction: AnyTransaction?, old: M, new: M) {
-    combine?.reconcile()
-    notifyObservers()
-  }
-
-  open func notifyObservers() {
-    guard !_performWithoutNotifyingObservers else { return }
-    RunLoop.main.schedule {
-      self.objectWillChange.send()
-    }
   }
   
   public func performWithoutNotifyingObservers(_ perform: () -> Void) {
@@ -183,25 +170,6 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
     self.middleware.removeAll { $0 === middleware }
   }
   
-  // MARK: Parent Store
-  
-  public func makeChildStore<C>(keyPath: WritableKeyPath<M, C>) -> Store<C> {
-    Store<C>(model: model[keyPath: keyPath], combine: CombineStore(
-      parent: self,
-      notify: true,
-      merge: .keyPath(keyPath: keyPath)))
-  }
-  
-  public func parent<T>(type: T.Type) -> Store<T>? {
-    if let parent = combine?.parentStore as? Store<T> {
-      return parent
-    }
-    if let parent = combine?.parentStore {
-      return parent.parent(type: type)
-    }
-    return nil
-  }
-
   // MARK: Transactions
   
   /// Builds a transaction object for the action passed as argument.
@@ -306,7 +274,7 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
   }
   
   public subscript<T>(dynamicMember keyPath: WritableKeyPath<M, T>) -> T {
-    get { store.model[keyPath: keyPath] }
+    get { store.modelStorage[dynamicMember: keyPath] }
     set { store.run(action: TemplateAction.Assign(keyPath, newValue), mode: .mainThread) }
   }
 }
