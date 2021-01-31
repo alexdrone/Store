@@ -116,7 +116,9 @@ open class CodableStore<M: Codable>: Store<M> {
     keyPath: WritableKeyPath<M, C>
   ) -> CodableStore<C> where M: Codable, C: Codable {
     let childModelStorage: ModelStorageBase<C> = modelStorage.makeChild(keyPath: keyPath)
-    return CodableStore<C>(modelStorage: childModelStorage)
+    let store = CodableStore<C>(modelStorage: childModelStorage)
+    store._parent = self
+    return store
   }
   
   // MARK: - Model Encode/Decode

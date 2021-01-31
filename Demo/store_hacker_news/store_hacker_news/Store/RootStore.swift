@@ -62,7 +62,7 @@ class AppStateStore: CodableStore<AppState> {
   }
   
   func childStore(id: Item) -> Store<Item> {
-    Store(model: id, combine: CombineStore(parent: self))
+    
   }
 }
 

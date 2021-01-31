@@ -35,6 +35,9 @@ public protocol AnyStore: class {
   /// Manually notify all of the registered middleware services.
   /// - note: See `MiddlewareType.onTransactionStateChange`.
   func notifyMiddleware(transaction: AnyTransaction)
+  
+  /// Recursively traverse the parents until it founds one that matches the specified model type.
+  func parent<T>(type: T.Type) -> Store<T>?
 }
 
 /// Represents a store that has an typed associated model.
@@ -89,6 +92,10 @@ open class Store<M>: ReducibleStore, Identifiable {
   // See `AnyStore`.
   public var middleware: [Middleware] = []
   public private(set) var modelStorage: ModelStorageBase<M>
+  
+  // Internal
+  var _parent: AnyStore?
+  
   // Private.
   private var _performWithoutNotifyingObservers: Bool = false
   private var _modelStorageObserver: AnyCancellable?
@@ -128,7 +135,16 @@ open class Store<M>: ReducibleStore, Identifiable {
   ///  - parameter keyPath: The keypath pointing at a subtree of the model object.
   public func makeChildStore<C>(keyPath: WritableKeyPath<M, C>) -> Store<C> {
     let childModelStorage: ModelStorageBase<C> = modelStorage.makeChild(keyPath: keyPath)
-    return Store<C>(modelStorage: childModelStorage)
+    let store = Store<C>(modelStorage: childModelStorage)
+    store._parent = self
+    return store
+  }
+  
+  public func parent<T>(type: T.Type) -> Store<T>? {
+    if let parent = _parent as? Store<T> {
+      return parent
+    }
+    return _parent?.parent(type: type)
   }
 
   // MARK: Model updates
