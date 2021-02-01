@@ -58,7 +58,7 @@ class AppStateStore: CodableStore<AppState> {
 
   /// Select (or deselect) a story.
   func selectStory(_ item: Item?) {
-    run(action: TemplateAction.Assign( \AppState.selectedItem, item))
+    binding.selectedItem = item
   }
   
   func childStore(id: Item) -> Store<Item> {
@@ -67,7 +67,9 @@ class AppStateStore: CodableStore<AppState> {
     }
     let model = modelStorage.items.value![idx]
     let modelStorage = UnownedChildModelStorage(parent: self.modelStorage, model: model) { _, _ in }
-    return Store(modelStorage: modelStorage)
+    let store = Store(modelStorage: modelStorage)
+    store.parent = self
+    return store
   }
 }
 
