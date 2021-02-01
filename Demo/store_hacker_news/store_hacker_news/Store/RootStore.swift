@@ -62,19 +62,21 @@ class AppStateStore: CodableStore<AppState> {
   }
   
   func childStore(id: Item) -> Store<Item> {
-    
+    let idx = modelStorage.items.value?.firstIndex { $0.id == id.id } ?? 0
+    let store: Store<Item> = self.makeCodableChildStore(keyPath: \AppState.items.value![idx])
+    return store
   }
 }
 
 extension Store where M == Item {
   var isSelected: Bool {
     guard let parent = parent(type: AppState.self) else { return false }
-    return parent.model.selectedItem?.id == model.id
+    return parent.modelStorage.model.selectedItem?.id == modelStorage.model.id
   }
   
   func select() {
     guard let parent = parent(type: AppState.self) as? AppStateStore else { return }
-    parent.selectStory(model)
+    parent.selectStory(modelStorage.model)
   }
   
   func deselect() {
