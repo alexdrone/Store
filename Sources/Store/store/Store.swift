@@ -89,6 +89,9 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
   /// updated.
   public var binding: BindingProxy<M>! = nil
   
+  /// Accessor to the wrapped immutable  model.
+  public var readOnlyModel: M { modelStorage.model }
+  
   // See `AnyStore`.
   public var middleware: [Middleware] = []
   public private(set) var modelStorage: ModelStorageBase<M>
