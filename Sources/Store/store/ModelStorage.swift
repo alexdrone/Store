@@ -96,11 +96,11 @@ import OpenCombineDispatch
 @dynamicMemberLookup public final class UnownedChildModelStorage<P, M>: ModelStorageBase<M> {
   private let _parent: ModelStorageBase<P>
   private var _model: M
-  private let _merge: (inout P) -> Void
+  private let _merge: (inout P, M) -> Void
   
   override public var model: M { _model }
 
-  public init(parent: ModelStorageBase<P>, model: M, merge: @escaping (inout P) -> Void) {
+  public init(parent: ModelStorageBase<P>, model: M, merge: @escaping (inout P, M) -> Void) {
     _parent = parent
     _model = model
     _merge = merge
@@ -120,7 +120,10 @@ import OpenCombineDispatch
     let new = assign(_model, changes: closure)
     _model = new
     _modelLock.unlock()
-    _parent.reduce(_merge)
+    _parent.reduce { [weak self] in
+      guard let self = self else { return }
+      self._merge(&$0, self._model)
+    }
     objectWillChange.send()
   }
 }
