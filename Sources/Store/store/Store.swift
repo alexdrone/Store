@@ -79,7 +79,7 @@ public protocol ReducibleStore: AnyStore {
 ///   }
 /// }
 /// ```
-open class Store<M>: ReducibleStore, Identifiable {
+open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
   /// A publisher that emits when the model has changed.
   public let objectWillChange = ObservableObjectPublisher()
   /// Used to have read-write access to the model through `@Binding` in SwiftUI.

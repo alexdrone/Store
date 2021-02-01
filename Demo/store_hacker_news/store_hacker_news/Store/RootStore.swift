@@ -65,14 +65,9 @@ class AppStateStore: CodableStore<AppState> {
     guard let idx = modelStorage.items.value?.firstIndex(where: { $0.id == id.id }) else {
       fatalError()
     }
-    let model = modelStorage.items[idx]
-    let modelStorage = UnownedChildModelStorage(parent: self, model: model) { appState in
-      guard let idx = appState.items.value?.firstIndex(where: { $0.id == id.id }) else { return }
-      appState.values?[idx] = modelStorage.model
-    }
-    
-    //let store: Store<Item> =  self.makeCodableChildStore(keyPath: \AppState.items.value![idx])
-    return store
+    let model = modelStorage.items.value![idx]
+    let modelStorage = UnownedChildModelStorage(parent: self.modelStorage, model: model) { _, _ in }
+    return Store(modelStorage: modelStorage)
   }
 }
 

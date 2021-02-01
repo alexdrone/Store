@@ -5,14 +5,16 @@ import Store
 
 struct ContentView: View {
   @ObservedObject var store: AppStateStore
-  
+  var model: AppState { store.modelStorage.model }
+
+  @ViewBuilder
   var body: some View {
     Group {
-      if store.model.selectedItem != nil {
-        StoryView(store: self.store.childStore(id: store.model.selectedItem!))
-      } else if store.model.items.isPending {
+      if model.selectedItem != nil {
+        StoryView(store: self.store.childStore(id: model.selectedItem!))
+      } else if model.items.isPending {
         loadingStoriesBody
-      } else if !store.model.items.hasValue {
+      } else if !model.items.hasValue {
         noStoriesBody
       } else {
         storiesBody
@@ -42,12 +44,12 @@ struct ContentView: View {
   }
   
   private var bindingProxyTest: some View {
-    Toggle("", isOn: $store.binding.flag).padding(/*@START_MENU_TOKEN@*/.all/*@END_MENU_TOKEN@*/, /*@START_MENU_TOKEN@*/10/*@END_MENU_TOKEN@*/)
+    Toggle("", isOn: store.binding.flag).padding(/*@START_MENU_TOKEN@*/.all/*@END_MENU_TOKEN@*/, /*@START_MENU_TOKEN@*/10/*@END_MENU_TOKEN@*/)
   }
   
   private var storiesBody: some View {
     List {
-      ForEach(store.model.items.value ?? []) {
+      ForEach(model.items.value ?? []) {
         StoryView(store: self.store.childStore(id: $0))
       }
     }
@@ -58,12 +60,13 @@ struct ContentView: View {
 
 struct StoryView: View {
   let store: Store<Item>
+  var model: Item { store.modelStorage.model }
   
   private var title: String {
-    store.model.title
+    model.title
   }
   private var caption: String {
-    store.model.text ?? store.model.url ?? "N/A."
+    model.text ?? model.url ?? "N/A."
   }
   
   var body: some View {
