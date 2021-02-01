@@ -117,7 +117,7 @@ open class CodableStore<M: Codable>: Store<M> {
   ) -> CodableStore<C> where M: Codable, C: Codable {
     let childModelStorage: ModelStorageBase<C> = modelStorage.makeChild(keyPath: keyPath)
     let store = CodableStore<C>(modelStorage: childModelStorage)
-    store._parent = self
+    store.parent = self
     return store
   }
   

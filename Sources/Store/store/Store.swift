@@ -97,7 +97,7 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
   public private(set) var modelStorage: ModelStorageBase<M>
   
   // Internal
-  var _parent: AnyStore?
+  public var parent: AnyStore?
   
   // Private.
   private var _performWithoutNotifyingObservers: Bool = false
@@ -139,15 +139,15 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
   public func makeChildStore<C>(keyPath: WritableKeyPath<M, C>) -> Store<C> {
     let childModelStorage: ModelStorageBase<C> = modelStorage.makeChild(keyPath: keyPath)
     let store = Store<C>(modelStorage: childModelStorage)
-    store._parent = self
+    store.parent = self
     return store
   }
   
   public func parent<T>(type: T.Type) -> Store<T>? {
-    if let parent = _parent as? Store<T> {
+    if let parent = parent as? Store<T> {
       return parent
     }
-    return _parent?.parent(type: type)
+    return parent?.parent(type: type)
   }
 
   // MARK: Model updates

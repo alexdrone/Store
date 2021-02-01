@@ -5,7 +5,7 @@ import Store
 
 struct ContentView: View {
   @ObservedObject var store: AppStateStore
-  var model: AppState { store.modelStorage.model }
+  var model: AppState { store.readOnlyModel }
 
   @ViewBuilder
   var body: some View {
@@ -22,6 +22,7 @@ struct ContentView: View {
     }
   }
   
+  @ViewBuilder
   private var loadingStoriesBody: some View {
     VStack {
       Text("Loading stories...").font(.body)
@@ -31,6 +32,7 @@ struct ContentView: View {
     }
   }
   
+  @ViewBuilder
   private var noStoriesBody: some View {
     VStack {
       Spacer()
@@ -43,10 +45,12 @@ struct ContentView: View {
     }
   }
   
+  @ViewBuilder
   private var bindingProxyTest: some View {
-    Toggle("", isOn: store.binding.flag).padding(/*@START_MENU_TOKEN@*/.all/*@END_MENU_TOKEN@*/, /*@START_MENU_TOKEN@*/10/*@END_MENU_TOKEN@*/)
+    Toggle("", isOn: $store.binding.flag).padding(/*@START_MENU_TOKEN@*/.all/*@END_MENU_TOKEN@*/, /*@START_MENU_TOKEN@*/10/*@END_MENU_TOKEN@*/)
   }
   
+  @ViewBuilder
   private var storiesBody: some View {
     List {
       ForEach(model.items.value ?? []) {
