@@ -49,7 +49,7 @@ public final class LoggerMiddleware: Middleware {
       logger.info("▩ \(id) \(name) [\(millis)) ms]")
       _transactionStartNanos[transaction.id] = nil
     case .canceled:
-      logger.info("▩ \(id) \(name) [✖ cancelled]")
+      logger.info("▩ \(id) \(id) \(name) [✖ cancelled]")
       _transactionStartNanos[transaction.id] = nil
     }
     _lock.unlock()

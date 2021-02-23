@@ -103,6 +103,8 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
   private var _performWithoutNotifyingObservers: Bool = false
   private var _modelStorageObserver: AnyCancellable?
   
+  public var debugDescription: String { "@\(M.self)" }
+  
   /// Constructs a new Store instance with a given initial model.
   public convenience init(model: M) {
     self.init(modelStorage: ModelStorage(model: model))
@@ -158,6 +160,11 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
     let new = modelStorage.model
     didUpdateModel(transaction: transaction, old: old, new: new)
   }
+  
+  public func reduceSync(closure: @escaping (inout M) -> Void) {
+    let action = Reduce<M>(reduce: closure)
+    run(actions: [action], mode: .sync, handler: nil)
+  }
 
   /// Emits the `objectWillChange` event and propage the changes to its parent.
   /// - note: Call `super` implementation if you override this function.
@@ -169,6 +176,7 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
     perform()
     _performWithoutNotifyingObservers = false
   }
+  
   
   // MARK: Middleware
 
@@ -280,22 +288,3 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
     return transaction.run()
   }
 }
-
-// MARK: - Binding Proxy
-
-/// This class is used to have read-write access to the model through `@Binding` in SwiftUI.
-@dynamicMemberLookup public struct BindingProxy<M> {
-  /// Associated store.
-  private weak var store: Store<M>!
-  
-  init(store: Store<M>) {
-    self.store = store
-  }
-  
-  public subscript<T>(dynamicMember keyPath: WritableKeyPath<M, T>) -> T {
-    get { store.modelStorage[dynamicMember: keyPath] }
-    set { store.run(action: TemplateAction.Assign(keyPath, newValue), mode: .mainThread) }
-  }
-}
-
-
