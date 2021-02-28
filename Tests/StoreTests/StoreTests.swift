@@ -105,9 +105,9 @@ final class StoreTests: XCTestCase {
     XCTAssert(store.modelStorage.count == 3)
   }
 
-  func testReduceSync() {
+  func testreduceSynchronous() {
     let store = CodableStore(model: TestModel(), diffing: .sync)
-    store.reduceSync { $0.count = 3 }
+    store.reduceSynchronous { $0.count = 3 }
     XCTAssert(store.modelStorage.count == 3)
   }
   

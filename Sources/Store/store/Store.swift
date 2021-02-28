@@ -161,7 +161,7 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
     didUpdateModel(transaction: transaction, old: old, new: new)
   }
   
-  public func reduceSync(closure: @escaping (inout M) -> Void) {
+  public func reduceSynchronous(closure: @escaping (inout M) -> Void) {
     let action = Reduce<M>(reduce: closure)
     run(actions: [action], mode: .sync, handler: nil)
   }
@@ -176,7 +176,6 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
     perform()
     _performWithoutNotifyingObservers = false
   }
-  
   
   // MARK: Middleware
 

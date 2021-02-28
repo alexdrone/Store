@@ -10,7 +10,8 @@ import OpenCombineDispatch
 /// It provides observability and thread-safe access to the underlying model.
 ///
 /// Abstract base class for `ModelStorage` and `ChildModelStorage`.
-@dynamicMemberLookup open class ModelStorageBase<M>: ObservableObject {
+@dynamicMemberLookup
+open class ModelStorageBase<M>: ObservableObject {
   
   /// A publisher that publishes changes from observable objects.
   public let objectWillChange = ObservableObjectPublisher()
@@ -40,8 +41,9 @@ import OpenCombineDispatch
   fileprivate var _parentObjectWillChangeObserver: AnyCancellable?
 }
 
-
-@dynamicMemberLookup public final class ModelStorage<M>: ModelStorageBase<M> {
+/// Concrete implementation for `ModelStorageBase`.
+@dynamicMemberLookup
+public final class ModelStorage<M>: ModelStorageBase<M> {
 
   override public var model: M { _model }
 
@@ -66,7 +68,10 @@ import OpenCombineDispatch
   }
 }
 
-@dynamicMemberLookup public final class ChildModelStorage<P, M>: ModelStorageBase<M> {
+/// Create a model storage from a `ModelStorage` model subtree defined by a key path.
+/// The model for this store is shared with the parent.
+@dynamicMemberLookup
+public final class ChildModelStorage<P, M>: ModelStorageBase<M> {
   
   override public var model: M { _parent[dynamicMember: _keyPath] }
 
@@ -93,7 +98,10 @@ import OpenCombineDispatch
   }
 }
 
-@dynamicMemberLookup public final class UnownedChildModelStorage<P, M>: ModelStorageBase<M> {
+/// Whenever this object change the parent model is reconciled with the change (and will
+/// subsequently emit an `objectWillChange` notification).
+@dynamicMemberLookup
+public final class UnownedChildModelStorage<P, M>: ModelStorageBase<M> {
   private let _parent: ModelStorageBase<P>
   private var _model: M
   private let _merge: (inout P, M) -> Void

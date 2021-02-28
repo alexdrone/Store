@@ -1,5 +1,8 @@
-extension KeyPath {
+import Foundation
+
+public extension KeyPath {
   
+  /// Returns the human readable name for the property pointed at.
   var readableFormat: String? {
     guard let offset = MemoryLayout<Root>.offset(of: self) else {
       return nil
@@ -7,15 +10,18 @@ extension KeyPath {
     let typePtr = unsafeBitCast(Root.self, to: UnsafeMutableRawPointer.self)
     let metadata = typePtr.assumingMemoryBound(to: StructMetadata.self)
     let kind = metadata.pointee._kind
+    
+    // see https://github.com/apple/swift/blob/main/include/swift/ABI/MetadataKind.def
     guard kind == 1 || kind == 0x200 else {
       assertionFailure()
       return nil
     }
+  
     let typeDescriptor = metadata.pointee.typeDescriptor
     let numberOfFields = Int(typeDescriptor.pointee.numberOfFields)
-    let offsets = typeDescriptor.pointee
-      .offsetToTheFieldOffsetVector
+    let offsets = typeDescriptor.pointee.offsetToTheFieldOffsetVector
       .buffer(metadata: typePtr, count: numberOfFields)
+    
     guard let fieldIndex = offsets.firstIndex(of: Int32(offset)) else {
       return nil
     }
@@ -26,7 +32,8 @@ extension KeyPath {
   }
 }
 
-// MARK: - Layout
+// MARK: - Internal Layout
+
 private struct StructMetadata {
   var _kind: Int
   var typeDescriptor: UnsafeMutablePointer<StructTypeDescriptor>
@@ -67,9 +74,8 @@ private struct Buffer<Element> {
   var element: Element
   
   mutating func pointer() -> UnsafeMutablePointer<Element> {
-    return withUnsafePointer(to: &self) {
-      UnsafeMutableRawPointer(mutating: UnsafeRawPointer($0))
-        .assumingMemoryBound(to: Element.self)
+    withUnsafePointer(to: &self) {
+      UnsafeMutableRawPointer(mutating: UnsafeRawPointer($0)).assumingMemoryBound(to: Element.self)
     }
   }
 }

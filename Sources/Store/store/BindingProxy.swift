@@ -32,16 +32,20 @@ public func ?? <T>(lhs: Binding<T?>, rhs: T) -> Binding<T> {
   )
 }
 
-/// Bridges any binding to a `String` binding.
-public func BindingAsString<T>(
-  _ binding: Binding<T>,
-  _ encode: @escaping (T) -> String = { "\($0)" },
-  _ decode: @escaping (String) -> T
-) -> Binding<String> {
-  Binding(
-    get: { encode(binding.wrappedValue) },
-    set: { binding.wrappedValue = decode($0) }
-  )
+extension Binding {
+    
+  /// When the `Binding`'s `wrappedValue` changes, the given closure is executed.
+  ///
+  /// - Parameter closure: Chunk of code to execute whenever the value changes.
+  /// - Returns: New `Binding`.
+  func onUpdate(_ closure: @escaping () -> Void) -> Binding<Value> {
+    Binding(
+      get: { wrappedValue },
+      set: {
+        wrappedValue = $0
+        closure()
+      })
+  }
 }
 
 #endif
