@@ -16,7 +16,7 @@ import OpenCombineDispatch
   }
   
   public subscript<T>(dynamicMember keyPath: WritableKeyPath<M, T>) -> T {
-    get { store.modelStorage[dynamicMember: keyPath] }
+    get { store.modelStorage.model[keyPath: keyPath] }
     set { store.run(action: Assign(keyPath, newValue), mode: .mainThread) }
   }
 }

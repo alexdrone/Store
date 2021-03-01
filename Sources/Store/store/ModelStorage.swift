@@ -10,7 +10,6 @@ import OpenCombineDispatch
 /// It provides observability and thread-safe access to the underlying model.
 ///
 /// Abstract base class for `ModelStorage` and `ChildModelStorage`.
-@dynamicMemberLookup
 open class ModelStorageBase<M>: ObservableObject {
   
   /// A publisher that publishes changes from observable objects.
@@ -19,11 +18,6 @@ open class ModelStorageBase<M>: ObservableObject {
   /// Read-only wrapped immutable model.
   public var model: M { fatalError() }
 
-  /// Managed acccess to the wrapped model.
-  open subscript<T>(dynamicMember keyPath: WritableKeyPath<M, T>) -> T {
-    fatalError()
-  }
-  
   /// Thread-safe access to the underlying wrapped immutable model.
   public func reduce(_ closure: (inout M) -> Void) {
     fatalError()
@@ -42,15 +36,9 @@ open class ModelStorageBase<M>: ObservableObject {
 }
 
 /// Concrete implementation for `ModelStorageBase`.
-@dynamicMemberLookup
 public final class ModelStorage<M>: ModelStorageBase<M> {
 
   override public var model: M { _model }
-
-  override public final subscript<T>(dynamicMember keyPath: WritableKeyPath<M, T>) -> T {
-    get { _model[keyPath: keyPath] }
-    set { reduce { $0[keyPath: keyPath] = newValue } }
-  }
   
   private var _model: M
   
@@ -70,10 +58,9 @@ public final class ModelStorage<M>: ModelStorageBase<M> {
 
 /// Create a model storage from a `ModelStorage` model subtree defined by a key path.
 /// The model for this store is shared with the parent.
-@dynamicMemberLookup
 public final class ChildModelStorage<P, M>: ModelStorageBase<M> {
   
-  override public var model: M { _parent[dynamicMember: _keyPath] }
+  override public var model: M { _parent.model[keyPath: _keyPath] }
 
   private let _parent: ModelStorageBase<P>
   private let _keyPath: WritableKeyPath<P, M>
@@ -86,11 +73,7 @@ public final class ChildModelStorage<P, M>: ModelStorageBase<M> {
       self?.objectWillChange.send()
     }
   }
-    
-  override public final subscript<T>(dynamicMember keyPath: WritableKeyPath<M, T>) -> T {
-    get { model[keyPath: keyPath] }
-    set { reduce { $0[keyPath: keyPath] = newValue } }
-  }
+
   
   override public func reduce(_ closure: (inout M) -> Void) {
     _parent.reduce { closure(&$0[keyPath: _keyPath]) }
@@ -100,7 +83,6 @@ public final class ChildModelStorage<P, M>: ModelStorageBase<M> {
 
 /// Whenever this object change the parent model is reconciled with the change (and will
 /// subsequently emit an `objectWillChange` notification).
-@dynamicMemberLookup
 public final class UnownedChildModelStorage<P, M>: ModelStorageBase<M> {
   private let _parent: ModelStorageBase<P>
   private var _model: M
@@ -117,11 +99,7 @@ public final class UnownedChildModelStorage<P, M>: ModelStorageBase<M> {
       self?.objectWillChange.send()
     }
   }
-  
-  override public final subscript<T>(dynamicMember keyPath: WritableKeyPath<M, T>) -> T {
-    get { _model[keyPath: keyPath] }
-    set { reduce { $0[keyPath: keyPath] = newValue } }
-  }
+
   
   override public func reduce(_ closure: (inout M) -> Void) {
     _modelLock.lock()

@@ -13,7 +13,7 @@ final class StoreTests: XCTestCase {
     store.register(middleware: LoggerMiddleware())
     store.run(action: TestAction.increase(amount: 42)) { error in
       XCTAssert(error == nil)
-      XCTAssert(store.modelStorage.count == 42)
+      XCTAssert(store.model.count == 42)
       transactionExpectation.fulfill()
     }
     waitForExpectations(timeout: 1)
@@ -28,7 +28,7 @@ final class StoreTests: XCTestCase {
       TestAction.increase(amount: 1),
       TestAction.increase(amount: 1),
     ]) { context in
-      XCTAssert(store.modelStorage.count == 3)
+      XCTAssert(store.model.count == 3)
       transactionExpectation.fulfill()
     }
     waitForExpectations(timeout: 10)
@@ -38,18 +38,18 @@ final class StoreTests: XCTestCase {
     let store = CodableStore(model: TestModel(), diffing: .sync)
     store.register(middleware: LoggerMiddleware())
     store.run(action: TestAction.updateLabel(newLabel: "Bar"), mode: .sync)
-    XCTAssert(store.modelStorage.label == "Bar")
-    XCTAssert(store.modelStorage.nested.label == "Bar")
+    XCTAssert(store.model.label == "Bar")
+    XCTAssert(store.model.nested.label == "Bar")
     store.run(action: TestAction.updateLabel(newLabel: "Foo"), mode: .sync)
-    XCTAssert(store.modelStorage.label == "Foo")
-    XCTAssert(store.modelStorage.nested.label == "Foo")
+    XCTAssert(store.model.label == "Foo")
+    XCTAssert(store.model.nested.label == "Foo")
   }
 
   func testAccessNestedKeyPathInArray() {
     let store = CodableStore(model: TestModel(), diffing: .sync)
     store.register(middleware: LoggerMiddleware())
     store.run(action: TestAction.setArray(index: 1, value: "Foo"), mode: .sync)
-    XCTAssert(store.modelStorage.array[1].label == "Foo")
+    XCTAssert(store.model.array[1].label == "Foo")
   }
 
   func testDiffResult() {
@@ -74,7 +74,7 @@ final class StoreTests: XCTestCase {
     let transaction = store.transaction(action: TestAction.increase(amount: 1))
     sink = transaction.$state.sink { state in
       XCTAssert(state != .completed)
-      XCTAssert(store.modelStorage.count == 0)
+      XCTAssert(store.model.count == 0)
       if state == .canceled {
         transactionExpectation.fulfill()
       }
@@ -93,7 +93,7 @@ final class StoreTests: XCTestCase {
     sink = store.futureOf(action: action1)
       .replaceError(with: ())
       .sink {
-      XCTAssert(store.modelStorage.count == 5)
+      XCTAssert(store.model.count == 5)
       transactionExpectation.fulfill()
     }
     waitForExpectations(timeout: 1)
@@ -102,13 +102,13 @@ final class StoreTests: XCTestCase {
   func testAccessToBindingProxy() {
     let store = CodableStore(model: TestModel(), diffing: .sync)
     store.binding.count = 3
-    XCTAssert(store.modelStorage.count == 3)
+    XCTAssert(store.model.count == 3)
   }
 
   func testreduceSynchronous() {
     let store = CodableStore(model: TestModel(), diffing: .sync)
     store.reduceSynchronous { $0.count = 3 }
-    XCTAssert(store.modelStorage.count == 3)
+    XCTAssert(store.model.count == 3)
   }
   
     static var allTests = [

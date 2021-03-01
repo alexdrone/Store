@@ -95,6 +95,7 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
   // See `AnyStore`.
   public var middleware: [Middleware] = []
   public private(set) var modelStorage: ModelStorageBase<M>
+  public var model: M { modelStorage.model }
   
   // Internal
   public var parent: AnyStore?
