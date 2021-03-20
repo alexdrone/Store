@@ -93,11 +93,11 @@ final class ChildStoreTests: XCTestCase {
     rootStore.noteStore.register(middleware: LoggerMiddleware())
     rootStore.listStore.register(middleware: LoggerMiddleware())
 
-    XCTAssertFalse(rootStore.model.todo.done)
-    XCTAssertFalse(rootStore.todoStore.model.done)
+    XCTAssertFalse(rootStore.readOnlyModel.todo.done)
+    XCTAssertFalse(rootStore.todoStore.readOnlyModel.done)
     rootStore.todoStore.run(action: Root.Todo.Action_MarkAsDone(), mode: .sync)
-    XCTAssertTrue(rootStore.todoStore.model.done)
-    XCTAssertTrue(rootStore.model.todo.done)
+    XCTAssertTrue(rootStore.todoStore.readOnlyModel.done)
+    XCTAssertTrue(rootStore.readOnlyModel.todo.done)
   }
   
   func testChildStoreChangesTriggersRootObserver() {
@@ -109,13 +109,13 @@ final class ChildStoreTests: XCTestCase {
     rootStore.listStore.register(middleware: LoggerMiddleware())
     
     sink = rootStore.objectWillChange.sink {
-      XCTAssertTrue(rootStore.model.todo.done)
-      XCTAssertTrue(rootStore.todoStore.model.done)
+      XCTAssertTrue(rootStore.readOnlyModel.todo.done)
+      XCTAssertTrue(rootStore.todoStore.readOnlyModel.done)
       observerExpectation.fulfill()
     }
     rootStore.todoStore.run(action: Root.Todo.Action_MarkAsDone(), mode: .sync)
-    XCTAssertTrue(rootStore.todoStore.model.done)
-    XCTAssertTrue(rootStore.model.todo.done)
+    XCTAssertTrue(rootStore.todoStore.readOnlyModel.done)
+    XCTAssertTrue(rootStore.readOnlyModel.todo.done)
     waitForExpectations(timeout: 1)
   }
   
@@ -127,14 +127,14 @@ final class ChildStoreTests: XCTestCase {
     rootStore.register(middleware: LoggerMiddleware())
     rootStore.listStore.register(middleware: LoggerMiddleware())
     
-    XCTAssertTrue(rootStore.listStore.model.count == 1)
-    XCTAssertTrue(rootStore.listStore.model[0].name == "New")
-    XCTAssertTrue(rootStore.listStore.model[0].description == "New")
-    XCTAssertTrue(rootStore.listStore.model[0].done == false)
-    XCTAssertTrue(rootStore.model.list.count == 1)
-    XCTAssertTrue(rootStore.model.list[0].name == "New")
-    XCTAssertTrue(rootStore.model.list[0].description == "New")
-    XCTAssertTrue(rootStore.model.list[0].done == false)
+    XCTAssertTrue(rootStore.listStore.readOnlyModel.count == 1)
+    XCTAssertTrue(rootStore.listStore.readOnlyModel[0].name == "New")
+    XCTAssertTrue(rootStore.listStore.readOnlyModel[0].description == "New")
+    XCTAssertTrue(rootStore.listStore.readOnlyModel[0].done == false)
+    XCTAssertTrue(rootStore.readOnlyModel.list.count == 1)
+    XCTAssertTrue(rootStore.readOnlyModel.list[0].name == "New")
+    XCTAssertTrue(rootStore.readOnlyModel.list[0].description == "New")
+    XCTAssertTrue(rootStore.readOnlyModel.list[0].done == false)
     
     let listStore = rootStore.listStore
     
@@ -142,17 +142,17 @@ final class ChildStoreTests: XCTestCase {
     todoStore.register(middleware: LoggerMiddleware())
 
     todoStore.run(action: Root.Todo.Action_MarkAsDone(), mode: .sync)
-    XCTAssertTrue(todoStore.model.name == "New")
-    XCTAssertTrue(todoStore.model.description == "New")
-    XCTAssertTrue(todoStore.model.done == true)
-    XCTAssertTrue(rootStore.listStore.model.count == 1)
-    XCTAssertTrue(rootStore.listStore.model[0].name == "New")
-    XCTAssertTrue(rootStore.listStore.model[0].description == "New")
-    XCTAssertTrue(rootStore.listStore.model[0].done == true)
-    XCTAssertTrue(rootStore.model.list.count == 1)
-    XCTAssertTrue(rootStore.model.list[0].name == "New")
-    XCTAssertTrue(rootStore.model.list[0].description == "New")
-    XCTAssertTrue(rootStore.model.list[0].done == true)
+    XCTAssertTrue(todoStore.readOnlyModel.name == "New")
+    XCTAssertTrue(todoStore.readOnlyModel.description == "New")
+    XCTAssertTrue(todoStore.readOnlyModel.done == true)
+    XCTAssertTrue(rootStore.listStore.readOnlyModel.count == 1)
+    XCTAssertTrue(rootStore.listStore.readOnlyModel[0].name == "New")
+    XCTAssertTrue(rootStore.listStore.readOnlyModel[0].description == "New")
+    XCTAssertTrue(rootStore.listStore.readOnlyModel[0].done == true)
+    XCTAssertTrue(rootStore.readOnlyModel.list.count == 1)
+    XCTAssertTrue(rootStore.readOnlyModel.list[0].name == "New")
+    XCTAssertTrue(rootStore.readOnlyModel.list[0].description == "New")
+    XCTAssertTrue(rootStore.readOnlyModel.list[0].done == true)
   }
 }
 
