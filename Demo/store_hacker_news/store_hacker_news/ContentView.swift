@@ -9,9 +9,9 @@ struct ContentView: View {
 
   @ViewBuilder
   var body: some View {
-    Group {
+    VStack {
       if model.selectedItem != nil {
-        StoryView(store: self.store.childStore(id: model.selectedItem!))
+        StoryView(store: store.childStore(id: model.selectedItem!))
       } else if model.items.isPending {
         loadingStoriesBody
       } else if !model.items.hasValue {
@@ -41,20 +41,14 @@ struct ContentView: View {
         Image(systemName: "tray.and.arrow.down")
       }
       Spacer()
-      bindingProxyTest
     }
   }
-  
-  @ViewBuilder
-  private var bindingProxyTest: some View {
-    Toggle("", isOn: $store.binding.flag).padding(/*@START_MENU_TOKEN@*/.all/*@END_MENU_TOKEN@*/, /*@START_MENU_TOKEN@*/10/*@END_MENU_TOKEN@*/)
-  }
-  
+
   @ViewBuilder
   private var storiesBody: some View {
     List {
       ForEach(model.items.value ?? []) {
-        StoryView(store: self.store.childStore(id: $0))
+        StoryView(store: store.childStore(id: $0))
       }
     }
   }
@@ -64,7 +58,7 @@ struct ContentView: View {
 
 struct StoryView: View {
   let store: Store<Item>
-  var model: Item { store.modelStorage.model }
+  var model: Item { store.readOnlyModel }
   
   private var title: String {
     model.title
@@ -98,14 +92,11 @@ struct StoryView: View {
   
   var expanded: some View {
     VStack(alignment: .center) {
-      Text(title).font(.system(.headline, design: .rounded))
-      ScrollView {
-        Text(caption).font(.callout)
-      }
-      Spacer()
+      Text(title).font(.system(.headline, design: .rounded)).padding()
+      Text(caption).font(.callout).padding()
       Button(action: store.deselect) {
         Image(systemName: "xmark.circle")
-      }
+      }.padding()
     }
   }
 

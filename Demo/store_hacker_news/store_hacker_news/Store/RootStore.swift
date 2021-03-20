@@ -16,12 +16,12 @@ struct FetchTopStories: Action {
   @CancellableStorage private var cancellable = nil
   
   /// The execution body for this action.
-  func reduce(context: TransactionContext<AppStateStore, Self>) {
-    context.reduceModel { model in
+  func mutate(context: TransactionContext<AppStateStore, Self>) {
+    context.update { model in
       model.items = .pending(progress: 0)
     }
     cancellable = context.store.api.fetchTopStories().sink { items in
-      context.reduceModel { model in
+      context.update { model in
         model.items = .success(value: items, etag: 0)
       }
       context.fulfill()
@@ -31,7 +31,7 @@ struct FetchTopStories: Action {
   /// Cancels the operation.
   func cancel(context: TransactionContext<AppStateStore, FetchTopStories>) {
     cancellable?.cancel()
-    context.reduceModel { model in
+    context.update { model in
       model.items = .uninitalized
     }
   }
@@ -62,26 +62,26 @@ class AppStateStore: CodableStore<AppState> {
   }
   
   func childStore(id: Item) -> Store<Item> {
-    guard let idx = modelStorage.items.value?.firstIndex(where: { $0.id == id.id }) else {
+    guard let idx = readOnlyModel.items.value?.firstIndex(where: { $0.id == id.id }) else {
       fatalError()
     }
-    let model = modelStorage.items.value![idx]
-    let modelStorage = UnownedChildModelStorage(parent: self.modelStorage, model: model) { _, _ in }
-    let store = Store(modelStorage: modelStorage)
-    store.parent = self
-    return store
+    let childModel = readOnlyModel.items.value![idx]
+    let modelStorage = UnownedChildModelStorage(parent: self.modelStorage, model: childModel) {
+      _, _ in
+    }
+    return Store(modelStorage: modelStorage, parent: self)
   }
 }
 
 extension Store where M == Item {
   var isSelected: Bool {
     guard let parent = parent(type: AppState.self) else { return false }
-    return parent.modelStorage.model.selectedItem?.id == modelStorage.model.id
+    return parent.readOnlyModel.selectedItem?.id == readOnlyModel.id
   }
   
   func select() {
     guard let parent = parent(type: AppState.self) as? AppStateStore else { return }
-    parent.selectStory(modelStorage.model)
+    parent.selectStory(readOnlyModel)
   }
   
   func deselect() {

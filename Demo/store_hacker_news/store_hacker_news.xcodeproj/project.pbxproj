@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		16268356260612F200BFA72C /* FetchedProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16268355260612F200BFA72C /* FetchedProperty.swift */; };
 		16B4C25424897617001B362B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16B4C25324897617001B362B /* AppDelegate.swift */; };
 		16B4C25624897617001B362B /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16B4C25524897617001B362B /* SceneDelegate.swift */; };
 		16B4C25824897617001B362B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16B4C25724897617001B362B /* ContentView.swift */; };
@@ -20,6 +21,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		16268355260612F200BFA72C /* FetchedProperty.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchedProperty.swift; sourceTree = "<group>"; };
 		16B4C25024897617001B362B /* store_hacker_news.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = store_hacker_news.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		16B4C25324897617001B362B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		16B4C25524897617001B362B /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -100,6 +102,7 @@
 			isa = PBXGroup;
 			children = (
 				16B4C27124897FB9001B362B /* RootStore.swift */,
+				16268355260612F200BFA72C /* FetchedProperty.swift */,
 			);
 			path = Store;
 			sourceTree = "<group>";
@@ -182,6 +185,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				16B4C26D248977A8001B362B /* Data.swift in Sources */,
+				16268356260612F200BFA72C /* FetchedProperty.swift in Sources */,
 				16B4C27224897FB9001B362B /* RootStore.swift in Sources */,
 				16B4C25424897617001B362B /* AppDelegate.swift in Sources */,
 				16B4C25624897617001B362B /* SceneDelegate.swift in Sources */,

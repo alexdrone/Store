@@ -15,7 +15,7 @@
         "repositoryURL": "https://github.com/alexdrone/Store",
         "state": {
           "branch": "master",
-          "revision": "f865af25d460688e9f744331de726d58116bfe38",
+          "revision": "88518378974bf6790c1940c36093de6c0a41a732",
           "version": null
         }
       },
@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/apple/swift-log.git",
         "state": {
           "branch": null,
-          "revision": "12d3a8651d32295794a850307f77407f95b8c881",
-          "version": "1.4.1"
+          "revision": "5d66f7ba25daf4f94100e7022febf3c75e37a6c7",
+          "version": "1.4.2"
         }
       }
     ]
