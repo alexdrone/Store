@@ -66,10 +66,10 @@ class AppStateStore: CodableStore<AppState> {
       fatalError()
     }
     let childModel = readOnlyModel.items.value![idx]
-    let modelStorage = UnownedChildModelStorage(parent: self.modelStorage, model: childModel) {
+    let childStorage = UnownedChildModelStorage(parent: modelStorage, model: childModel) {
       _, _ in
     }
-    return Store(modelStorage: modelStorage, parent: self)
+    return Store(modelStorage: childStorage, parent: self)
   }
 }
 
