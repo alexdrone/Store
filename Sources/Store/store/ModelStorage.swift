@@ -19,7 +19,7 @@ open class ModelStorageBase<M>: ObservableObject {
   public var model: M { fatalError() }
 
   /// Thread-safe access to the underlying wrapped immutable model.
-  public func reduce(_ closure: (inout M) -> Void) {
+  public func mutate(_ closure: (inout M) -> Void) {
     fatalError()
   }
   
@@ -31,15 +31,14 @@ open class ModelStorageBase<M>: ObservableObject {
   
   fileprivate init() { }
   
-  fileprivate var _modelLock = SpinLock()
-  fileprivate var _parentObjectWillChangeObserver: AnyCancellable?
+  fileprivate var modelLock = UnfairLock()
+  fileprivate var parentObjectWillChangeObserver: AnyCancellable?
 }
 
 /// Concrete implementation for `ModelStorageBase`.
 public final class ModelStorage<M>: ModelStorageBase<M> {
 
   override public var model: M { _model }
-  
   private var _model: M
   
   public init(model: M) {
@@ -47,11 +46,11 @@ public final class ModelStorage<M>: ModelStorageBase<M> {
     super.init()
   }
 
-  override public func reduce(_ closure: (inout M) -> Void) {
-    _modelLock.lock()
+  override public func mutate(_ closure: (inout M) -> Void) {
+    modelLock.lock()
     let new = assign(_model, changes: closure)
     _model = new
-    _modelLock.unlock()
+    modelLock.unlock()
     objectWillChange.send()
   }
 }
@@ -60,23 +59,23 @@ public final class ModelStorage<M>: ModelStorageBase<M> {
 /// The model for this store is shared with the parent.
 public final class ChildModelStorage<P, M>: ModelStorageBase<M> {
   
-  override public var model: M { _parent.model[keyPath: _keyPath] }
+  override public var model: M { parent.model[keyPath: keyPath] }
 
-  private let _parent: ModelStorageBase<P>
-  private let _keyPath: WritableKeyPath<P, M>
+  private let parent: ModelStorageBase<P>
+  private let keyPath: WritableKeyPath<P, M>
   
   public init(parent: ModelStorageBase<P>, keyPath: WritableKeyPath<P, M>) {
-    _parent = parent
-    _keyPath = keyPath
+    self.parent = parent
+    self.keyPath = keyPath
     super.init()
-    _parentObjectWillChangeObserver = parent.objectWillChange.sink { [weak self] in
+    parentObjectWillChangeObserver = parent.objectWillChange.sink { [weak self] in
       self?.objectWillChange.send()
     }
   }
 
   
-  override public func reduce(_ closure: (inout M) -> Void) {
-    _parent.reduce { closure(&$0[keyPath: _keyPath]) }
+  override public func mutate(_ closure: (inout M) -> Void) {
+    parent.mutate { closure(&$0[keyPath: keyPath]) }
     objectWillChange.send()
   }
 }
@@ -84,31 +83,30 @@ public final class ChildModelStorage<P, M>: ModelStorageBase<M> {
 /// Whenever this object change the parent model is reconciled with the change (and will
 /// subsequently emit an `objectWillChange` notification).
 public final class UnownedChildModelStorage<P, M>: ModelStorageBase<M> {
-  private let _parent: ModelStorageBase<P>
-  private var _model: M
-  private let _merge: (inout P, M) -> Void
+  private let parent: ModelStorageBase<P>
+  private let merge: (inout P, M) -> Void
   
   override public var model: M { _model }
+  private var _model: M
 
   public init(parent: ModelStorageBase<P>, model: M, merge: @escaping (inout P, M) -> Void) {
-    _parent = parent
-    _model = model
-    _merge = merge
+    self.parent = parent
+    self.merge = merge
+    self._model = model
     super.init()
-    _parentObjectWillChangeObserver = parent.objectWillChange.sink { [weak self] in
+    parentObjectWillChangeObserver = parent.objectWillChange.sink { [weak self] in
       self?.objectWillChange.send()
     }
   }
 
-  
-  override public func reduce(_ closure: (inout M) -> Void) {
-    _modelLock.lock()
-    let new = assign(_model, changes: closure)
+  override public func mutate(_ closure: (inout M) -> Void) {
+    modelLock.lock()
+    let new = assign(model, changes: closure)
     _model = new
-    _modelLock.unlock()
-    _parent.reduce { [weak self] in
+    modelLock.unlock()
+    parent.mutate { [weak self] in
       guard let self = self else { return }
-      self._merge(&$0, self._model)
+      self.merge(&$0, self.model)
     }
     objectWillChange.send()
   }

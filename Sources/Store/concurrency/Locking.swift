@@ -14,27 +14,23 @@ public func assign<T>(_ value: T, changes: (inout T) -> Void) -> T {
 
 // MARK: Spinlock Implementation
 
-struct SpinLock {
-  private var _spin = OS_SPINLOCK_INIT
-  private var _unfair = os_unfair_lock_s()
+/// Low-level lock that allows waiters to block efficiently on contention.
+/// This lock must be unlocked from the same thread that locked it, attempts to unlock from a
+/// different thread will cause an assertion aborting the process.
+/// This lock must not be accessed from multiple processes or threads via shared or multiply-mapped
+/// memory, the lock implementation relies on the address of the lock value and owning process.
+struct UnfairLock {
+  private var unfair = os_unfair_lock_s()
 
-  /// Locks a spinlock. Although the lock operation spins, it employs various strategies to back
-  /// off if the lock is held.
+  /// Locks an `os_unfair_lock`.
   mutating func lock() {
-    if #available(iOS 10.0, macOS 10.12, watchOS 3.0, tvOS 10.0, *) {
-      os_unfair_lock_lock(&_unfair)
-    } else {
-      OSSpinLockLock(&_spin)
-    }
+    os_unfair_lock_lock(&unfair)
+
   }
 
-  /// Unlocks a spinlock.
+  /// Unlocks an `os_unfair_lock`.
   mutating func unlock() {
-    if #available(iOS 10.0, macOS 10.12, watchOS 3.0, tvOS 10.0, *) {
-      os_unfair_lock_unlock(&_unfair)
-    } else {
-      OSSpinLockUnlock(&_spin)
-    }
+    os_unfair_lock_unlock(&unfair)
   }
 }
 

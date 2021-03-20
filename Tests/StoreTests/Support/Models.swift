@@ -10,7 +10,6 @@ struct TestModel: Codable {
   var nullableLabel: String? = "Something"
   var nested = Nested()
   var array: [Nested] = [Nested(), Nested()]
-  var stateDemo: FetchedProperty<String, NoEtag> = .uninitalized
 
   struct Nested: Codable {
     var label = "Nested struct"
@@ -37,31 +36,31 @@ enum TestAction: Action {
     }
   }
 
-  func reduce(context: TransactionContext<Store<TestModel>, Self>) {
+  func mutate(context: TransactionContext<Store<TestModel>, Self>) {
     switch self {
     case .increase(let amount):
-      context.reduceModel { $0.count += amount }
+      context.update { $0.count += amount }
       context.fulfill()
     case .increaseWithDelay(let amount, let delay):
       DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-        context.reduceModel { $0.count += amount }
+        context.update { $0.count += amount }
         context.fulfill()
       }
     case .throttleIncrease(let amount):
-      context.reduceModel { $0.count += amount }
+      context.update { $0.count += amount }
       context.fulfill()
     case .decrease(let amount):
-      context.reduceModel { $0.count -= amount }
+      context.update { $0.count -= amount }
       context.fulfill()
     case .updateLabel(let newLabel):
-      context.reduceModel {
+      context.update {
         $0.label = newLabel
         $0.nested.label = newLabel
         $0.nullableLabel = nil
       }
       context.fulfill()
     case .setArray(let index, let value):
-      context.reduceModel {
+      context.update {
         $0.array[index].label = value
       }
       context.fulfill()
@@ -73,16 +72,4 @@ enum TestAction: Action {
 
 enum TestError: Error {
   case unknown
-}
-
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-struct CancellableAction: Action {
-
-  func reduce(context: TransactionContext<Store<TestModel>, Self>) {
-    context.reduceModel { $0.stateDemo = .success(value: "Loaded", etag: noEtag) }
-  }
-
-  func cancel(context: TransactionContext<Store<TestModel>, Self>) {
-    context.reduceModel { $0.stateDemo = .error(TestError.unknown) }
-  }
 }

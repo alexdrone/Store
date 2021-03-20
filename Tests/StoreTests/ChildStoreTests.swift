@@ -39,9 +39,9 @@ class RootStore: CodableStore<Root> {
 extension Root.Todo {
   struct Action_MarkAsDone: Action {
     let id = "MARK_AS_DONE"
-    func reduce(context: TransactionContext<Store<Root.Todo>, Self>) {
+    func mutate(context: TransactionContext<Store<Root.Todo>, Self>) {
       defer { context.fulfill() }
-      context.reduceModel { $0.done = true }
+      context.update { $0.done = true }
     }
   
     func cancel(context: TransactionContext<Store<Root.Todo>, Self>) { }
@@ -51,9 +51,9 @@ extension Root.Todo {
 extension Root.Note {
   struct Action_IncreaseUpvotes: Action {
     let id = "INCREASE_UPVOTES"
-    func reduce(context: TransactionContext<Store<Root.Note>, Self>) {
+    func mutate(context: TransactionContext<Store<Root.Note>, Self>) {
       defer { context.fulfill() }
-      context.reduceModel { $0.upvotes += 1 }
+      context.update { $0.upvotes += 1 }
     }
     
     func cancel(context: TransactionContext<Store<Root.Note>, Self>) { }
@@ -67,10 +67,10 @@ extension Root.Todo {
     let id = "LIST_CREATE_NEW"
     let name: String
     let description: String
-    func reduce(context: TransactionContext<Store<Array<Root.Todo>>, Self>) {
+    func mutate(context: TransactionContext<Store<Array<Root.Todo>>, Self>) {
       defer { context.fulfill() }
       let new = Root.Todo(name: name, description: description)
-      context.reduceModel {
+      context.update {
         $0.append(new)
       }
     }

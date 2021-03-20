@@ -1,6 +1,6 @@
 import Foundation
 
-public struct TransactionContext<S: ReducibleStore, A: Action> {
+public struct TransactionContext<S: MutableStore, A: Action> {
   /// The operation that is currently running.
   /// - note: Invoke `context.operation.finish` to signal task completion.
   public let operation: AsyncOperation
@@ -14,8 +14,8 @@ public struct TransactionContext<S: ReducibleStore, A: Action> {
   public let transaction: Transaction<A>
   
   /// Atomically update the store's model.
-  public func reduceModel(closure: (inout S.ModelType) -> (Void)) {
-    store.reduceModel(transaction: transaction, closure: closure)
+  public func update(closure: (inout S.ModelType) -> (Void)) {
+    store.update(transaction: transaction, closure: closure)
   }
 
   /// Terminates the operation if there was an error raised by a previous action in the following

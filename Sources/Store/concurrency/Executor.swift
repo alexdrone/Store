@@ -6,26 +6,29 @@ public final class Executor {
   public typealias TransactionCompletion = ((Error?) -> Void)?
 
   /// The threading strategy that should be used for a given action.
-  public enum Strategy {
-    /// The action is dispatched asynchronously on the main thread.
+  public enum Mode {
+    /// Dispatch asynchronously on the main thread.
     case mainThread
-    /// The action is dispatched synchronously without changing context.
+    
+    /// Dispatch synchronously without changing context.
     case sync
-    /// The action is dispatched on a serial background queue.
+    
+    /// Dispatch on a serial background queue.
     case async(_ identifier: String?)
   }
   
-  /// Shared instance.
   public static let main = Executor()
   
   // Private.
   
   /// The background queue used for the .async mode.
-  private let _backgroundQueue = OperationQueue()
+  private let backgroundQueue = OperationQueue()
+  
   /// Action identifier to `Throttler` map.
-  private var _throttlersToActionIdMap: [String: Throttler] = [:]
+  private var throttlersToActionIdMap: [String: Throttler] = [:]
+  
   /// User-defined operation queues.
-  private var _queues: [String: OperationQueue] = [:]
+  private var queues: [String: OperationQueue] = [:]
 
   /// Run a set of transaction concurrently.
   public func run(
@@ -48,7 +51,7 @@ public final class Executor {
     for transaction in transactions {
       transaction.error = error
       /// Throttles the transaction if necessary.
-      if let throttler = _throttlersToActionIdMap[transaction.actionId] {
+      if let throttler = throttlersToActionIdMap[transaction.actionId] {
         throttler.throttle(
           /// The operation execution body.
           execution: {
@@ -66,19 +69,15 @@ public final class Executor {
 
   /// Throttle an action for a specified delay time.
   public func throttle(actionId: String, minimumDelay: TimeInterval) {
-    guard _throttlersToActionIdMap[actionId] == nil else {
-      return
-    }
-    _throttlersToActionIdMap[actionId] = Throttler(minimumDelay: minimumDelay)
+    guard throttlersToActionIdMap[actionId] == nil else { return }
+    throttlersToActionIdMap[actionId] = Throttler(minimumDelay: minimumDelay)
   }
 
   /// Returns the queue registered with the given identifier
   /// - note: If no identifier is passed as argument, the global background queue is returned.
   public func operationQueue(id: String? = nil) -> OperationQueue? {
-    guard let id = id else {
-      return _backgroundQueue
-    }
-    let queue = _queues[id]
+    guard let id = id else { return backgroundQueue }
+    let queue = queues[id]
     if queue == nil {
       logger.error("No queue registered with identifier: \(id).")
     }
@@ -87,7 +86,7 @@ public final class Executor {
 
   /// Registers a new operation queue.
   public func registerOperationQueue(id: String, queue: OperationQueue) {
-    _queues[id] = queue
+    queues[id] = queue
   }
 
   /// Cancel all of the operations of the given queue.
@@ -101,7 +100,7 @@ public final class Executor {
 
   private func _run(transaction: AnyTransaction) {
     let operation = transaction.operation
-    switch transaction.strategy {
+    switch transaction.mode {
     case .mainThread:
       if Thread.isMainThread {
         operation.start()
@@ -114,7 +113,7 @@ public final class Executor {
       operation.start()
       operation.waitUntilFinished()
     case .async(let id):
-      let queue = operationQueue(id: id) ?? _backgroundQueue
+      let queue = operationQueue(id: id) ?? backgroundQueue
       queue.addOperation(operation)
     }
   }
@@ -123,15 +122,16 @@ public final class Executor {
 // MARK: - Throttle
 
 public class Throttler {
-  private var _executionItem = DispatchWorkItem(block: {})
-  private var _cancellationItem = DispatchWorkItem(block: {})
-  private var _previousRun = Date.distantPast
-  private let _queue: DispatchQueue
-  private let _minimumDelay: TimeInterval
+
+  private var executionItem = DispatchWorkItem(block: {})
+  private var cancellationItem = DispatchWorkItem(block: {})
+  private var previousRun = Date.distantPast
+  private let queue: DispatchQueue
+  private let minimumDelay: TimeInterval
 
   public init(minimumDelay: TimeInterval, queue: DispatchQueue = DispatchQueue.main) {
-    self._minimumDelay = minimumDelay
-    self._queue = queue
+    self.minimumDelay = minimumDelay
+    self.queue = queue
   }
 
   public func throttle(
@@ -139,20 +139,20 @@ public class Throttler {
     cancellation: @escaping () -> Void = {}
   ) -> Void {
     // Cancel any existing work item if it has not yet executed
-    _executionItem.cancel()
-    _cancellationItem.perform()
+    executionItem.cancel()
+    cancellationItem.perform()
     // Re-assign workItem with the new block task, resetting the previousRun time when it executes
-    _executionItem = DispatchWorkItem() { [weak self] in
-      self?._previousRun = Date()
+    executionItem = DispatchWorkItem() { [weak self] in
+      self?.previousRun = Date()
       execution()
     }
-    _cancellationItem = DispatchWorkItem() {
+    cancellationItem = DispatchWorkItem() {
       cancellation()
     }
     // If the time since the previous run is more than the required minimum delay
     // { execute the workItem immediately }  else
     // { delay the workItem execution by the minimum delay time }
-    let delay = _previousRun.timeIntervalSinceNow > _minimumDelay ? 0 : _minimumDelay
-    _queue.asyncAfter(deadline: .now() + Double(delay), execute: _executionItem)
+    let delay = previousRun.timeIntervalSinceNow > minimumDelay ? 0 : minimumDelay
+    queue.asyncAfter(deadline: .now() + Double(delay), execute: executionItem)
   }
 }

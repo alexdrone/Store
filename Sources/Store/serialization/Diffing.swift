@@ -13,6 +13,7 @@ import Logging
     segments.append(member)
     return self
   }
+  
   /// Returns a property/property format for a given keypath format.
   public func toKeyPath() -> FlatEncoding.KeyPath {
     FlatEncoding.KeyPath(segments: segments)

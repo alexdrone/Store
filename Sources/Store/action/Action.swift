@@ -7,11 +7,10 @@ import OpenCombine
 import OpenCombineDispatch
 #endif
 
-
 /// An action represent an operation on the store.
 public protocol Action: Identifiable {
   
-  associatedtype AssociatedStoreType: ReducibleStore
+  associatedtype AssociatedStoreType: MutableStore
   
   /// Unique action identifier.
   /// An high level description of the action (e.g. `FETCH_USER` or `DELETE_COMMENT`)
@@ -19,7 +18,7 @@ public protocol Action: Identifiable {
   
   /// The execution body for this action.
   /// - note: Invoke `context.operation.finish` to signal task completion.
-  func reduce(context: TransactionContext<AssociatedStoreType, Self>)
+  func mutate(context: TransactionContext<AssociatedStoreType, Self>)
   
   /// Used to implement custom cancellation logic for this action.
   /// E.g. Stop network transfer.
@@ -55,6 +54,7 @@ extension Action {
 ///
 /// ```
 @propertyWrapper public final class CancellableStorage {
+
     public var wrappedValue: AnyCancellable?
   
     public init(wrappedValue: AnyCancellable? = nil) {
@@ -62,55 +62,94 @@ extension Action {
     }
 }
 
-/// Reduce the model by using the closure passed as argument.
-public struct Reduce<M>: Action {
-  public let id: String
-  public let reduce: (inout M) -> Void
+// MARK: - Mutate
 
-  public init(id: String = _ID.reduce, reduce: @escaping (inout M) -> Void) {
+extension Store {
+  
+  /// Mutate the model with the closure passed as argument.
+  public func mutate(
+    id: String = _ID.mutate,
+    mode: Executor.Mode = .sync,
+    mutate: @escaping (inout M) -> Void
+  ) {
+    let action = Mutate(id: id, mutate: mutate)
+    run(action: action, mode: mode)
+  }
+}
+
+/// Mutate the model by using the closure passed as argument.
+public struct Mutate<M>: Action {
+  
+  public let id: String
+  public let mutate: (inout M) -> Void
+
+  public init(id: String = _ID.mutate, mutate: @escaping (inout M) -> Void) {
     self.id = id
-    self.reduce = reduce
+    self.mutate = mutate
   }
   
-  public func reduce(context: TransactionContext<Store<M>, Self>) {
+  public func mutate(context: TransactionContext<Store<M>, Self>) {
     defer {
       context.fulfill()
     }
-    context.reduceModel(closure: reduce)
+    context.update(closure: mutate)
   }
   
   public func cancel(context: TransactionContext<Store<M>, Self<M, V>>) { }
 }
 
+// MARK: - Assign
+
+extension Store {
+
+  /// Mutate the model at the target key path passed as argument.
+  public func mutate<V>(
+    keyPath: WritableKeyPath<M, V>,
+    value: V,
+    mode: Executor.Mode = .sync
+  ) {
+    let action = Assign(keyPath, value)
+    run(action: action, mode: mode)
+  }
+  
+  /// Synchronously mutate the model at the target key path passed as argument.
+  public func mutateSynchronous<V>(keyPath: WritableKeyPath<M, V?>, value: V?) {
+    let action = Assign(keyPath, value)
+    run(action: action, mode: .sync)
+  }
+}
+
 /// Assigns the value passed as argument to the model's keyPath.
 public struct Assign<M, V>: Action {
-  public let id: String
-  public let keyPath: KeyPathArg<M, V>
-  public let value: V?
   
-  public init(id: String = _ID.assign, _ keyPath: KeyPathArg<M, V>, _ value: V) {
-    self.id = id
+  public let id: String
+  
+  private let value: V?
+  private let keyPath: KeyPathTarget<M, V>
+
+  private init(_ keyPath: KeyPathTarget<M, V>, _ value: V) {
+    self.id = _ID.assign
     self.keyPath = keyPath
     self.value = value
   }
 
-  public init(id: String = _ID.assign, _ keyPath: WritableKeyPath<M, V>, _ value: V) {
-    self.id = "\(id)[\(keyPath.readableFormat ?? "unknown")]"
+  public init(_ keyPath: WritableKeyPath<M, V>, _ value: V) {
+    self.id = "\(_ID.assign)[\(keyPath.readableFormat ?? "unknown")]"
     self.keyPath = .value(keyPath: keyPath)
     self.value = value
   }
   
-  public init(id: String = _ID.assign,_ keyPath: WritableKeyPath<M, V?>, _ value: V?) {
-    self.id = "\(id)[\(keyPath.readableFormat ?? "unknown")]"
+  public init(_ keyPath: WritableKeyPath<M, V?>, _ value: V?) {
+    self.id = "\(_ID.assign)[\(keyPath.readableFormat ?? "unknown")]"
     self.keyPath = .optional(keyPath: keyPath)
     self.value = value
   }
   
-  public func reduce(context: TransactionContext<Store<M>, Self>) {
+  public func mutate(context: TransactionContext<Store<M>, Self>) {
     defer {
       context.fulfill()
     }
-    context.reduceModel { model in
+    context.update { model in
       _assignKeyPath(object: &model, keyPath: keyPath, value: value)
     }
   }
@@ -118,18 +157,18 @@ public struct Assign<M, V>: Action {
   public func cancel(context: TransactionContext<Store<M>, Self<M, V>>) { }
 }
 
-// MARK: - Internal
+// MARK: - Private
 
-public enum KeyPathArg<M, V> {
+private enum KeyPathTarget<M, V> {
+
   /// A non-optional writeable keyPath.
   case value(keyPath: WritableKeyPath<M, V>)
+  
   /// A optional writeable keyPath.
   case optional(keyPath: WritableKeyPath<M, V?>)
 }
 
-// MARK: - Private
-
-private func _assignKeyPath<M, V>(object: inout M, keyPath: KeyPathArg<M, V>, value: V?) {
+private func _assignKeyPath<M, V>(object: inout M, keyPath: KeyPathTarget<M, V>, value: V?) {
   switch keyPath {
   case .value(let keyPath):
     guard let value = value else { return }
@@ -142,6 +181,6 @@ private func _assignKeyPath<M, V>(object: inout M, keyPath: KeyPathArg<M, V>, va
 // MARK: - IDs
 
 public struct _ID {
-  public static let reduce = "_REDUCE"
-  public static let assign = "_BINDING_ASSIGN"
+  public static let mutate = "MUTATE"
+  public static let assign = "BINDING_ASSIGN"
 }

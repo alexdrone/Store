@@ -41,9 +41,9 @@ public protocol AnyStore: class {
 }
 
 /// Represents a store that has an typed associated model.
-/// A reducible store can perform updates to its model by calling the
-/// `reduceModel(transaction:closure:)` function.
-public protocol ReducibleStore: AnyStore {
+/// A reducible store can perform updates to its model by calling the `update(transaction:closure:)`
+/// function.
+public protocol MutableStore: AnyStore {
   associatedtype ModelType
   
   /// The associated model object.
@@ -51,7 +51,7 @@ public protocol ReducibleStore: AnyStore {
   var modelStorage: ModelStorageBase<ModelType> { get }
   
   /// Atomically update the model and notifies all of the observers.
-  func reduceModel(transaction: AnyTransaction?, closure: (inout ModelType) -> Void)
+  func update(transaction: AnyTransaction?, closure: (inout ModelType) -> Void)
 }
 
 // MARK: - Concrete Store
@@ -79,9 +79,11 @@ public protocol ReducibleStore: AnyStore {
 ///   }
 /// }
 /// ```
-open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
+open class Store<M>: MutableStore, ObservableObject, Identifiable {
+
   /// A publisher that emits when the model has changed.
   public let objectWillChange = ObservableObjectPublisher()
+
   /// Used to have read-write access to the model through `@Binding` in SwiftUI.
   /// e.g.
   /// `Toggle("...", isOn: $store.bindingProxy.someProperty)`.
@@ -98,29 +100,31 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
   public var model: M { modelStorage.model }
   
   // Internal
-  public var parent: AnyStore?
+  public let parent: AnyStore?
   
   // Private.
-  private var _performWithoutNotifyingObservers: Bool = false
-  private var _modelStorageObserver: AnyCancellable?
+  private var performWithoutNotifyingObservers: Bool = false
+  private var modelStorageObserver: AnyCancellable?
   
   public var debugDescription: String { "@\(M.self)" }
   
   /// Constructs a new Store instance with a given initial model.
-  public convenience init(model: M) {
+  public convenience init(model: M, parent: AnyStore? = nil) {
     self.init(modelStorage: ModelStorage(model: model))
   }
   
-  public init(modelStorage: ModelStorageBase<M>) {
+  public init(modelStorage: ModelStorageBase<M>, parent: AnyStore? = nil) {
     self.modelStorage = modelStorage
+    self.parent = parent
     self.binding = BindingProxy(store: self)
+    
     register(middleware: LoggerMiddleware())
     
-    _modelStorageObserver = modelStorage.objectWillChange
+    modelStorageObserver = modelStorage.objectWillChange
       .receive(on: RunLoop.main)
       .sink { [weak self] in
         guard let self = self else { return }
-        guard !self._performWithoutNotifyingObservers else { return }
+        guard !self.performWithoutNotifyingObservers else { return }
         self.objectWillChange.send()
       }
   }
@@ -141,8 +145,7 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
   ///  - parameter keyPath: The keypath pointing at a subtree of the model object.
   public func makeChildStore<C>(keyPath: WritableKeyPath<M, C>) -> Store<C> {
     let childModelStorage: ModelStorageBase<C> = modelStorage.makeChild(keyPath: keyPath)
-    let store = Store<C>(modelStorage: childModelStorage)
-    store.parent = self
+    let store = Store<C>(modelStorage: childModelStorage, parent: self)
     return store
   }
   
@@ -155,16 +158,11 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
 
   // MARK: Model updates
 
-  open func reduceModel(transaction: AnyTransaction? = nil, closure: (inout M) -> Void) {
+  public func update(transaction: AnyTransaction? = nil, closure: (inout M) -> Void) {
     let old = modelStorage.model
-    modelStorage.reduce(closure)
+    modelStorage.mutate(closure)
     let new = modelStorage.model
     didUpdateModel(transaction: transaction, old: old, new: new)
-  }
-  
-  public func reduceSynchronous(closure: @escaping (inout M) -> Void) {
-    let action = Reduce<M>(reduce: closure)
-    run(actions: [action], mode: .sync, handler: nil)
   }
 
   /// Emits the `objectWillChange` event and propage the changes to its parent.
@@ -173,9 +171,9 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
   }
   
   public func performWithoutNotifyingObservers(_ perform: () -> Void) {
-    _performWithoutNotifyingObservers = true
+    performWithoutNotifyingObservers = true
     perform()
-    _performWithoutNotifyingObservers = false
+    performWithoutNotifyingObservers = false
   }
   
   // MARK: Middleware
@@ -216,7 +214,7 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
   /// - parameter mode: The execution strategy (*sync*/*aysnc*).
   @discardableResult public func transaction<A: Action, M>(
     action: A,
-    mode: Executor.Strategy = .async(nil)
+    mode: Executor.Mode = .async(nil)
   ) -> Transaction<A> where A.AssociatedStoreType: Store<M> {
     
     guard let store = self as? A.AssociatedStoreType else {
@@ -239,7 +237,7 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
   /// - returns: The transaction associated to this action execution.
   @discardableResult public func run<A: Action, M>(
     action: A,
-    mode: Executor.Strategy = .async(nil),
+    mode: Executor.Mode = .async(nil),
     throttle: TimeInterval = 0,
     handler: Executor.TransactionCompletion = nil
   ) -> Transaction<A> where A.AssociatedStoreType: Store<M> {
@@ -255,7 +253,7 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
   /// `actions[2]` after `actions[1]` and so on.
   @discardableResult public func run<A: Action, M>(
     actions: [A],
-    mode: Executor.Strategy = .async(nil),
+    mode: Executor.Mode = .async(nil),
     handler: Executor.TransactionCompletion = nil
   ) -> [Transaction<A>] where A.AssociatedStoreType: Store<M> {
     
@@ -279,7 +277,7 @@ open class Store<M>: ReducibleStore, ObservableObject, Identifiable {
   /// - returns: A future that is resolved whenever the action has completed its execution.
   @discardableResult public func futureOf<A: Action, M>(
     action: A,
-    mode: Executor.Strategy = .async(nil),
+    mode: Executor.Mode = .async(nil),
     throttle: TimeInterval = 0
   ) -> Future<Void, Error> where A.AssociatedStoreType: Store<M> {
     

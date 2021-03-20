@@ -48,16 +48,16 @@ enum CounterAction: Action {
   case increase
   case decrease
 
-  func reduce(context: TransactionContext<Store<Counter>, Self>) {
+  func mutate(context: TransactionContext<Store<Counter>, Self>) {
     defer {
       // Remember to always call `fulfill` to signal the completion of this operation.
       context.fulfill()
     }
     switch self {
     case .increase(let amount):
-      context.reduceModel { $0.count += 1 }
+      context.update { $0.count += 1 }
     case .decrease(let amount):
-      context.reduceModel { $0.count -= 1 }
+      context.update { $0.count -= 1 }
     }
   }
   
@@ -71,12 +71,12 @@ Or a struct:
 struct IncreaseAction: Action {
   let count: Int
 
-  func reduce(context: TransactionContext<Store<Counter>, Self>) {
+  func mutate(context: TransactionContext<Store<Counter>, Self>) {
     defer {
       // Remember to always call `fulfill` to signal the completion of this operation.
       context.fulfill()
     }
-    context.reduceModel { $0.count += 1 }
+    context.mutate { $0.count += 1 }
   }
   
   func cancel(context: TransactionContext<Store<Counter>, Self>) { }
@@ -97,15 +97,15 @@ enum CounterAction: Action {
   case increase(amount: Int)
   case decrease(amount: Int)
 
-  func reduce(context: TransactionContext<Store<Counter>, Self>) {
+  func mutate(context: TransactionContext<Store<Counter>, Self>) {
     defer {
       context.fulfill()
     }
     switch self {
     case .increase(let amount):
-      context.reduceModel { $0.count += amount }
+      context.update { $0.count += amount }
     case .decrease(let amount):
-      context.reduceModel { $0.count -= amount }
+      context.update { $0.count -= amount }
     }
   }
   
@@ -139,7 +139,7 @@ struct ContentView_Previews : PreviewProvider {
 
 ### `class Store<M>: ObservableObject, Identifiable`
 
-This class is the default implementation of the `ReducibleStore` protocol.
+This class is the default implementation of the `MutableStore` protocol.
 A store wraps a value-type model, synchronizes its mutations, and emits notifications to its
 observers any time the model changes.
 
@@ -174,9 +174,7 @@ e.g.
  `Toggle("...", isOn: $store.binding.someProperty)`.
  When the binding set a new value an implicit action is being triggered and the property is
  updated.
- 
-* ` func reduceModel(transaction: AnyTransaction?, closure: (inout ModelType) -> Void)`
-Atomically update the model and notifies all of the observers.
+
 
  ### Observation
  

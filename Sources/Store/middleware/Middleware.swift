@@ -26,33 +26,34 @@ public let logger = Logger(label: "io.store")
 public final class LoggerMiddleware: Middleware {
   
   /// Syncronizes the access to the middleware.
-  private var _lock = SpinLock()
+  private var lock = UnfairLock()
+
   /// The transactions start time (in µs).
-  private var _transactionStartNanos: [String: UInt64] = [:]
+  private var transactionStartNanos: [String: UInt64] = [:]
 
   public init() {}
 
   /// Logs the transaction identifier, the action name and its current state.
   public func onTransactionStateChange(_ transaction: AnyTransaction) {
-    _lock.lock()
+    lock.lock()
     let id = transaction.id
     let name = transaction.actionId
     switch transaction.state {
     case .pending:
       break
     case .started:
-      _transactionStartNanos[transaction.id] = _nanos()
+      transactionStartNanos[transaction.id] = _nanos()
     case .completed:
-      guard let prev = _transactionStartNanos[transaction.id] else { break }
+      guard let prev = transactionStartNanos[transaction.id] else { break }
       let time = _nanos() - prev
       let millis = Float(time)/1_000_000
       logger.info("▩ \(id) \(name) [\(millis)) ms]")
-      _transactionStartNanos[transaction.id] = nil
+      transactionStartNanos[transaction.id] = nil
     case .canceled:
       logger.info("▩ \(id) \(id) \(name) [✖ cancelled]")
-      _transactionStartNanos[transaction.id] = nil
+      transactionStartNanos[transaction.id] = nil
     }
-    _lock.unlock()
+    lock.unlock()
   }
 
   /// Return the current time in µs.

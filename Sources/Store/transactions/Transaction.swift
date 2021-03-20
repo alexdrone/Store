@@ -36,7 +36,7 @@ public protocol AnyTransaction: class, Cancellable {
   var id: String { get }
   
   /// The execution strategy (*sync*/*aysnc*).
-  var strategy: Executor.Strategy { get }
+  var mode: Executor.Mode { get }
   
   /// Tracks any error that might have been raised in this transaction group.
   var error: ErrorStorage? { get set }
@@ -51,7 +51,7 @@ public protocol AnyTransaction: class, Cancellable {
   // MARK: Modifiers
   
   /// The execution strategy (*sync*/*aysnc*).
-  func on(_ queueWithStrategy: Executor.Strategy)
+  func on(_ queueWithStrategy: Executor.Mode)
   
   /// If greater that 0, the action will only be triggered at most once during a given
   /// window of time.
@@ -94,10 +94,10 @@ extension AnyTransaction {
 // MARK: - Implementation
 
 public final class Transaction<A: Action>: AnyTransaction, Identifiable {
-  // AnyTransaction.
+
   public var actionId: String { action.id }
   public let id: String = PushID.default.make()
-  public var strategy = Executor.Strategy.async(nil)
+  public var mode = Executor.Mode.async(nil)
   public var error: ErrorStorage?
   public var opaqueStoreRef: AnyStore? {
     set {
@@ -108,7 +108,7 @@ public final class Transaction<A: Action>: AnyTransaction, Identifiable {
   }
   
   /// Stored handler.
-  private var _handler: Executor.TransactionCompletion = nil
+  private var handler: Executor.TransactionCompletion = nil
   
   /// Represents the progress of the transaction.
   @Published public var state: TransactionState = .pending {
@@ -140,8 +140,8 @@ public final class Transaction<A: Action>: AnyTransaction, Identifiable {
     TransactionDisposeBag.shared.register(transaction: self)
   }
 
-  public func on(_ queueWithStrategy: Executor.Strategy) {
-    strategy = queueWithStrategy
+  public func on(_ queueWithStrategy: Executor.Mode) {
+    mode = queueWithStrategy
   }
 
   public func throttleIfNeeded(_ minimumDelay: TimeInterval) {
@@ -159,7 +159,7 @@ public final class Transaction<A: Action>: AnyTransaction, Identifiable {
       store: store,
       errorStorage: error,
       transaction: self)
-    action.reduce(context: context)
+    action.mutate(context: context)
   }
   
   public func run() -> Future<Void, Error> {
@@ -179,7 +179,7 @@ public final class Transaction<A: Action>: AnyTransaction, Identifiable {
       logger.error("store is nil - the operation won't be executed.")
       return
     }
-    Executor.main.run(transactions: [self], handler: handler ?? self._handler)
+    Executor.main.run(transactions: [self], handler: handler ?? self.handler)
   }
   
   public func cancel() {
@@ -239,21 +239,21 @@ final class TransactionDisposeBag {
   static let shared = TransactionDisposeBag()
   
   /// All of the ongoing transactions.
-  private var _ongoingTransactions: [String: AnyTransaction] = [:]
-  private var _collectionLock = SpinLock()
+  private var ongoingTransactions: [String: AnyTransaction] = [:]
+  private var collectionLock = UnfairLock()
 
   private init() { }
   
   func register(transaction: AnyTransaction) {
-    _collectionLock.lock()
-    _ongoingTransactions[transaction.id] = transaction
-    _collectionLock.unlock()
+    collectionLock.lock()
+    ongoingTransactions[transaction.id] = transaction
+    collectionLock.unlock()
   }
   
   func dispose(transaction: AnyTransaction) {
-    _collectionLock.lock()
-    _ongoingTransactions[transaction.id] = nil
-    _collectionLock.unlock()
+    collectionLock.lock()
+    ongoingTransactions[transaction.id] = nil
+    collectionLock.unlock()
   }
 }
 

@@ -15,10 +15,13 @@ open class CodableStore<M: Codable>: Store<M> {
   
   /// Transaction diffing options.
   public enum Diffing {
+
     /// Does not compute any diff.
     case none
+  
     /// Computes the diff synchronously right after the transaction has completed.
     case sync
+
     /// Computes the diff asynchronously (in a serial queue) when transaction is completed.
     case async
   }
@@ -27,15 +30,18 @@ open class CodableStore<M: Codable>: Store<M> {
   @Published public var lastTransactionDiff: TransactionDiff = TransactionDiff(
     transaction: SignpostTransaction(signpost: SignpostID.prior),
     diffs: [:])
+
   /// Where the diffing routine should be dispatched.
   public let diffing: Diffing
   
   /// Serial queue used to run the diffing routine.
-  private let _queue = DispatchQueue(label: "io.store.diff")
+  private let queue = DispatchQueue(label: "io.store.diff")
+
   /// Set of `transaction.id` for all of the transaction that have run of this store.
-  private var _transactionIdsHistory = Set<String>()
+  private var transactionIdsHistory = Set<String>()
+
   /// Last serialized snapshot for the model.
-  private var _lastModelSnapshot: [FlatEncoding.KeyPath: Codable?] = [:]
+  private var lastModelSnapshot: [FlatEncoding.KeyPath: Codable?] = [:]
 
   /// Constructs a new Store instance with a given initial model.
   ///
@@ -44,25 +50,27 @@ open class CodableStore<M: Codable>: Store<M> {
   ///                      This will aftect how `lastTransactionDiff` is going to be produced.
   public init(
     modelStorage: ModelStorageBase<M>,
-    diffing: Diffing = .async
+    diffing: Diffing = .async,
+    parent: AnyStore? = nil
   ) {
     self.diffing = diffing
-    super.init(modelStorage: modelStorage)
-    self._lastModelSnapshot = CodableStore.encodeFlat(model: modelStorage.model)
+    super.init(modelStorage: modelStorage, parent: parent)
+    self.lastModelSnapshot = CodableStore.encodeFlat(model: modelStorage.model)
   }
   
   public convenience init(
     model: M,
-    diffing: Diffing = .async
+    diffing: Diffing = .async,
+    parent: AnyStore? = nil
   ) {
-    self.init(modelStorage: ModelStorage(model: model), diffing: diffing)
+    self.init(modelStorage: ModelStorage(model: model), diffing: diffing, parent: parent)
   }
   
   // MARK: Model updates
 
-  override open func reduceModel(transaction: AnyTransaction?, closure: (inout M) -> Void) {
+  override open func update(transaction: AnyTransaction?, closure: (inout M) -> Void) {
     let transaction = transaction ?? SignpostTransaction(signpost: SignpostID.modelUpdate)
-    super.reduceModel(transaction: transaction, closure: closure)
+    super.update(transaction: transaction, closure: closure)
   }
 
   override open func didUpdateModel(transaction: AnyTransaction?, old: M, new: M) {
@@ -73,34 +81,34 @@ open class CodableStore<M: Codable>: Store<M> {
     func dispatch(option: Diffing, execute: @escaping () -> Void) {
       switch option {
       case .sync:
-        _queue.sync(execute: execute)
+        queue.sync(execute: execute)
       case .async:
-        _queue.async(execute: execute)
+        queue.async(execute: execute)
       case .none:
         return
       }
     }
     dispatch(option: diffing) {
-      self._transactionIdsHistory.insert(transaction.id)
+      self.transactionIdsHistory.insert(transaction.id)
       /// The resulting dictionary won't be nested and all of the keys will be paths.
       let encodedModel: FlatEncoding.Dictionary = CodableStore.encodeFlat(model: new)
       var diffs: [FlatEncoding.KeyPath: PropertyDiff] = [:]
       for (key, value) in encodedModel {
-        // The (`keyPath`, `value`) pair was not in the previous _lastModelSnapshot.
-        if self._lastModelSnapshot[key] == nil {
+        // The (`keyPath`, `value`) pair was not in the previous lastModelSnapshot.
+        if self.lastModelSnapshot[key] == nil {
           diffs[key] = .added(new: value)
           // The (`keyPath`, `value`) pair has changed value.
-        } else if let old = self._lastModelSnapshot[key], !dynamicEqual(lhs: old, rhs: value) {
+        } else if let old = self.lastModelSnapshot[key], !dynamicEqual(lhs: old, rhs: value) {
           diffs[key] = .changed(old: old, new: value)
         }
       }
-      // The (`keyPath`, `value`) was removed from the _lastModelSnapshot.
-      for (key, _) in self._lastModelSnapshot where encodedModel[key] == nil {
+      // The (`keyPath`, `value`) was removed from the lastModelSnapshot.
+      for (key, _) in self.lastModelSnapshot where encodedModel[key] == nil {
         diffs[key] = .removed
       }
       // Updates the publisher.
       self.lastTransactionDiff = TransactionDiff(transaction: transaction, diffs: diffs)
-      self._lastModelSnapshot = encodedModel
+      self.lastModelSnapshot = encodedModel
 
       let id = transaction.id
       let aid = transaction.actionId
@@ -116,8 +124,7 @@ open class CodableStore<M: Codable>: Store<M> {
     keyPath: WritableKeyPath<M, C>
   ) -> CodableStore<C> where M: Codable, C: Codable {
     let childModelStorage: ModelStorageBase<C> = modelStorage.makeChild(keyPath: keyPath)
-    let store = CodableStore<C>(modelStorage: childModelStorage)
-    store.parent = self
+    let store = CodableStore<C>(modelStorage: childModelStorage, parent: self)
     return store
   }
   
@@ -125,7 +132,7 @@ open class CodableStore<M: Codable>: Store<M> {
   
   /// Encodes the model into a dictionary.
   static public func encode<V: Encodable>(model: V) -> EncodedDictionary {
-    let result = _serialize(model: model)
+    let result = serialize(model: model)
     return result
   }
 
@@ -141,13 +148,13 @@ open class CodableStore<M: Codable>: Store<M> {
   /// - note: This is particularly useful to synchronize the model with document-based databases
   /// (e.g. Firebase).
   static public func encodeFlat<V: Encodable>(model: V) -> FlatEncoding.Dictionary {
-    let result = _serialize(model: model)
+    let result = serialize(model: model)
     return flatten(encodedModel: result)
   }
 
   /// Decodes the model from a dictionary.
   static public func decode<V: Decodable>(dictionary: EncodedDictionary) -> V? {
-    _deserialize(dictionary: dictionary)
+    deserialize(dictionary: dictionary)
   }
 }
 
@@ -155,7 +162,7 @@ open class CodableStore<M: Codable>: Store<M> {
 
 /// Serialize the model passed as argument.
 /// - note: If the serialization fails, an empty dictionary is returned instead.
-private func _serialize<V: Encodable>(model: V) -> EncodedDictionary {
+private func serialize<V: Encodable>(model: V) -> EncodedDictionary {
   do {
     let dictionary: [String: Any] = try DictionaryEncoder().encode(model)
     return dictionary
@@ -166,7 +173,7 @@ private func _serialize<V: Encodable>(model: V) -> EncodedDictionary {
 
 /// Deserialize the dictionary and returns a store of type `S`.
 /// - note: If the deserialization fails, an empty model is returned instead.
-private func _deserialize<V: Decodable>(dictionary: EncodedDictionary) -> V? {
+private func deserialize<V: Decodable>(dictionary: EncodedDictionary) -> V? {
   do {
     let model = try DictionaryDecoder().decode(V.self, from: dictionary)
     return model

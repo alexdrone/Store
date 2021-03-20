@@ -16,11 +16,12 @@ public extension KeyPath {
       assertionFailure()
       return nil
     }
-  
+
     let typeDescriptor = metadata.pointee.typeDescriptor
     let numberOfFields = Int(typeDescriptor.pointee.numberOfFields)
-    let offsets = typeDescriptor.pointee.offsetToTheFieldOffsetVector
-      .buffer(metadata: typePtr, count: numberOfFields)
+    let offsets = typeDescriptor.pointee.offsetToTheFieldOffsetVector.buffer(
+      metadata: typePtr,
+      count: numberOfFields)
     
     guard let fieldIndex = offsets.firstIndex(of: Int32(offset)) else {
       return nil
@@ -32,7 +33,7 @@ public extension KeyPath {
   }
 }
 
-// MARK: - Internal Layout
+// MARK: - Memory Layout
 
 private struct StructMetadata {
   var _kind: Int
