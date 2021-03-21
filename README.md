@@ -21,6 +21,31 @@ it gets easier to work with many collaborators.
 - **Views**: A simple function of your state. This works especially well with *SwiftUI*'s 
 declarative programming style.
 
+# Getting started
+
+TL;DR
+
+```swift
+import SwiftUI
+import Store
+
+struct CounterModel { var count: Int }
+
+struct CounterView: View {
+  @ObservedObject var store = Store(model: CounterModel(count: 0))
+  
+  var body: some View {
+    VStack {
+      Text(String(describing: store.binding.count))
+      HStack {
+        Button("Increase") { store.binding.count += 1 }
+        Button("Decrease") { store.binding.count -= 1 }
+      }
+    }
+  }
+}
+```
+
 ### Store
 
 Stores contain the application state and logic. Their role is somewhat similar to a model in a 
@@ -39,9 +64,10 @@ let store = Store<Counter>(model: Counter())
 
 ### Actions
 
-An action represent an operation on the store.
+An action represent an operation on the store that is cancellable and is performed transactionally
+on the Store.
 
-It can be represented using an enum:
+Actions can be defined using an enum or a struct.
 
 ```swift
 enum CounterAction: Action {
@@ -65,8 +91,6 @@ enum CounterAction: Action {
 }
 ```
 
-Or a struct:
-
 ```swift
 struct IncreaseAction: Action {
   let count: Int
@@ -83,56 +107,11 @@ struct IncreaseAction: Action {
 }
 ```
 
-# Getting started
+Alternatively using a binding to change the store value (through `store.binding`) or calling 
+`store.mutate { model in }` would implicitly create and run an action that is performed synchronously.
 
-TL;DR
-
-```swift
-import SwiftUI
-import Store
-
-struct Counter { var count = 0 }
-
-enum CounterAction: Action {
-  case increase(amount: Int)
-  case decrease(amount: Int)
-
-  func mutate(context: TransactionContext<Store<Counter>, Self>) {
-    defer {
-      context.fulfill()
-    }
-    switch self {
-    case .increase(let amount):
-      context.update { $0.count += amount }
-    case .decrease(let amount):
-      context.update { $0.count -= amount }
-    }
-  }
-  
-  func cancel(context: TransactionContext<Store<Counter>, Self>) { }
-}
-
-// MARK: - UI
-
-struct ContentView: View {
-  @StateObject var store = Store<Counter>(model: Counter())
-  
-  var body: some View {
-    Text("counter \(store.model.count)").tapAction {
-      store.run(action: .increase(amount: 1))
-    }
-  }
-}
-
-// MARK: - Preview
-
-#if DEBUG
-struct ContentView_Previews : PreviewProvider {
-    static var previews: some View {
-        ContentView()
-    }
-}
-#endif
+```
+Button("Increase") { store.binding.count += 1 }
 ```
 
 #  Documentation
