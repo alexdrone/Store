@@ -10,3 +10,27 @@ struct ExamplesApp: App {
         }
     }
 }
+
+// MARK: - Shared Design elements.
+
+struct AccentButtonStyle: ButtonStyle {
+  func makeBody(configuration: Configuration) -> some View {
+    configuration.label
+      .font(.subheadline)
+      .padding()
+      .background(Color.accentColor)
+      .foregroundColor(.white)
+      .clipShape(Capsule())
+  }
+}
+
+struct DestructiveButtonStyle: ButtonStyle {
+  func makeBody(configuration: Configuration) -> some View {
+    configuration.label
+      .font(.subheadline)
+      .padding()
+      .background(Color.red)
+      .foregroundColor(.white)
+      .clipShape(Capsule())
+  }
+}

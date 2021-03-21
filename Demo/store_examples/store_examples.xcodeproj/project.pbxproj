@@ -13,6 +13,7 @@
 		168DE6432607586200CB2507 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 168DE6422607586200CB2507 /* Preview Assets.xcassets */; };
 		168DE64D260758BE00CB2507 /* Store in Frameworks */ = {isa = PBXBuildFile; productRef = 168DE64C260758BE00CB2507 /* Store */; };
 		168DE65926075B8800CB2507 /* CounterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 168DE65826075B8800CB2507 /* CounterView.swift */; };
+		168DE65E260784F900CB2507 /* TodoListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 168DE65D260784F900CB2507 /* TodoListView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +25,7 @@
 		168DE6442607586200CB2507 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		168DE650260758F400CB2507 /* store_examples.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = store_examples.entitlements; sourceTree = "<group>"; };
 		168DE65826075B8800CB2507 /* CounterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CounterView.swift; sourceTree = "<group>"; };
+		168DE65D260784F900CB2507 /* TodoListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoListView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,6 +63,7 @@
 				168DE63B2607586200CB2507 /* App.swift */,
 				168DE63D2607586200CB2507 /* Sidebar.swift */,
 				168DE65826075B8800CB2507 /* CounterView.swift */,
+				168DE65D260784F900CB2507 /* TodoListView.swift */,
 				168DE63F2607586200CB2507 /* Assets.xcassets */,
 				168DE6442607586200CB2507 /* Info.plist */,
 				168DE6412607586200CB2507 /* Preview Content */,
@@ -152,6 +155,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				168DE63E2607586200CB2507 /* Sidebar.swift in Sources */,
+				168DE65E260784F900CB2507 /* TodoListView.swift in Sources */,
 				168DE63C2607586200CB2507 /* App.swift in Sources */,
 				168DE65926075B8800CB2507 /* CounterView.swift in Sources */,
 			);
