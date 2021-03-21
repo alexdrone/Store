@@ -52,7 +52,7 @@ Yet another todo list:
 
 ```swift
 final class Todo: Codable, Identifiable {
-  private(set) var id = PushID.default.make()
+  let id = PushID.default.make()
   var text: String = "Untitled Todo"
   var done: Bool = false
 }
@@ -63,13 +63,15 @@ final class TodoList: Codable {
 
 extension Store where M == TodoList {
   func addNewTodo() {
-    mutate(id: #function) { model in model.todos.append(Todo()) }
+    mutate { $0.todos.append(Todo()) }
   }
   func move(from source: IndexSet, to destination: Int) {
-    mutate(id: #function) { model in model.todos.move(fromOffsets: source, toOffset: destination) }
+    mutate { $0.todos.move(fromOffsets: source, toOffset: destination) }
   }
   func remove(todo: Todo) {
-    mutate(id: #function) { model in model.todos = model.todos.filter { $0.id != todo.id } }
+    mutate { model in 
+      model.todos = model.todos.filter { $0.id != todo.id } 
+    }
   }
 }
 
