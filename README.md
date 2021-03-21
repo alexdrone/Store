@@ -182,7 +182,7 @@ struct IncreaseAction: Action {
 Alternatively using a binding to change the store value (through `store.binding`) or calling 
 `store.mutate { model in }` would implicitly create and run an action that is performed synchronously.
 
-```
+```swift
 Button("Increase") { store.binding.count += 1 }
 ```
 
