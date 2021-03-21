@@ -50,7 +50,7 @@ struct CounterView: View {
 
 Yet another todo list:
 
-```
+```swift
 final class Todo: Codable, Identifiable {
   private(set) var id = PushID.default.make()
   var text: String = "Untitled Todo"
