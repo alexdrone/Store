@@ -36,7 +36,7 @@ extension Action {
 // MARK: - Cancellable Property Wrapper
 
 /// Wraps a cancellable modifiable type.
-/// Useful when using cancellable pubblisher within a value-type action.
+/// Useful when using cancellable publisher within a value-type action.
 /// e.g.
 /// ```
 /// struct FetchTopStories: Action {
