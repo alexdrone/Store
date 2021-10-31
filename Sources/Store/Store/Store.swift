@@ -1,5 +1,4 @@
 import Foundation
-import Primer
 import Logging
 import Combine
 #if canImport(SwiftUI)

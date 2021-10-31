@@ -18,14 +18,18 @@ let package = Package(
             targets: ["Store"]),
     ],
     dependencies: [
-      .package(url: "https://github.com/alexdrone/Primer.git", from: "0.0.2"),
+      .package(url: "https://github.com/apple/swift-atomics.git", from: "0.0.3"),
+      .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0")
     ],
     targets: [
         .target(
             name: "Store",
-            dependencies: ["Primer"]),
+            dependencies: [
+              .product(name: "Atomics", package: "swift-atomics"),
+              .product(name: "Logging", package: "swift-log")
+            ]),
         .testTarget(
             name: "StoreTests",
-            dependencies: ["Store", "Primer"]),
+            dependencies: ["Store"]),
     ]
 )

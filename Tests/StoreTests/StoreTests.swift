@@ -1,7 +1,6 @@
 import XCTest
 import Combine
 import SwiftUI
-import Primer
 @testable import Store
 
 final class StoreTests: XCTestCase {

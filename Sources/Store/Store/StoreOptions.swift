@@ -1,6 +1,4 @@
 import Foundation
-import Primer
-import Logging
 import Combine
 
 public struct StoreOptions<S: Scheduler> {

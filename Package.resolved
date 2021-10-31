@@ -2,15 +2,6 @@
   "object": {
     "pins": [
       {
-        "package": "Primer",
-        "repositoryURL": "https://github.com/alexdrone/Primer.git",
-        "state": {
-          "branch": null,
-          "revision": "93adb2d2a569aa425dbaa0be973e62685f19de0e",
-          "version": "0.0.2"
-        }
-      },
-      {
         "package": "swift-atomics",
         "repositoryURL": "https://github.com/apple/swift-atomics.git",
         "state": {
