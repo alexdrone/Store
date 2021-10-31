@@ -1,8 +1,8 @@
-import Foundation
 import Combine
+import Foundation
 
 public struct StoreOptions<S: Scheduler> {
-  
+
   public enum SchedulingStrategy {
     /// The time the publisher should wait before publishing an element.
     case debounce(Double)
@@ -12,10 +12,10 @@ public struct StoreOptions<S: Scheduler> {
     /// Events are being emitted as they're sent through the publisher.
     case none
   }
-  
+
   /// The scheduler on which this publisher delivers elements
   public let scheduler: S
-  
+
   /// Schedule stratey.
   public let schedulingStrategy: SchedulingStrategy
 }

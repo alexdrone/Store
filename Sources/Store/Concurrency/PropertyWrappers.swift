@@ -49,7 +49,7 @@ public final class SyncDispatchQueueAtomic<T>: @unchecked Sendable {
     self.value = wrappedValue
     self.concurrentReads = concurrentReads
     let label = "SyncDispatchQueueAtomic.\(UUID().uuidString)"
-    self.queue =  DispatchQueue(label: label, attributes: concurrentReads ? [.concurrent] : [])
+    self.queue = DispatchQueue(label: label, attributes: concurrentReads ? [.concurrent] : [])
   }
 
   public var wrappedValue: T {

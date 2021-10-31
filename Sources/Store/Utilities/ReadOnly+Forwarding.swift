@@ -1,5 +1,5 @@
-import Foundation
 import Combine
+import Foundation
 
 extension ReadOnly where T: PropertyObservableObject {
   /// Forwards the `ObservableObject.objectWillChangeSubscriber` to this proxy object.

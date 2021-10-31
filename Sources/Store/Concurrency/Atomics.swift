@@ -1,4 +1,4 @@
-import Foundation
 import Atomics
+import Foundation
 
-extension ManagedAtomic: @unchecked Sendable { }
+extension ManagedAtomic: @unchecked Sendable {}

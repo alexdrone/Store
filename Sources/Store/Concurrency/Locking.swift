@@ -11,7 +11,7 @@ public protocol Locking {
   /// Whenever possible, consider using `withLock` instead of this method and
   /// `unlock`, to simplify lock handling.
   func lock()
-  
+
   /// Release the lock.
   ///
   /// Whenver possible, consider using `withLock` instead of this method and
@@ -33,13 +33,13 @@ extension Locking {
     lock()
     return try body()
   }
-  
+
   /// Specialise Void return (for performance).
   @inlinable
-  public func withLockVoid(_ body: () throws -> Void) rethrows -> Void {
+  public func withLockVoid(_ body: () throws -> Void) rethrows {
     try self.withLock(body)
   }
-  
+
   /// Async variant.
   @inlinable
   public func withLock<T>(_ body: () async throws -> T) async rethrows -> T {
@@ -55,14 +55,14 @@ extension Locking {
 
 /// An object that coordinates the operation of multiple threads of execution within the
 /// same application.
-extension NSLock: Locking { }
+extension NSLock: Locking {}
 
 /// A lock that may be acquired multiple times by the same thread without causing a deadlock.
-extension NSRecursiveLock: Locking { }
+extension NSRecursiveLock: Locking {}
 
 /// A lock that multiple applications on multiple hosts can use to restrict access to some
 /// shared resource, such as a file.
-extension NSConditionLock: Locking { }
+extension NSConditionLock: Locking {}
 
 // MARK: - Mutex
 
@@ -74,7 +74,7 @@ public final class Mutex: Locking {
     pthread_mutex_init(&mutex, nil)
     return mutex
   }()
-  
+
   public init() {}
 
   public func lock() {
@@ -91,7 +91,7 @@ public final class Mutex: Locking {
 /// A low-level lock that allows waiters to block efficiently on contention.
 public final class UnfairLock: Locking {
   private var unfairLock = os_unfair_lock_s()
-  
+
   public init() {}
 
   public func lock() {
@@ -109,18 +109,18 @@ public final class UnfairLock: Locking {
 /// Read more: https://en.wikipedia.org/wiki/POSIX_Threads
 public final class ReadersWriterLock: @unchecked Sendable {
   private var rwlock: UnsafeMutablePointer<pthread_rwlock_t>
-  
+
   public init() {
     rwlock = UnsafeMutablePointer.allocate(capacity: 1)
     assert(pthread_rwlock_init(rwlock, nil) == 0)
   }
-  
+
   deinit {
     assert(pthread_rwlock_destroy(rwlock) == 0)
     rwlock.deinitialize(count: 1)
     rwlock.deallocate()
   }
-  
+
   public func withReadLock<T>(body: () throws -> T) rethrows -> T {
     pthread_rwlock_rdlock(rwlock)
     defer {
@@ -128,7 +128,7 @@ public final class ReadersWriterLock: @unchecked Sendable {
     }
     return try body()
   }
-  
+
   public func withWriteLock<T>(body: () throws -> T) rethrows -> T {
     pthread_rwlock_wrlock(rwlock)
     defer {

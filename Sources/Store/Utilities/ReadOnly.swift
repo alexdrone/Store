@@ -1,5 +1,5 @@
-import Foundation
 import Combine
+import Foundation
 
 /// Constructs a type with all properties of the given generic type `T` set to readonly,
 /// meaning that the properties of the constructed type cannot be reassigned.
@@ -19,7 +19,7 @@ import Combine
 open class ReadOnly<T>: ObservableObject, PropertyObservableObject {
   public var propertyDidChange = PassthroughSubject<AnyPropertyChangeEvent, Never>()
   public private(set) var wrappedValue: T
-  
+
   // Observable internals.
   var objectWillChangeSubscriber: Cancellable?
   var propertyDidChangeSubscriber: Cancellable?
@@ -28,11 +28,11 @@ open class ReadOnly<T>: ObservableObject, PropertyObservableObject {
   init(object: T) {
     wrappedValue = object
   }
-  
+
   public func read<V>(keyPath: KeyPath<T, V>) -> V {
     wrappedValue[keyPath: keyPath]
   }
-  
+
   /// Use `@dynamicMemberLookup` keypath subscript to forward the value of the proxied object.
   public subscript<V>(dynamicMember keyPath: KeyPath<T, V>) -> V {
     wrappedValue[keyPath: keyPath]
@@ -40,4 +40,3 @@ open class ReadOnly<T>: ObservableObject, PropertyObservableObject {
 }
 
 //MARK: - forward Publishers
-

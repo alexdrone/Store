@@ -1,5 +1,5 @@
-import Foundation
 import Combine
+import Foundation
 
 public protocol PropertyObservableObject: AnyObject {
   /// A publisher that emits when an object property has changed.
@@ -10,19 +10,19 @@ public protocol PropertyObservableObject: AnyObject {
 public struct AnyPropertyChangeEvent {
   /// The proxy's wrapped value.
   public let object: Any
-  
+
   /// The mutated keyPath.
   public let keyPath: AnyKeyPath?
-  
+
   /// Optional debug label for this event.
   public let debugLabel: String?
-  
+
   public init(object: Any, keyPath: AnyKeyPath? = nil, debugLabel: String? = nil) {
     self.object = object
     self.keyPath = keyPath
     self.debugLabel = debugLabel
   }
-  
+
   /// Returns the tuple `object, value` if this property change matches the `keyPath` passed as
   /// argument.
   public func match<T, V>(keyPath: KeyPath<T, V>) -> (T, V)? {

@@ -864,7 +864,7 @@ func dynamicEncode(value: Any, encoder: Encoder) throws {
   // TODO
 }
 
-fileprivate func isEqual<T: Equatable>(type: T.Type, a: Any, b: Any) -> Bool {
+private func isEqual<T: Equatable>(type: T.Type, a: Any, b: Any) -> Bool {
   guard let a = a as? T, let b = b as? T else { return false }
   return a == b
 }

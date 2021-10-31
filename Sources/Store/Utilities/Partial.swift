@@ -23,13 +23,13 @@ import Foundation
 public struct Partial<T> {
   /// The construction closure invoked by `build()`.
   public let create: (Partial<T>) -> Result<T, Error>
-  
+
   /// All of the values currently set in this partial.
   private var keypathToValueMap: [AnyKeyPath: Any] = [:]
-  
+
   /// All of the `set` commands that will performed once the object is built.
   private var keypathToSetValueMap: [AnyKeyPath: (inout T) -> Void] = [:]
-  
+
   public init(_ create: @escaping (Partial<T>) -> Result<T, Error>) {
     self.create = create
   }
@@ -64,7 +64,7 @@ public struct Partial<T> {
       }
     }
   }
-  
+
   /// Build the target object by using the `createInstanceClosure` passed to the constructor.
   public func build() -> Result<T, Error> {
     let result = create(self)
@@ -78,7 +78,7 @@ public struct Partial<T> {
       return result
     }
   }
-  
+
   /// Merge all of the properties currently set in this Partial with the destination object.
   public func merge(_ dest: inout T) -> T {
     assign(dest) {
@@ -87,7 +87,7 @@ public struct Partial<T> {
       }
     }
   }
-  
+
   /// Returns the value currently set for the given keyPath or an alternative default value.
   public func get<V>(_ keyPath: KeyPath<T, V>, default: V) -> V {
     guard let value = keypathToValueMap[keyPath] as? V else {
@@ -95,7 +95,7 @@ public struct Partial<T> {
     }
     return value
   }
-  
+
   /// Returns the value currently set for the given keyPath or `nil`
   public func get<V>(_ keyPath: KeyPath<T, V>) -> V? {
     guard let value = keypathToValueMap[keyPath] as? V else {

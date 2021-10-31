@@ -1,8 +1,9 @@
+import Combine
 import Foundation
 import Logging
-import Combine
+
 #if canImport(SwiftUI)
-import SwiftUI
+  import SwiftUI
 #endif
 
 // MARK: - Extensions
@@ -30,18 +31,20 @@ extension Store: Identifiable where T: Identifiable {
 extension Store where T: PropertyObservableObject {
   /// Forwards `ObservableObject.objectWillChangeSubscriber` to this proxy.
   public func forwardPropertyObservablePublisher() {
-    objectSubscriptions.insert(object.wrappedValue.propertyDidChange.sink { [weak self] change in
-      self?.propertyDidChange.send(change)
-    })
+    objectSubscriptions.insert(
+      object.wrappedValue.propertyDidChange.sink { [weak self] change in
+        self?.propertyDidChange.send(change)
+      })
   }
 }
 
 extension Store where T: ObservableObject {
   /// Forwards `ObservableObject.objectWillChangeSubscriber` to this proxy.
   public func forwardObservableObjectPublisher() {
-    objectSubscriptions.insert(object.wrappedValue.objectWillChange.sink { [weak self] _ in
-      guard let self = self else { return }
-      self.objectDidChange.send()
-    })
+    objectSubscriptions.insert(
+      object.wrappedValue.objectWillChange.sink { [weak self] _ in
+        guard let self = self else { return }
+        self.objectDidChange.send()
+      })
   }
 }

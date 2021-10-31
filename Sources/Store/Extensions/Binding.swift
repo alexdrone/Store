@@ -1,56 +1,56 @@
+import Combine
 import Foundation
 import Logging
-import Combine
 
 #if canImport(SwiftUI)
-import SwiftUI
+  import SwiftUI
 #else
 
-@propertyWrapper
-@dynamicMemberLookup
-public struct Binding<Value> {
-  public var wrappedValue: Value {
-    get { get() }
-    nonmutating set { set(newValue, transaction) }
-  }
-  public var transaction = Transaction()
-  
-  private let get: () -> Value
-  private let set: (Value, Transaction) -> ()
-  
-  public var projectedValue: Binding<Value> { self }
-  
-  public init(get: @escaping () -> Value, set: @escaping (Value) -> ()) {
-    self.get = get
-    self.set = { v, _ in set(v) }
-  }
-  
-  public init(get: @escaping () -> Value, set: @escaping (Value, Transaction) -> ()) {
-    self.transaction = .init()
-    self.get = get
-    self.set = {
-      set($0, $1)
+  @propertyWrapper
+  @dynamicMemberLookup
+  public struct Binding<Value> {
+    public var wrappedValue: Value {
+      get { get() }
+      nonmutating set { set(newValue, transaction) }
+    }
+    public var transaction = Transaction()
+
+    private let get: () -> Value
+    private let set: (Value, Transaction) -> Void
+
+    public var projectedValue: Binding<Value> { self }
+
+    public init(get: @escaping () -> Value, set: @escaping (Value) -> Void) {
+      self.get = get
+      self.set = { v, _ in set(v) }
+    }
+
+    public init(get: @escaping () -> Value, set: @escaping (Value, Transaction) -> Void) {
+      self.transaction = .init()
+      self.get = get
+      self.set = {
+        set($0, $1)
+      }
+    }
+
+    public static func constant(_ value: Value) -> Binding<Value> {
+      .init(get: { value }, set: { _ in })
+    }
+
+    public subscript<Subject>(
+      dynamicMember keyPath: WritableKeyPath<Value, Subject>
+    ) -> Binding<Subject> {
+      .init(
+        get: { wrappedValue[keyPath: keyPath] },
+        set: { wrappedValue[keyPath: keyPath] = $0 })
+    }
+
+    public func transaction(_ transaction: Transaction) -> Binding<Value> {
+      fatalError()
     }
   }
-  
-  public static func constant(_ value: Value) -> Binding<Value> {
-    .init(get: { value }, set: { _ in })
-  }
-  
-  public subscript<Subject>(
-    dynamicMember keyPath: WritableKeyPath<Value, Subject>
-  ) -> Binding<Subject> {
-    .init(
-      get: { wrappedValue[keyPath: keyPath] },
-      set: { wrappedValue[keyPath: keyPath] = $0 })
-  }
-  
-  public func transaction(_ transaction: Transaction) -> Binding<Value> {
-    fatalError()
-  }
-}
 
-public struct Transaction { }
+  public struct Transaction {}
 
 #endif
 
@@ -64,9 +64,9 @@ public func ?? <T>(lhs: Binding<T?>, rhs: T) -> Binding<T> {
   )
 }
 
-public extension Binding {
+extension Binding {
   /// When the `Binding`'s wrapped value changes, the given closure is executed.
-  func onUpdate(_ closure: @escaping () -> Void) -> Binding<Value> {
+  public func onUpdate(_ closure: @escaping () -> Void) -> Binding<Value> {
     Binding(
       get: { wrappedValue },
       set: {

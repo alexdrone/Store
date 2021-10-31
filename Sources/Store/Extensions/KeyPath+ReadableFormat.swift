@@ -1,16 +1,16 @@
 import Foundation
 
-public extension KeyPath {
-  
+extension KeyPath {
+
   /// Returns the human readable name for the property pointed at.
-  var readableFormat: String? {
+  public var readableFormat: String? {
     guard let offset = MemoryLayout<Root>.offset(of: self) else {
       return nil
     }
     let typePtr = unsafeBitCast(Root.self, to: UnsafeMutableRawPointer.self)
     let metadata = typePtr.assumingMemoryBound(to: StructMetadata.self)
     let kind = metadata.pointee._kind
-    
+
     // see https://github.com/apple/swift/blob/main/include/swift/ABI/MetadataKind.def
     guard kind == 1 || kind == 0x200 else {
       assertionFailure()
@@ -22,7 +22,7 @@ public extension KeyPath {
     let offsets = typeDescriptor.pointee.offsetToTheFieldOffsetVector.buffer(
       metadata: typePtr,
       count: numberOfFields)
-    
+
     guard let fieldIndex = offsets.firstIndex(of: Int32(offset)) else {
       return nil
     }
@@ -57,12 +57,12 @@ private struct FieldDescriptor {
   var fieldRecordSize: Int16
   var numFields: Int32
   var fields: Buffer<Record>
-  
+
   struct Record {
     var fieldRecordFlags: Int32
     var _mangledTypeName: RelativePointer<Int32, UInt8>
     var _fieldName: RelativePointer<Int32, UInt8>
-    
+
     mutating func fieldName() -> String {
       String(cString: _fieldName.advanced())
     }
@@ -73,7 +73,7 @@ private struct FieldDescriptor {
 
 private struct Buffer<Element> {
   var element: Element
-  
+
   mutating func pointer() -> UnsafeMutablePointer<Element> {
     withUnsafePointer(to: &self) {
       UnsafeMutableRawPointer(mutating: UnsafeRawPointer($0)).assumingMemoryBound(to: Element.self)
@@ -83,7 +83,7 @@ private struct Buffer<Element> {
 
 private struct RelativePointer<Offset: FixedWidthInteger, Pointee> {
   var offset: Offset
-  
+
   mutating func advanced() -> UnsafeMutablePointer<Pointee> {
     let offset = self.offset
     return withUnsafePointer(to: &self) { p in
@@ -96,7 +96,7 @@ private struct RelativePointer<Offset: FixedWidthInteger, Pointee> {
 
 private struct RelativeBufferPointer<Offset: FixedWidthInteger, Pointee> {
   var strides: Offset
-  
+
   func buffer(metadata: UnsafeRawPointer, count: Int) -> UnsafeBufferPointer<Pointee> {
     let offset = numericCast(strides) * MemoryLayout<UnsafeRawPointer>.size
     let ptr = metadata.advanced(by: offset).assumingMemoryBound(to: Pointee.self)
