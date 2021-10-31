@@ -3,4 +3,4 @@
 
 Unidirectional, transactional Store implementation for Swift and SwiftUI
 
-*Store is being reworked to take advantage of async/await. [See the stable legacy version of Store here](https://github.com/alexdrone/Store/tree/legacy).* 
+*Store is being reworked to take advantage of async/await. [See the stable pre-async version of Store here](https://github.com/alexdrone/Store/tree/legacy).* 
