@@ -18,4 +18,4 @@ public struct StoreOptions<S: Scheduler> {
   
   /// Schedule stratey.
   public let schedulingStrategy: SchedulingStrategy
-  }
+}

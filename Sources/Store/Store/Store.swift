@@ -3,6 +3,7 @@ import Logging
 import Combine
 #if canImport(SwiftUI)
 import SwiftUI
+#endif
 
 /// Creates an observable store that acts as a proxy for the object passed as argument.
 ///
@@ -15,9 +16,6 @@ final public class Store<T>: ObservableObject, PropertyObservableObject, @unchec
   
   /// Emits an event whenever any of the wrapped object has been mutated.
   public var propertyDidChange = PassthroughSubject<AnyPropertyChangeEvent, Never>()
-
-  /// Synchronize the access to the wrapped object.
-  private let objectLock: Locking
   
   /// Subsystem logger.
   public private(set) lazy var logger: Logger = {
@@ -27,19 +25,21 @@ final public class Store<T>: ObservableObject, PropertyObservableObject, @unchec
     return Logger(label: label)
   }()
 
-  /// The wrapped object.
-  private var object: Binding<T>
-
   /// The underlying value referenced by the binding variable.
   /// This property provides primary access to the value's data. However, you
   /// don't access `wrappedValue` directly.
   public var wrappedValue: T { object.wrappedValue }
+  
+  /// The wrapped object.
+  var object: Binding<T>
 
   /// Internal subject used to propagate `objectWillChange` and `propertyDidChange` events.
-  private var objectDidChange = PassthroughSubject<Void, Never>()
+  var objectDidChange = PassthroughSubject<Void, Never>()
+  var objectSubscriptions = Set<AnyCancellable>()
+  var subscriptions = Set<AnyCancellable>()
   
-  private var subscriptions = Set<AnyCancellable>()
-  private var objectSubscriptions = Set<AnyCancellable>()
+  /// Synchronize the access to the wrapped object.
+  private let objectLock: Locking
 
   /// Constructs a new proxy for the object passed as argument.
   public init<S: Scheduler>(
@@ -50,8 +50,8 @@ final public class Store<T>: ObservableObject, PropertyObservableObject, @unchec
     self.object = object
     self.objectLock = objectLock
     
-    var objectWillChange: AnyPublisher = objectDidChange.eraseToAnyPublisher()
-    let propertyDidChange: AnyPublisher = propertyDidChange.eraseToAnyPublisher()
+    var objectWillChange = objectDidChange.eraseToAnyPublisher()
+    let propertyDidChange = propertyDidChange.eraseToAnyPublisher()
     
     switch options.schedulingStrategy {
     case .debounce(let seconds):
@@ -136,7 +136,7 @@ final public class Store<T>: ObservableObject, PropertyObservableObject, @unchec
   /// The returned binding can itself be used as the argument for a new store object or can simply
   /// be used inside a SwiftUI view.
   public func binding<V>(keyPath: WritableKeyPath<T, V>) -> Binding<V> {
-    Binding(
+    .init(
       get: { self.get(keyPath: keyPath) },
       set: { self.set(keyPath: keyPath, value: $0) })
   }
@@ -150,46 +150,3 @@ final public class Store<T>: ObservableObject, PropertyObservableObject, @unchec
     set { set(keyPath: keyPath, value: newValue, signpost: "dynamic_member") }
   }
 }
-
-// MARK: - Extensions
-
-extension Store: Equatable where T: Equatable {
-  public static func == (lhs: Store<T>, rhs: Store<T>) -> Bool {
-    lhs.object.wrappedValue == rhs.object.wrappedValue
-  }
-}
-
-extension Store: Hashable where T: Hashable {
-  /// Hashes the essential components of this value by feeding them into the given hasher.
-  public func hash(into hasher: inout Hasher) {
-    object.wrappedValue.hash(into: &hasher)
-  }
-}
-
-extension Store: Identifiable where T: Identifiable {
-  /// The stable identity of the entity associated with this instance.
-  public var id: T.ID { object.wrappedValue.id }
-}
-
-//MARK: - Trampoline Publishers
-
-extension Store where T: PropertyObservableObject {
-  /// Forwards `ObservableObject.objectWillChangeSubscriber` to this proxy.
-  public func trampolinePropertyObservablePublisher() {
-    objectSubscriptions.insert(object.wrappedValue.propertyDidChange.sink { [weak self] change in
-      self?.propertyDidChange.send(change)
-    })
-  }
-}
-
-extension Store where T: ObservableObject {
-  /// Forwards `ObservableObject.objectWillChangeSubscriber` to this proxy.
-  public func trampolineObservableObjectPublisher() {
-    objectSubscriptions.insert(object.wrappedValue.objectWillChange.sink { [weak self] _ in
-      guard let self = self else { return }
-      self.objectDidChange.send()
-    })
-  }
-}
-
-#endif
