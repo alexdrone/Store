@@ -21,103 +21,6 @@ it gets easier to work with many collaborators.
 - **Views**: A simple function of your state. This works especially well with *SwiftUI*'s 
 declarative programming style.
 
-# Getting started
-
-TL;DR
-
-Yet another counter:
-
-```swift
-import SwiftUI
-import Store
-
-struct CounterModel { var count: Int }
-
-struct CounterView: View {
-  @ObservedObject var store = Store(model: CounterModel(count: 0))
-  
-  var body: some View {
-    VStack {
-      Text(String(describing: store.binding.count))
-      HStack {
-        Button("Increase") { store.binding.count += 1 }
-        Button("Decrease") { store.binding.count -= 1 }
-      }
-    }
-  }
-}
-```
-
-Yet another todo list:
-
-```swift
-final class Todo: Codable, Identifiable {
-  let id = PushID.default.make()
-  var text: String = "Untitled Todo"
-  var done: Bool = false
-}
-
-final class TodoList: Codable {
-  var todos: [Todo] = []
-}
-
-extension Store where M == TodoList {
-  func addNewTodo() {
-    mutate { $0.todos.append(Todo()) }
-  }
-  func move(from source: IndexSet, to destination: Int) {
-    mutate { $0.todos.move(fromOffsets: source, toOffset: destination) }
-  }
-  func remove(todo: Todo) {
-    mutate { model in 
-      model.todos = model.todos.filter { $0.id != todo.id } 
-    }
-  }
-}
-
-// MARK: - Views
-
-struct TodoView: View {
-  @ObservedObject var store: CodableStore<Todo>
-  let onRemove: () -> Void
-  
-  var body: some View {
-    HStack {
-      // Move handle.
-      Image(systemName: "line.horizontal.3")
-      // Text.
-      if store.readOnlyModel.done {
-        Text(store.readOnlyModel.text).strikethrough()
-      } else {
-        TextField("Todo", text: $store.binding.text)
-      }
-      Spacer()
-      // Mark item as done.
-      Toggle("", isOn: $store.binding.done)
-      // Remove task.
-      Button("Remove", action: onRemove)
-    }.padding()
-  }
-}
-
-struct TodoListView: View {
-  @ObservedObject var store = CodableStore(model: TodoList())
-  
-  var body: some View {
-    List {
-      // Todo items.
-      ForEach(store.readOnlyModel.todos) { todo in
-        TodoView(store: CodableStore(model: todo)) { store.remove(todo: todo) }
-      }
-      .onMove(perform: store.move)
-      // Add a new item.
-      Button("New Todo", action: store.addNewTodo)
-    }
-  }
-}
-```
-
-
 ### Store
 
 Stores contain the application state and logic. Their role is somewhat similar to a model in a 
@@ -136,10 +39,9 @@ let store = Store<Counter>(model: Counter())
 
 ### Actions
 
-An action represent an operation on the store that is cancellable and is performed transactionally
-on the Store.
+An action represent an operation on the store.
 
-Actions can be defined using an enum or a struct.
+It can be represented using an enum:
 
 ```swift
 enum CounterAction: Action {
@@ -163,6 +65,8 @@ enum CounterAction: Action {
 }
 ```
 
+Or a struct:
+
 ```swift
 struct IncreaseAction: Action {
   let count: Int
@@ -179,11 +83,56 @@ struct IncreaseAction: Action {
 }
 ```
 
-Alternatively using a binding to change the store value (through `store.binding`) or calling 
-`store.mutate { model in }` would implicitly create and run an action that is performed synchronously.
+# Getting started
+
+TL;DR
 
 ```swift
-Button("Increase") { store.binding.count += 1 }
+import SwiftUI
+import Store
+
+struct Counter { var count = 0 }
+
+enum CounterAction: Action {
+  case increase(amount: Int)
+  case decrease(amount: Int)
+
+  func mutate(context: TransactionContext<Store<Counter>, Self>) {
+    defer {
+      context.fulfill()
+    }
+    switch self {
+    case .increase(let amount):
+      context.update { $0.count += amount }
+    case .decrease(let amount):
+      context.update { $0.count -= amount }
+    }
+  }
+  
+  func cancel(context: TransactionContext<Store<Counter>, Self>) { }
+}
+
+// MARK: - UI
+
+struct ContentView: View {
+  @StateObject var store = Store<Counter>(model: Counter())
+  
+  var body: some View {
+    Text("counter \(store.model.count)").tapAction {
+      store.run(action: .increase(amount: 1))
+    }
+  }
+}
+
+// MARK: - Preview
+
+#if DEBUG
+struct ContentView_Previews : PreviewProvider {
+    static var previews: some View {
+        ContentView()
+    }
+}
+#endif
 ```
 
 #  Documentation
