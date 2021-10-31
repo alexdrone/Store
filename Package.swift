@@ -18,15 +18,14 @@ let package = Package(
             targets: ["Store"]),
     ],
     dependencies: [
-      .package(url: "https://github.com/apple/swift-log.git", from: "1.2.0"),
-      .package(url: "https://github.com/OpenCombine/OpenCombine.git", from: "0.10.0")
+      .package(url: "https://github.com/alexdrone/Primer.git", from: "0.0.2"),
     ],
     targets: [
         .target(
             name: "Store",
-            dependencies: ["Logging", "OpenCombine", "OpenCombineDispatch"]),
+            dependencies: ["Primer"]),
         .testTarget(
             name: "StoreTests",
-            dependencies: ["Store", "Logging"]),
+            dependencies: ["Store", "Primer"]),
     ]
 )
