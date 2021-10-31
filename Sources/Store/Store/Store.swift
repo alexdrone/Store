@@ -22,7 +22,7 @@ final public class Store<T>: ObservableObject, PropertyObservableObject, @unchec
   public private(set) lazy var logger: Logger = {
     let type = String(describing: T.self)
     let pointer = String(format: "%02x", Unmanaged.passUnretained(self).toOpaque().hashValue)
-    let label = "\(type)(\(pointer))"
+    let label = "io.store.\(type)(\(pointer))"
     return Logger(label: label)
   }()
 
